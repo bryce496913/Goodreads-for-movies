@@ -7,6 +7,8 @@ struct TVShow: Identifiable, Equatable, Sendable {
     var firstAirDate: Date?
     var posterReference: String?
     var genreIDs: [String]
+    var episodeRuntimeMinutes: Int?
+    var backdropReference: String?
     var seasonCount: Int?
 
     init(
@@ -16,7 +18,9 @@ struct TVShow: Identifiable, Equatable, Sendable {
         firstAirDate: Date? = nil,
         posterReference: String? = nil,
         genreIDs: [String] = [],
-        seasonCount: Int? = nil
+        seasonCount: Int? = nil,
+        episodeRuntimeMinutes: Int? = nil,
+        backdropReference: String? = nil
     ) {
         self.id = MediaID(kind: .tvShow, value: id)
         self.title = title
@@ -24,6 +28,8 @@ struct TVShow: Identifiable, Equatable, Sendable {
         self.firstAirDate = firstAirDate
         self.posterReference = posterReference
         self.genreIDs = genreIDs
+        self.episodeRuntimeMinutes = episodeRuntimeMinutes
+        self.backdropReference = backdropReference
         self.seasonCount = seasonCount
     }
 }

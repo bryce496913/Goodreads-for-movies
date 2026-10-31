@@ -1,6 +1,6 @@
 # MovieTracker
 
-A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. This first pass supplies navigation, accessible empty states, domain models, and local persistence infrastructure; it does not yet save titles through the UI.
+A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. The app supplies navigation, accessible empty states, domain models, local persistence infrastructure, and an opt-in metadata service. It does not yet save or search titles through the UI.
 
 ## Requirements and running
 
@@ -39,6 +39,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Reusable semantic surfaces, spacing, section headings, and empty-state cards.
 - Movie, TV show, typed media identity, viewing status, and user library domain values.
 - A SwiftData container and stored library entry with explicit domain conversion, ready for future tracking features.
+- An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; not yet connected to Search UI. See [provider evaluation and local setup](docs/metadata-provider.md). Current terms and live retrieval remain unverified because provider documentation access is blocked and no credential is configured.
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -49,6 +50,7 @@ MovieTracker/
   Core/
     Models/            Foundation-only domain values
     Persistence/       SwiftData storage and container creation
+    Networking/        Metadata interfaces, TMDB DTO mapping and URLSession transport
     DesignSystem/      Shared visual primitives
   Features/
     Home/ Search/ Library/ Profile/
@@ -58,13 +60,13 @@ MovieTrackerUITests/   Tab and Settings navigation smoke test
 MovieTracker.xcodeproj/  Native project and shared scheme
 ```
 
-Feature views stay together. View models will be introduced when a feature has state/business logic that warrants them; the placeholder screens do not need empty view models. Networking, utilities, preview fixtures, and services will be added only when required, rather than creating unused scaffolding now.
+Feature views stay together. View models will be introduced when a feature has state/business logic that warrants them; the placeholder screens do not need empty view models. The metadata service is separate from feature UI. Utilities and preview fixtures will be added only when needed.
 
 `MediaID` combines a kind (`movie`/`tvShow`) with an opaque string, preventing movie and TV IDs from colliding. External provider identifiers must be mapped into the domain at a future integration boundary. Genre identifiers and poster references are opaque strings; no provider-specific URLs or SDK types enter the domain.
 
 Library entries have one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Rating/review values are optional foundations, with editing and rating-scale decisions deferred. Timestamps are explicit; future editing logic must update `updatedAt`.
 
-SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. Domain media identity is separate; duplicate-title policies will be implemented with future library editing. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. No repositories, protocols, authentication, networking, or cloud services are introduced.
+SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. Domain media identity is separate; duplicate-title policies will be implemented with future library editing. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking is opt-in and never runs during app startup.
 
 ## Validation and current limits
 
@@ -72,6 +74,7 @@ The implementation was authored in a **Linux cloud environment with no Swift com
 
 Included tests (require macOS/Xcode):
 
+- Fifteen additional metadata-service tests (unrun here) use injected transports and a fake credential, covering parsing, mapping, errors, pagination, cancellation, and artwork. Run locally with no TMDB credential; see [metadata validation instructions](docs/metadata-provider.md#validation-record-and-local-checks).
 - Four domain tests: metadata, unknown season count, movie/TV identity and Codable round trip, library statuses/defaults and independent favorites.
 - Six persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, container isolation, isolated on-disk save/reopen, and failure for an unusable store path without changing existing data.
 - Three UI tests: all four tabs/search field and Settings push/back with independent navigation state; background/foreground and cold relaunch; Settings reachability at the largest accessibility text category. Assertions use accessibility identifiers for combined cards and scroll to controls rather than assuming a screen height.
@@ -85,10 +88,10 @@ Before accepting this foundation, run the suite in Xcode and manually check:
 - Cold launch with networking disabled, empty library on first launch, and successful local-store initialization after relaunch.
 - All tabs and Settings navigation, with no sample content presented as saved data.
 
-No remote requests or external services are implemented. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Final app icon, distribution signing, production branding, and App Store preparation are intentionally deferred.
+The app UI makes no remote requests; only explicit metadata-service calls require network access and approved local TMDB configuration. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Final app icon, distribution signing, production branding, and App Store preparation are intentionally deferred.
 
 ## Planned features
 
-Future passes can add movie/TV discovery, personal watchlists and tracking, ratings/reviews, seasons and episode progress, viewing history/statistics, and later social discovery/recommendations. None of these are implemented in this foundation. There is no API integration, account system, cloud sync, notifications, monetization, or AI functionality.
+Future passes can add movie/TV discovery, personal watchlists and tracking, ratings/reviews, seasons and episode progress, viewing history/statistics, and later social discovery/recommendations. None of these are implemented in this foundation. The initial metadata adapter is implemented but not connected to a feature screen. There is no account system, cloud sync, notifications, monetization, or AI functionality.
 
-Recommended next step: review and validate this foundation on macOS/iPhone before choosing the next feature. Do not add provider integration or tracking until a separate scoped request is approved.
+Recommended next step: execute the foundation and metadata tests on macOS, verify current provider terms and authorized live access, then review before the separately scoped Search UI pass. No full Search interface or tracking is added here.

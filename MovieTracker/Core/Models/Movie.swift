@@ -8,6 +8,8 @@ struct Movie: Identifiable, Equatable, Sendable {
     /// An opaque reference to future local or remote artwork, not a downloaded image.
     var posterReference: String?
     var genreIDs: [String]
+    var runtimeMinutes: Int?
+    var backdropReference: String?
 
     init(
         id: String,
@@ -15,7 +17,9 @@ struct Movie: Identifiable, Equatable, Sendable {
         overview: String = "",
         releaseDate: Date? = nil,
         posterReference: String? = nil,
-        genreIDs: [String] = []
+        genreIDs: [String] = [],
+        runtimeMinutes: Int? = nil,
+        backdropReference: String? = nil
     ) {
         self.id = MediaID(kind: .movie, value: id)
         self.title = title
@@ -23,5 +27,7 @@ struct Movie: Identifiable, Equatable, Sendable {
         self.releaseDate = releaseDate
         self.posterReference = posterReference
         self.genreIDs = genreIDs
+        self.runtimeMinutes = runtimeMinutes
+        self.backdropReference = backdropReference
     }
 }
