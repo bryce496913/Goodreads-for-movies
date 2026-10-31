@@ -29,6 +29,7 @@ struct ProfileView: View {
                         .background(AppStyle.surface, in: RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("profile.settings")
             }
             .padding(AppStyle.Spacing.medium)
         }

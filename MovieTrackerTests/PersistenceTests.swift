@@ -58,4 +58,45 @@ final class PersistenceTests: XCTestCase {
         let second = try PersistenceController.makeContainer(inMemory: true)
         XCTAssertEqual(try second.mainContext.fetchCount(FetchDescriptor<StoredLibraryEntry>()), 0)
     }
+
+    @MainActor
+    func testDiskStoreStartsEmptyAndRetainsEntriesAfterReopening() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let storeURL = directory.appendingPathComponent("Library.store")
+        let entry = UserLibraryEntry(mediaID: MediaID(kind: .movie, value: "persisted"))
+
+        try autoreleasepool {
+            let container = try PersistenceController.makeContainer(at: storeURL)
+            XCTAssertFalse(try XCTUnwrap(container.configurations.first).isStoredInMemoryOnly)
+            XCTAssertEqual(try container.mainContext.fetchCount(FetchDescriptor<StoredLibraryEntry>()), 0)
+            container.mainContext.insert(StoredLibraryEntry(entry: entry))
+            try container.mainContext.save()
+        }
+        XCTAssertTrue(FileManager.default.fileExists(atPath: storeURL.path))
+        try autoreleasepool {
+            let reopened = try PersistenceController.makeContainer(at: storeURL)
+            let stored = try reopened.mainContext.fetch(FetchDescriptor<StoredLibraryEntry>())
+            XCTAssertEqual(stored.count, 1)
+            XCTAssertEqual(try XCTUnwrap(stored.first).domainEntry(), entry)
+        }
+    }
+
+    @MainActor
+    func testUnwritableStoreThrowsInsteadOfFallingBackToMemory() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let blockingFile = directory.appendingPathComponent("not-a-directory")
+        let sentinel = Data("Do not replace existing data".utf8)
+        try sentinel.write(to: blockingFile)
+
+        XCTAssertThrowsError(try PersistenceController.makeContainer(
+            at: blockingFile.appendingPathComponent("Library.store")
+        ))
+        XCTAssertEqual(try Data(contentsOf: blockingFile), sentinel)
+    }
 }
