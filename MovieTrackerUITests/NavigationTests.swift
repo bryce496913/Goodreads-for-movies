@@ -20,7 +20,7 @@ final class NavigationTests: XCTestCase {
         app.tabBars.buttons["Library"].tap()
         assertScreen("Library", in: app)
         // Cards combine their title and message for VoiceOver; do not query a hidden child label.
-        XCTAssertTrue(app.descendants(matching: .any)["library.empty"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "library.empty").firstMatch.exists)
         app.tabBars.buttons["Profile"].tap()
         assertScreen("Profile", in: app)
         openSettings(in: app)

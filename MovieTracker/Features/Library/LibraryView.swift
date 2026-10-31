@@ -6,6 +6,10 @@ struct LibraryView: View {
 
     var body: some View {
         List {
+            NavigationLink("Viewing History") { ViewingHistoryView() }
+                .accessibilityIdentifier("diary.open")
+            NavigationLink("Personal Reviews") { PersonalReviewsView() }
+                .accessibilityIdentifier("review.archive")
             if let error = library.loadError {
                 Text(error.localizedDescription).accessibilityIdentifier("library.loadError")
                 Button("Retry Library") { library.reload() }
@@ -36,7 +40,9 @@ struct LibraryView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("Library")
         .navigationDestination(for: MediaDestination.self) { destination in
-            MediaDetailView(model: detailModel(destination, library.entry(for: destination.id)?.savedMedia))
+            let media = library.entry(for: destination.id)?.offlineMedia
+                ?? library.events(for: destination.id).first?.savedMedia ?? library.reviews(for: destination.id).first?.savedMedia
+            MediaDetailView(model: detailModel(destination, media))
         }
     }
 }

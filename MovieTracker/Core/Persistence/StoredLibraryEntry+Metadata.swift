@@ -12,6 +12,10 @@ extension StoredLibraryEntry {
         return media
     }
 
+    var offlineMedia: MediaSearchResult? {
+        savedMedia ?? DiaryMedia.restore(data: nil, kind: mediaKind, value: mediaValue, title: displayTitle)
+    }
+
     var displayTitle: String {
         if let savedTitle, !savedTitle.isEmpty { return savedTitle }
         if let savedMedia { return SearchItem(savedMedia).title }

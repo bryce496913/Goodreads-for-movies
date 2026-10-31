@@ -9,10 +9,10 @@ final class MediaDetailUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["details.title"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Movie information"].exists)
         screenshot("Details — movie fixture", app: app)
-        let runtime = app.descendants(matching: .any)["details.fact.Runtime"].firstMatch
+        let runtime = app.descendants(matching: .any).matching(identifier: "details.fact.Runtime").firstMatch
         reveal(runtime, in: app)
         XCTAssertTrue(runtime.label.contains("98 min"))
-        let cast = app.descendants(matching: .any)["details.cast.fixture:cast1"].firstMatch
+        let cast = app.descendants(matching: .any).matching(identifier: "details.cast.fixture:cast1").firstMatch
         reveal(cast, in: app)
         XCTAssertTrue(cast.label.contains("Sample Performer"))
         app.navigationBars["Details"].buttons.element(boundBy: 0).tap()
@@ -26,10 +26,10 @@ final class MediaDetailUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["details.title"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Series information"].exists)
         screenshot("Details — television fixture", app: app)
-        let seasons = app.descendants(matching: .any)["details.fact.Seasons"].firstMatch
+        let seasons = app.descendants(matching: .any).matching(identifier: "details.fact.Seasons").firstMatch
         reveal(seasons, in: app)
         XCTAssertTrue(seasons.label.contains("3"))
-        let episodes = app.descendants(matching: .any)["details.fact.Episodes"].firstMatch
+        let episodes = app.descendants(matching: .any).matching(identifier: "details.fact.Episodes").firstMatch
         reveal(episodes, in: app)
         XCTAssertTrue(episodes.label.contains("24"))
         XCTAssertFalse(app.buttons["Track Episode"].exists)
@@ -53,7 +53,7 @@ final class MediaDetailUITests: XCTestCase {
     @MainActor
     func testNetworkErrorAndExplicitRetry() {
         let app = launchDetails(kind: "movie", mode: "retry")
-        let error = app.descendants(matching: .any)["details.error"].firstMatch
+        let error = app.descendants(matching: .any).matching(identifier: "details.error").firstMatch
         XCTAssertTrue(error.waitForExistence(timeout: 5))
         let retry = app.buttons["details.retry"]
         reveal(retry, in: app)

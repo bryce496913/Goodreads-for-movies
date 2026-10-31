@@ -20,6 +20,7 @@ struct MediaDetailView: View {
                     DetailArtworkHeader(item: SearchItem(snapshot.media), backdropReference: backdrop(snapshot.media), resolver: snapshot.imageResolver)
                     LibraryDetailActions(media: snapshot.media,
                         posterURL: snapshot.imageResolver?.posterURL(reference: SearchItem(snapshot.media).posterReference))
+                    PersonalDiarySection(media: snapshot.media)
                     switch snapshot.media {
                     case .movie(let movie): MovieDetailContent(movie: movie)
                     case .tvShow(let show): TVDetailContent(show: show)

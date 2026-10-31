@@ -46,7 +46,7 @@ struct LibraryDetailActions: View {
         .confirmationDialog("Remove this title from your library?", isPresented: $confirmRemoval, titleVisibility: .visible) {
             Button("Remove from Library", role: .destructive) { perform { try library.remove(item.id) } }
         } message: {
-            Text("This removes this title's saved status, favorite, and other personal library data.")
+            Text("This removes the saved library entry, rating, status and favorite. Written reviews and viewing history are kept.")
         }
         .alert("Library change failed", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }

@@ -6,6 +6,8 @@ import SwiftData
 @Observable
 final class LibraryStore {
     private(set) var entries: [StoredLibraryEntry] = []
+    private(set) var personalReviews: [StoredPersonalReview] = []
+    private(set) var viewingEvents: [StoredViewingEvent] = []
     private(set) var loadError: LibraryStoreError?
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
@@ -19,12 +21,22 @@ final class LibraryStore {
 
     func reload() {
         do {
-            entries = try context.fetch(FetchDescriptor<StoredLibraryEntry>()).sorted {
+            let savedEntries = try context.fetch(FetchDescriptor<StoredLibraryEntry>()).sorted {
                 if $0.updatedAt != $1.updatedAt { return $0.updatedAt > $1.updatedAt }
                 if $0.mediaKind != $1.mediaKind { return $0.mediaKind < $1.mediaKind }
                 if $0.mediaValue != $1.mediaValue { return $0.mediaValue < $1.mediaValue }
                 return $0.id.uuidString < $1.id.uuidString
             }
+            let savedReviews = try context.fetch(FetchDescriptor<StoredPersonalReview>()).sorted {
+                if $0.editedAt != $1.editedAt { return $0.editedAt > $1.editedAt }
+                return $0.id.uuidString < $1.id.uuidString
+            }
+            let savedEvents = try context.fetch(FetchDescriptor<StoredViewingEvent>()).sorted {
+                if $0.sortDate != $1.sortDate { return $0.sortDate > $1.sortDate }
+                if $0.recordedAt != $1.recordedAt { return $0.recordedAt > $1.recordedAt }
+                return $0.id.uuidString < $1.id.uuidString
+            }
+            entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
             loadError = nil
         } catch { loadError = .readFailed }
     }
@@ -51,6 +63,11 @@ final class LibraryStore {
     func remove(_ id: MediaID) throws {
         do {
             guard let record = try uniqueRecord(for: id) else { return }
+            if let legacy = record.review, !legacy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                guard let media = record.offlineMedia else { throw LibraryStoreError.invalidIdentity }
+                context.insert(try StoredPersonalReview(id: UUID(), media: media, text: legacy, createdAt: .now,
+                                                       viewingEventID: nil, isLegacyImport: true))
+            }
             context.delete(record)
             try saveContext(context)
             reload()
@@ -100,6 +117,32 @@ final class LibraryStore {
             reload()
             throw (error as? LibraryStoreError) ?? .saveFailed
         }
+    }
+
+    func writeDiary(_ operation: (ModelContext) throws -> Void) throws {
+        do {
+            try operation(context)
+            try saveContext(context)
+            reload()
+        } catch {
+            context.rollback()
+            reload()
+            if let error = error as? DiaryError { throw error }
+            throw (error as? LibraryStoreError) ?? .saveFailed
+        }
+    }
+
+    func diaryLibraryEntry(for id: MediaID) throws -> StoredLibraryEntry? { try uniqueRecord(for: id) }
+
+    func ensureDiaryEntry(media: MediaSearchResult) throws -> StoredLibraryEntry {
+        let item = SearchItem(media)
+        guard !item.id.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw LibraryStoreError.invalidIdentity }
+        if let existing = try uniqueRecord(for: item.id) { return existing }
+        let record = StoredLibraryEntry(entry: UserLibraryEntry(mediaID: item.id, status: nil))
+        record.savedTitle = item.title; record.savedYear = item.year; record.savedPosterReference = item.posterReference
+        record.snapshotData = try JSONEncoder().encode(media)
+        context.insert(record)
+        return record
     }
 
     private func uniqueRecord(for id: MediaID) throws -> StoredLibraryEntry? {
