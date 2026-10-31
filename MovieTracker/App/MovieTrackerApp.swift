@@ -36,7 +36,12 @@ struct MovieTrackerApp: App {
     @MainActor
     private func loadPersistence() {
         do {
-            container = try PersistenceController.makeContainer()
+            #if DEBUG
+            let inMemory = ProcessInfo.processInfo.arguments.contains("--ui-testing-search")
+            #else
+            let inMemory = false
+            #endif
+            container = try PersistenceController.makeContainer(inMemory: inMemory)
             persistenceFailed = false
         } catch {
             persistenceFailed = true
