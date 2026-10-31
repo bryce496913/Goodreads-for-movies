@@ -74,7 +74,7 @@ Included tests (require macOS/Xcode):
 - Four persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, and container isolation.
 - One UI test: all four tabs and search field load, Settings push/back navigation, and independent tab navigation state.
 
-The GitHub Actions workflow builds and runs the shared scheme on an available iPhone simulator on macOS. Check its actual results after the PR opens; a configured workflow is not a passing build.
+Builds and Xcode tests are run locally by the project owner. Do not add GitHub Actions workflows for Xcode builds or tests.
 
 Before accepting this foundation, run the suite in Xcode and manually check:
 

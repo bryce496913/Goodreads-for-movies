@@ -9,6 +9,7 @@
 - Use Swift concurrency for asynchronous work; keep UI and model-context work on the main actor.
 - Use semantic colors, dynamic text styles, SF Symbols, and accessible native controls.
 - Never commit secrets, API keys, credentials, signing material, or generated build artifacts.
-- Run the shared MovieTracker scheme's tests with an available iOS Simulator on macOS.
+- Keep Xcode tests available for the project owner to run locally using the shared MovieTracker scheme. Do not add GitHub CI for Xcode builds or tests.
 - Report exactly which build/tests ran and any environment limitations. Linux cannot validate SwiftUI or SwiftData.
+- When development work is complete, commit and push the changes and create or update the pull request. Do not merge it. Report any access blocker explicitly.
 - Each cloud task is already isolated. Use the existing checkout; do not create a worktree unless explicitly requested.
