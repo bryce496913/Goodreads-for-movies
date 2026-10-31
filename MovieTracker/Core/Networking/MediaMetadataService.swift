@@ -14,11 +14,6 @@ enum MediaSearchResult: Equatable, Sendable {
     case tvShow(TVShow)
 }
 
-struct MediaGenre: Equatable, Sendable {
-    let id: String
-    let name: String
-}
-
 protocol MediaMetadataService: Sendable {
     func searchMovies(query: String, page: Int) async throws -> MetadataPage<Movie>
     func searchTVShows(query: String, page: Int) async throws -> MetadataPage<TVShow>
@@ -26,6 +21,7 @@ protocol MediaMetadataService: Sendable {
     func movieDetails(id: MediaID) async throws -> Movie
     func tvShowDetails(id: MediaID) async throws -> TVShow
     func genres(for kind: MediaID.Kind) async throws -> [MediaGenre]
+    func castPreview(for id: MediaID) async throws -> [CastMember]
     func imageResolver() async throws -> MetadataImageResolver
 }
 
@@ -63,4 +59,9 @@ extension MetadataError: LocalizedError {
         case .invalidResponse, .emptyResponse, .invalidPayload: "The metadata provider returned an unusable response."
         }
     }
+}
+
+// Providers/mocks without credits support may explicitly return an empty preview.
+extension MediaMetadataService {
+    func castPreview(for id: MediaID) async throws -> [CastMember] { [] }
 }

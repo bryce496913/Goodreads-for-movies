@@ -1,23 +1,58 @@
+import Accessibility
 import SwiftUI
 
-/// Replace this body with full metadata details in the next pass; retain the typed route.
 struct MediaDetailView: View {
-    let destination: MediaDestination
+    @State private var model: MediaDetailModel
+    @State private var refreshID = 0
+
+    init(model: MediaDetailModel) { _model = State(initialValue: model) }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
-                Text(destination.title)
-                    .font(.title.bold())
-                    .accessibilityAddTraits(.isHeader)
-                Text(destination.id.kind == .movie ? "Movie" : "TV Show")
-                    .font(.headline)
-                if let year = destination.year {
-                    Text(String(year)).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: AppStyle.Spacing.large) {
+                if model.usesTestData { Text("UI test data").font(.caption) }
+                if let snapshot = model.snapshot {
+                    if let error = model.error {
+                        Text("Showing previously loaded details. \(error.localizedDescription)")
+                            .accessibilityIdentifier("details.cached")
+                            .accessibilityAddTraits(.updatesFrequently)
+                    }
+                    switch snapshot.media {
+                    case .movie(let movie): MovieDetailContent(movie: movie, resolver: snapshot.imageResolver)
+                    case .tvShow(let show): TVDetailContent(show: show, resolver: snapshot.imageResolver)
+                    }
+                    DetailCast(members: snapshot.cast, isLoading: model.isLoadingExtras, unavailable: model.castUnavailable)
+                    if model.artworkUnavailable {
+                        Text("Artwork could not be updated. Previously loaded artwork may still be available.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if model.isLoading { ProgressView("Updating details…") }
+                    if !model.usesTestData {
+                        Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        if let url = URL(string: "https://www.themoviedb.org") { Link("Data provided by TMDB", destination: url) }
+                    }
+                } else {
+                    Text(model.destination.title).font(.title.bold()).fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(model.destination.id.kind == .movie ? "Movie" : "TV Show").font(.headline)
+                    if model.isLoading {
+                        ProgressView("Loading details…").accessibilityIdentifier("details.loading")
+                    } else if let error = model.error {
+                        ContentUnavailableView("Details unavailable", systemImage: "exclamationmark.triangle",
+                                               description: Text(error.localizedDescription))
+                            .accessibilityIdentifier("details.error")
+                    } else if model.wasCancelled {
+                        Text("Loading was canceled. Try again when you are ready.")
+                    }
                 }
-                Text("More details will be available in a future update.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                if !model.isLoading && !model.isLoadingExtras {
+                    Button(model.error == nil && !model.castUnavailable && !model.artworkUnavailable ? "Refresh Details" : "Retry Details") {
+                        refreshID += 1
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("details.retry")
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(AppStyle.Spacing.medium)
@@ -26,5 +61,12 @@ struct MediaDetailView: View {
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("media.details")
+        .task(id: refreshID) { await model.load() }
+        .onChange(of: model.isLoading) { _, loading in
+            if loading { AccessibilityNotification.Announcement("Loading details").post() }
+        }
+        .onChange(of: model.error) { _, error in
+            if let error { AccessibilityNotification.Announcement(error.localizedDescription).post() }
+        }
     }
 }

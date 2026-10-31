@@ -15,14 +15,17 @@ struct TMDBTitle: Decodable, Sendable {
     let runtime: Int?
     let episodeRunTime: [Int]?
     let numberOfSeasons: Int?
+    let numberOfEpisodes: Int?
+    let status: String?
     let mediaType: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, title, name, overview, genres, runtime
+        case id, title, name, overview, genres, runtime, status
         case releaseDate = "release_date", firstAirDate = "first_air_date"
         case posterPath = "poster_path", backdropPath = "backdrop_path"
         case genreIDs = "genre_ids", episodeRunTime = "episode_run_time"
         case numberOfSeasons = "number_of_seasons", mediaType = "media_type"
+        case numberOfEpisodes = "number_of_episodes"
     }
 
     func movie() throws -> Movie {
@@ -33,7 +36,7 @@ struct TMDBTitle: Decodable, Sendable {
             id: "tmdb:\(id)", title: title, overview: overview ?? "",
             releaseDate: Self.date(releaseDate), posterReference: posterPath,
             genreIDs: mappedGenres, runtimeMinutes: runtime.flatMap { $0 > 0 ? $0 : nil },
-            backdropReference: backdropPath
+            backdropReference: backdropPath, genres: mappedGenreNames
         )
     }
 
@@ -46,8 +49,19 @@ struct TMDBTitle: Decodable, Sendable {
             firstAirDate: Self.date(firstAirDate), posterReference: posterPath,
             genreIDs: mappedGenres, seasonCount: numberOfSeasons.flatMap { $0 > 0 ? $0 : nil },
             episodeRuntimeMinutes: episodeRunTime?.first(where: { $0 > 0 }),
-            backdropReference: backdropPath
+            backdropReference: backdropPath, genres: mappedGenreNames,
+            episodeCount: numberOfEpisodes.flatMap { $0 > 0 ? $0 : nil },
+            seriesStatus: status?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? status : nil
         )
+    }
+
+    private var mappedGenreNames: [MediaGenre] {
+        var seen = Set<Int>()
+        return (genres ?? []).compactMap { genre in
+            let name = genre.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard genre.id > 0, !name.isEmpty, seen.insert(genre.id).inserted else { return nil }
+            return MediaGenre(id: "tmdb:\(genre.id)", name: name)
+        }
     }
 
     private var mappedGenres: [String] {

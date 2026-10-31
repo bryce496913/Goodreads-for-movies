@@ -40,7 +40,8 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Movie, TV show, typed media identity, viewing status, and user library domain values.
 - A SwiftData container and stored library entry with explicit domain conversion, ready for future tracking features.
 - An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; connected to the Search tab. See [provider evaluation and local setup](docs/metadata-provider.md). Current terms and live retrieval remain unverified because provider documentation access is blocked and no credential is configured.
-- Functional Search with a 300 ms debounce, All/Movies/TV Shows filters, loading/empty/retry states, sized poster thumbnails, explicit duplicate-safe pagination, and typed minimal detail destinations. See [Search behavior and validation](docs/search-discovery.md).
+- Functional Search with a 300 ms debounce, All/Movies/TV Shows filters, loading/empty/retry states, sized poster thumbnails, explicit duplicate-safe pagination, and typed movie/TV detail pages. See [Search behavior and validation](docs/search-discovery.md).
+- Movie/TV detail pages with shared artwork, genre, synopsis, cast and metadata sections, TV season summaries, partial-failure recovery and session snapshots for previously loaded details. See [detail architecture and validation](docs/media-details.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -73,12 +74,14 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (46 methods total, all require local macOS/Xcode execution):
+Included tests (67 methods total, all require local macOS/Xcode execution):
+
+- Twelve detail model/component tests, three added provider mapping/credits tests, and six detail UI tests, including long content, fallback artwork and cached offline reopening. See [detail test commands and screenshots](docs/media-details.md).
 
 - Thirteen SearchModel tests for normalization, deterministic debounce coordination, cancellation/stale-result protection, filters, pagination/deduplication, retry states, missing configuration, and year/navigation identity.
 - Five Search UI tests for mixed results, selection/state, clearing, filters/pagination, empty results, and error/retry; debug fixtures require an explicit launch argument and include screenshot attachments.
 
-- Fifteen additional metadata-service tests (unrun here) use injected transports and a fake credential, covering parsing, mapping, errors, pagination, cancellation, and artwork. Run locally with no TMDB credential; see [metadata validation instructions](docs/metadata-provider.md#validation-record-and-local-checks).
+- Eighteen metadata-service tests (unrun here) use injected transports and a fake credential, covering parsing, mapping, errors, pagination, cancellation, and artwork. Run locally with no TMDB credential; see [metadata validation instructions](docs/metadata-provider.md#validation-record-and-local-checks).
 - Four domain tests: metadata, unknown season count, movie/TV identity and Codable round trip, library statuses/defaults and independent favorites.
 - Six persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, container isolation, isolated on-disk save/reopen, and failure for an unusable store path without changing existing data.
 - Three UI tests: all four tabs/search field and Settings push/back with independent navigation state; background/foreground and cold relaunch; Settings reachability at the largest accessibility text category. Assertions use accessibility identifiers for combined cards and scroll to controls rather than assuming a screen height.
@@ -96,6 +99,6 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 
 ## Planned features
 
-Future passes can add movie/TV discovery, personal watchlists and tracking, ratings/reviews, seasons and episode progress, viewing history/statistics, and later social discovery/recommendations. None of these are implemented in this foundation. The metadata adapter and Search UI are implemented; the typed Details destination currently shows only the selected title, type, and year. There is no account system, cloud sync, notifications, monetization, or AI functionality.
+Future passes can add movie/TV discovery, personal watchlists and tracking, ratings/reviews, seasons and episode progress, viewing history/statistics, and later social discovery/recommendations. None of these are implemented in this foundation. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. There is no account system, cloud sync, notifications, monetization, or AI functionality.
 
-Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then review before the separately scoped full Details pass. Tracking remains unimplemented.
+Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then review the detail pages before choosing the next separately scoped feature. Tracking remains unimplemented.
