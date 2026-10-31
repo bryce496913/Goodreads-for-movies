@@ -72,7 +72,10 @@ final class LibraryUITests: XCTestCase {
     @MainActor
     private func tap(_ id: String, in app: XCUIApplication) {
         let button = app.buttons[id]
-        for _ in 0..<20 { if button.isHittable { break }; app.swipeUp() }
+        for _ in 0..<30 {
+            if button.isHittable { break }
+            if button.exists && button.frame.midY < app.frame.midY { app.swipeDown() } else { app.swipeUp() }
+        }
         XCTAssertTrue(button.isHittable)
         button.tap()
     }

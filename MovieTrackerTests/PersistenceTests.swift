@@ -17,7 +17,7 @@ final class PersistenceTests: XCTestCase {
         let updated = Date(timeIntervalSince1970: 2_000)
         let movieEntry = UserLibraryEntry(
             mediaID: MediaID(kind: .movie, value: "42"), status: .watched,
-            isFavorite: true, rating: 4.5, review: "A thoughtful story.",
+            isFavorite: true, rating: try PersonalRating(halfStarUnits: 9), review: "A thoughtful story.",
             addedAt: added, updatedAt: updated
         )
         let showEntry = UserLibraryEntry(mediaID: MediaID(kind: .tvShow, value: "42"), status: .watching)

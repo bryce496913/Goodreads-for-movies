@@ -9,7 +9,8 @@ final class StoredLibraryEntry {
     var mediaValue: String
     var status: String
     var isFavorite: Bool
-    var rating: Double?
+    var rating: Double? // Legacy compatible mirror; retained for safe schema evolution.
+    var ratingHalfStarUnits: Int? = nil
     var review: String?
     var addedAt: Date
     var updatedAt: Date
@@ -27,7 +28,8 @@ final class StoredLibraryEntry {
         mediaValue = entry.mediaID.value
         status = entry.status?.rawValue ?? "none"
         isFavorite = entry.isFavorite
-        rating = entry.rating
+        rating = entry.rating?.stars
+        ratingHalfStarUnits = entry.rating?.halfStarUnits
         review = entry.review
         addedAt = entry.addedAt
         updatedAt = entry.updatedAt
@@ -49,11 +51,17 @@ final class StoredLibraryEntry {
             mediaID: MediaID(kind: kind, value: mediaValue),
             status: libraryStatus,
             isFavorite: isFavorite,
-            rating: rating,
+            rating: try validatedRating(),
             review: review,
             addedAt: addedAt,
             updatedAt: updatedAt
         )
+    }
+
+    func validatedRating() throws -> PersonalRating? {
+        if let ratingHalfStarUnits { return try PersonalRating(halfStarUnits: ratingHalfStarUnits) }
+        if let rating { return try PersonalRating.fromLegacyStars(rating) }
+        return nil
     }
 
     enum ConversionError: Error, Equatable {

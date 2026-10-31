@@ -30,3 +30,5 @@ xcodebuild test -project MovieTracker.xcodeproj -scheme MovieTracker \
 ```
 
 Confirm all 12 selected methods run, then run the full suite. Manually verify save, favorite/status changes, clearing, confirmed removal, immediate Library/Detail consistency, offline rows and saved details, missing artwork, process relaunch, and existing-store migration on compact/large iPhones and accessibility text sizes. Do not treat source parsing or an unexecuted test as runtime evidence. No ratings/reviews/episode-progress editing is included in this pass.
+
+Pass 007 extends this same store with validated personal ratings and increases the total suite to 94 methods. The counts and static results above record pass 006; current rating schema/validation limits are in [personal-ratings.md](personal-ratings.md).

@@ -21,6 +21,7 @@ struct LibraryView: View {
                         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
                             SearchResultRow(item: SearchItem(id: id, title: entry.displayTitle, year: entry.savedYear,
                                                            posterReference: entry.savedPosterReference), posterURL: entry.thumbnailURL)
+                            PersonalRatingSummary(entry: entry)
                             Text(entry.statusLabel).font(.subheadline).foregroundStyle(.secondary)
                             if entry.isFavorite { Label("Favorite", systemImage: "heart.fill").font(.subheadline) }
                         }

@@ -43,6 +43,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Functional Search with a 300 ms debounce, All/Movies/TV Shows filters, loading/empty/retry states, sized poster thumbnails, explicit duplicate-safe pagination, and typed movie/TV detail pages. See [Search behavior and validation](docs/search-discovery.md).
 - Movie/TV detail pages with shared artwork, genre, synopsis, cast and metadata sections, TV season summaries, partial-failure recovery and session snapshots for previously loaded details. See [detail architecture and validation](docs/media-details.md).
 - Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Saved metadata supports offline title/detail display; see [library persistence](docs/library-persistence.md).
+- Personal movie/TV ratings from 0.5–5.0 stars using precise integer half-star units, independent of viewing status, with native accessible editing and Library summaries. See [personal ratings and migration](docs/personal-ratings.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -65,27 +66,27 @@ MovieTracker.xcodeproj/  Native project and shared scheme
 
 Feature views stay together. SearchModel owns observable search state on the main actor, with the instance retained at the tab root. Search depends on the metadata protocol; provider DTOs remain outside feature UI. Utilities and preview fixtures will be added only when needed.
 
-`MediaID` combines a kind (`movie`/`tvShow`) with an opaque string, preventing movie and TV IDs from colliding. External provider identifiers must be mapped into the domain at a future integration boundary. Genre identifiers and poster references are opaque strings; no provider-specific URLs or SDK types enter the domain.
+`MediaID` combines a kind (`movie`/`tvShow`) with an opaque string, preventing movie and TV IDs from colliding. Provider identifiers are mapped to opaque namespace-qualified values at the metadata adapter boundary. Genre identifiers and poster references are opaque strings; no provider-specific URLs or SDK types enter the domain.
 
-Library entries have one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Rating/review values are optional foundations, with editing and rating-scale decisions deferred. Timestamps are explicit; future editing logic must update `updatedAt`.
+Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written review values remain reserved legacy data with no editing UI. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
 
-SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. Domain media identity is separate; duplicate-title policies will be implemented with future library editing. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
+SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. LibraryStore looks up the exact typed/provider-qualified media identity before inserting or updating; existing duplicate rows are reported rather than destructively merged. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
 
 ## Validation and current limits
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (79 methods total, all require local macOS/Xcode execution):
+Included tests (94 methods total, all require local macOS/Xcode execution):
 
-- Twelve detail model/component tests, three added provider mapping/credits tests, and six detail UI tests, including long content, fallback artwork and cached offline reopening. See [detail test commands and screenshots](docs/media-details.md).
+- 4 domain and 18 mocked metadata tests.
+- 6 persistence container/conversion tests.
+- 9 library store and 3 library UI tests.
+- 13 SearchModel and 5 Search UI tests.
+- 12 detail model/component and 6 detail UI tests.
+- 3 rating value, 9 rating persistence and 3 rating UI tests.
+- 3 general navigation UI tests.
 
-- Thirteen SearchModel tests for normalization, deterministic debounce coordination, cancellation/stale-result protection, filters, pagination/deduplication, retry states, missing configuration, and year/navigation identity.
-- Five Search UI tests for mixed results, selection/state, clearing, filters/pagination, empty results, and error/retry; debug fixtures require an explicit launch argument and include screenshot attachments.
-
-- Eighteen metadata-service tests (unrun here) use injected transports and a fake credential, covering parsing, mapping, errors, pagination, cancellation, and artwork. Run locally with no TMDB credential; see [metadata validation instructions](docs/metadata-provider.md#validation-record-and-local-checks).
-- Four domain tests: metadata, unknown season count, movie/TV identity and Codable round trip, library statuses/defaults and independent favorites.
-- Six persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, container isolation, isolated on-disk save/reopen, and failure for an unusable store path without changing existing data.
-- Three UI tests: all four tabs/search field and Settings push/back with independent navigation state; background/foreground and cold relaunch; Settings reachability at the largest accessibility text category. Assertions use accessibility identifiers for combined cards and scroll to controls rather than assuming a screen height.
+See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
 Builds and Xcode tests are run locally by the project owner. Do not add GitHub Actions workflows for Xcode builds or tests.
 
@@ -100,6 +101,6 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 
 ## Planned features
 
-Future passes can add movie/TV discovery, personal watchlists and tracking, ratings/reviews, seasons and episode progress, viewing history/statistics, and later social discovery/recommendations. None of these are implemented in this foundation. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. There is no account system, cloud sync, notifications, monetization, or AI functionality.
+Future passes may add written reviews, episode progress, viewing history/statistics, sorting/filtering, and later social discovery/recommendations. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. There is no written-review editing, viewing diary, episode progress, account system, cloud sync, notifications, monetization, or AI functionality.
 
-Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then review the detail pages before choosing the next separately scoped feature. Tracking remains unimplemented.
+Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating migration and relaunch before choosing the next separately scoped feature. Episode progress remains unimplemented.

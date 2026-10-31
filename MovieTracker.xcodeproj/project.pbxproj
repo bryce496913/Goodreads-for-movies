@@ -23,6 +23,10 @@
 			isa = PBXBuildFile;
 			fileRef = 867F0EB5DE7132B62877165B;
 		};
+		B1279452866D0FC6E5887659 = {
+			isa = PBXBuildFile;
+			fileRef = 580090A73323FEAC24443C74;
+		};
 		629A807C5790DB23D99DB65B = {
 			isa = PBXBuildFile;
 			fileRef = 0DCF85F1F9F542CDD2871DFE;
@@ -46,6 +50,10 @@
 		B3B97ECE790C41E6BF64ED3A = {
 			isa = PBXBuildFile;
 			fileRef = 5189A3CE8C3CA4C49F2910E4;
+		};
+		EE49DDCB91175E3DB87A077D = {
+			isa = PBXBuildFile;
+			fileRef = 2A0D1254538E6191A708B778;
 		};
 		D2C9735ADF055A423E7D388E = {
 			isa = PBXBuildFile;
@@ -191,6 +199,14 @@
 			isa = PBXBuildFile;
 			fileRef = C237FF4E8F31348C51F4B8E4;
 		};
+		C5BC27B4F6927F83D51EF9C8 = {
+			isa = PBXBuildFile;
+			fileRef = 689727365E2712FFF35D8967;
+		};
+		FF9338EDCB5DA8CEBFC645FC = {
+			isa = PBXBuildFile;
+			fileRef = 09530DA063AD6D28353BDC84;
+		};
 		9C404E772AD12FFA35FDE5E0 = {
 			isa = PBXBuildFile;
 			fileRef = F99AF792B85869771E997A91;
@@ -206,6 +222,10 @@
 		4B1AD9EC1C5C9E6929EE11AE = {
 			isa = PBXBuildFile;
 			fileRef = 4058E63ED1F4699E63158B1A;
+		};
+		90556A0A7401AEB2C314D98B = {
+			isa = PBXBuildFile;
+			fileRef = 0D46D5A95FF1D42F933302E4;
 		};
 		ED241ED78558D295D5E3EA53 = {
 			isa = PBXBuildFile;
@@ -255,6 +275,12 @@
 			path = MovieTracker/Core/DesignSystem/EmptyStateCard.swift;
 			sourceTree = "<group>";
 		};
+		580090A73323FEAC24443C74 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/DesignSystem/PersonalRatingControl.swift;
+			sourceTree = "<group>";
+		};
 		0DCF85F1F9F542CDD2871DFE = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -289,6 +315,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Models/Movie.swift;
+			sourceTree = "<group>";
+		};
+		2A0D1254538E6191A708B778 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Models/PersonalRating.swift;
 			sourceTree = "<group>";
 		};
 		E4ADCF6ECDFE24C5A05D9A3E = {
@@ -507,6 +539,18 @@
 			path = MovieTrackerTests/PersistenceTests.swift;
 			sourceTree = "<group>";
 		};
+		689727365E2712FFF35D8967 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/PersonalRatingTests.swift;
+			sourceTree = "<group>";
+		};
+		09530DA063AD6D28353BDC84 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/RatingPersistenceTests.swift;
+			sourceTree = "<group>";
+		};
 		F99AF792B85869771E997A91 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -529,6 +573,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/NavigationTests.swift;
+			sourceTree = "<group>";
+		};
+		0D46D5A95FF1D42F933302E4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/RatingTests.swift;
 			sourceTree = "<group>";
 		};
 		99849B97A637DAB2F12043CD = {
@@ -617,6 +667,7 @@
 			children = (
 				8198F1A2BB31726F0AA04B37,
 				867F0EB5DE7132B62877165B,
+				580090A73323FEAC24443C74,
 				0DCF85F1F9F542CDD2871DFE,
 			);
 			name = DesignSystem;
@@ -630,6 +681,7 @@
 				9B2F214B1B8AB78C8BF146A7,
 				ECA932BB0FD44B3779212AFF,
 				5189A3CE8C3CA4C49F2910E4,
+				2A0D1254538E6191A708B778,
 				E4ADCF6ECDFE24C5A05D9A3E,
 				7328243A1B5CDDB673F1A5DD,
 			);
@@ -763,6 +815,8 @@
 				4E20A76B7C7EF088D1E99D85,
 				B81324B268526137D62C7010,
 				C237FF4E8F31348C51F4B8E4,
+				689727365E2712FFF35D8967,
+				09530DA063AD6D28353BDC84,
 				F99AF792B85869771E997A91,
 			);
 			name = MovieTrackerTests;
@@ -774,6 +828,7 @@
 				B5B925089E8A469E28996E41,
 				52086CCA2F397475D9DFBCC5,
 				4058E63ED1F4699E63158B1A,
+				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
 			);
 			name = MovieTrackerUITests;
@@ -935,12 +990,14 @@
 				9EAB236E57E9CD1101302F53,
 				9F55FA3A1C344FC90E3044F6,
 				124452D4A5B10C8C718314BB,
+				B1279452866D0FC6E5887659,
 				629A807C5790DB23D99DB65B,
 				BE5C0C42611FA7722B0F7736,
 				290C682266CFF32FE9DE8FE8,
 				C0C35AEEE17C11225ADF806A,
 				A8C75CBB019B5CD228E452EB,
 				B3B97ECE790C41E6BF64ED3A,
+				EE49DDCB91175E3DB87A077D,
 				D2C9735ADF055A423E7D388E,
 				8A2B0891A2488D8C50BA2D25,
 				9F09F75B02FD1A3596CD8DE6,
@@ -983,6 +1040,8 @@
 				9A427486F88A2575B38F4CB4,
 				4EE69157CD9BD7BF9C1B0FA4,
 				277885EEBA314EFBB048231D,
+				C5BC27B4F6927F83D51EF9C8,
+				FF9338EDCB5DA8CEBFC645FC,
 				9C404E772AD12FFA35FDE5E0,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -994,6 +1053,7 @@
 				0650B6B6EFABD33659C9A18E,
 				28E4B92F389400FDED0B5271,
 				4B1AD9EC1C5C9E6929EE11AE,
+				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

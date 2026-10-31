@@ -114,7 +114,8 @@ final class LibraryStoreTests: XCTestCase {
     @MainActor
     func testLegacyMetadataAbsenceDoesNotDeleteRowOrReservedFields() throws {
         let container = try PersistenceController.makeContainer(inMemory: true)
-        let record = StoredLibraryEntry(entry: UserLibraryEntry(mediaID: SearchItem(movie).id, rating: 4.5, review: "Reserved old data"))
+        let record = StoredLibraryEntry(entry: UserLibraryEntry(mediaID: SearchItem(movie).id, review: "Reserved old data"))
+        record.rating = 4.5 // Simulate an unbackfilled legacy row.
         container.mainContext.insert(record)
         try container.mainContext.save()
         let store = LibraryStore(container: container)
