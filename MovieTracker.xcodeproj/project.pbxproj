@@ -43,6 +43,30 @@
 			isa = PBXBuildFile;
 			fileRef = 7328243A1B5CDDB673F1A5DD;
 		};
+		9F09F75B02FD1A3596CD8DE6 = {
+			isa = PBXBuildFile;
+			fileRef = B64E3FC84870DA32E6412B4E;
+		};
+		660989A616122DD98FED6D02 = {
+			isa = PBXBuildFile;
+			fileRef = D729950F3E93A0ABA95E4CF4;
+		};
+		A5DB7A94A0D9A0E240D6F8CD = {
+			isa = PBXBuildFile;
+			fileRef = 7C8FAE07861ED27A60C868FE;
+		};
+		6746A7629AAB26C03E2AF002 = {
+			isa = PBXBuildFile;
+			fileRef = 8ABD22829B8488C2165C6DBD;
+		};
+		0DC9F0BB3A4453491EF38251 = {
+			isa = PBXBuildFile;
+			fileRef = 4DD449023A0E8724002D54BC;
+		};
+		BB656F8EC2E06ADBE6A56929 = {
+			isa = PBXBuildFile;
+			fileRef = C9839E77EFE71214444EE94B;
+		};
 		41F0788157807A001EDE5A9D = {
 			isa = PBXBuildFile;
 			fileRef = 41022E4A3C040BBAC254A5B7;
@@ -74,6 +98,10 @@
 		4088C92A526ECE2C585B245C = {
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
+		};
+		4EE69157CD9BD7BF9C1B0FA4 = {
+			isa = PBXBuildFile;
+			fileRef = B81324B268526137D62C7010;
 		};
 		277885EEBA314EFBB048231D = {
 			isa = PBXBuildFile;
@@ -157,6 +185,42 @@
 			path = MovieTracker/Core/Models/UserLibraryEntry.swift;
 			sourceTree = "<group>";
 		};
+		B64E3FC84870DA32E6412B4E = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/MediaMetadataService.swift;
+			sourceTree = "<group>";
+		};
+		D729950F3E93A0ABA95E4CF4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/MetadataImageResolver.swift;
+			sourceTree = "<group>";
+		};
+		7C8FAE07861ED27A60C868FE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/MetadataTransport.swift;
+			sourceTree = "<group>";
+		};
+		8ABD22829B8488C2165C6DBD = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/TMDBConfiguration.swift;
+			sourceTree = "<group>";
+		};
+		4DD449023A0E8724002D54BC = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/TMDBMetadataService.swift;
+			sourceTree = "<group>";
+		};
+		C9839E77EFE71214444EE94B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/TMDBResponses.swift;
+			sourceTree = "<group>";
+		};
 		41022E4A3C040BBAC254A5B7 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -203,6 +267,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/DomainModelTests.swift;
+			sourceTree = "<group>";
+		};
+		B81324B268526137D62C7010 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/MetadataServiceTests.swift;
 			sourceTree = "<group>";
 		};
 		C237FF4E8F31348C51F4B8E4 = {
@@ -313,6 +383,19 @@
 			name = Models;
 			sourceTree = "<group>";
 		};
+		EA8DC95A7EA5D3949A03C6AB = {
+			isa = PBXGroup;
+			children = (
+				B64E3FC84870DA32E6412B4E,
+				D729950F3E93A0ABA95E4CF4,
+				7C8FAE07861ED27A60C868FE,
+				8ABD22829B8488C2165C6DBD,
+				4DD449023A0E8724002D54BC,
+				C9839E77EFE71214444EE94B,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
 		55BE8A23BA13127BBD0A5894 = {
 			isa = PBXGroup;
 			children = (
@@ -327,6 +410,7 @@
 			children = (
 				1BE0A2BB23963F95BFAF1753,
 				8CBF84A6563D8DA3006E2E51,
+				EA8DC95A7EA5D3949A03C6AB,
 				55BE8A23BA13127BBD0A5894,
 			);
 			name = Core;
@@ -398,6 +482,7 @@
 			isa = PBXGroup;
 			children = (
 				FE6E088F851898863FD05BF1,
+				B81324B268526137D62C7010,
 				C237FF4E8F31348C51F4B8E4,
 			);
 			name = MovieTrackerTests;
@@ -572,6 +657,12 @@
 				B3B97ECE790C41E6BF64ED3A,
 				D2C9735ADF055A423E7D388E,
 				8A2B0891A2488D8C50BA2D25,
+				9F09F75B02FD1A3596CD8DE6,
+				660989A616122DD98FED6D02,
+				A5DB7A94A0D9A0E240D6F8CD,
+				6746A7629AAB26C03E2AF002,
+				0DC9F0BB3A4453491EF38251,
+				BB656F8EC2E06ADBE6A56929,
 				41F0788157807A001EDE5A9D,
 				141ABEBB73E0F05F24AD6264,
 				D580E63C8F081C23DB1B11AF,
@@ -586,6 +677,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4088C92A526ECE2C585B245C,
+				4EE69157CD9BD7BF9C1B0FA4,
 				277885EEBA314EFBB048231D,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
