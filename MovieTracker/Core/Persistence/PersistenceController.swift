@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 
 enum PersistenceController {
@@ -8,6 +9,18 @@ enum PersistenceController {
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: inMemory,
+            cloudKitDatabase: .none
+        )
+        return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    /// Explicit local URL for isolated disk persistence tests. The app keeps its default store.
+    @MainActor
+    static func makeContainer(at storeURL: URL) throws -> ModelContainer {
+        let schema = Schema([StoredLibraryEntry.self])
+        let configuration = ModelConfiguration(
+            schema: schema,
+            url: storeURL,
             cloudKitDatabase: .none
         )
         return try ModelContainer(for: schema, configurations: [configuration])

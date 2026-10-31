@@ -13,7 +13,7 @@ A native, local-first iPhone foundation for tracking movies and television toget
 3. Run with **Product → Run** (`⌘R`). No account, API key, backend, or network connection is required.
 4. Run **Product → Test** (`⌘U`) for domain, persistence, and navigation tests.
 
-For a physical iPhone, select your signing team in Signing & Capabilities. **`com.example.MovieTracker` is a placeholder bundle identifier**: replace it with an owned identifier before distribution/App Store submission (and update test identifiers as appropriate). The project intentionally has no final icon or branding. Portrait is the initial supported orientation; system colors and native dynamic text styles support light/dark mode, increased contrast, and Dynamic Type.
+For a physical iPhone, select your signing team in Signing & Capabilities. Automatic signing is enabled; no personal team is committed. You may also pass `DEVELOPMENT_TEAM=<YOUR_TEAM_ID>` to `xcodebuild` for a device build. **`com.example.MovieTracker` is a placeholder bundle identifier**: replace it with an owned identifier before distribution/App Store submission (and update test identifiers as appropriate). The project intentionally has no final icon or branding. Portrait is the initial supported orientation; system colors and native dynamic text styles support light/dark mode, increased contrast, and Dynamic Type.
 
 Command-line validation on macOS:
 
@@ -28,6 +28,8 @@ xcodebuild test \
   -derivedDataPath /tmp/MovieTrackerDerivedData \
   CODE_SIGNING_ALLOWED=NO
 ```
+
+Use the same arguments with `build` in place of `test` for a build-only check. See [the validation report](Documentation/FoundationValidation.md) for commands that capture exit status, build logs, test results, and the required manual matrix. Those commands are instructions, not recorded passing runs.
 
 ## Implemented
 
@@ -66,13 +68,13 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 ## Validation and current limits
 
-The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are described in the pull request; they do not establish compilation or runtime readiness.
+The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
 Included tests (require macOS/Xcode):
 
 - Four domain tests: metadata, unknown season count, movie/TV identity and Codable round trip, library statuses/defaults and independent favorites.
-- Four persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, and container isolation.
-- One UI test: all four tabs and search field load, Settings push/back navigation, and independent tab navigation state.
+- Six persistence tests: empty in-memory initialization, saved/fetched domain round trip for both media kinds, invalid stored enum values, container isolation, isolated on-disk save/reopen, and failure for an unusable store path without changing existing data.
+- Three UI tests: all four tabs/search field and Settings push/back with independent navigation state; background/foreground and cold relaunch; Settings reachability at the largest accessibility text category. Assertions use accessibility identifiers for combined cards and scroll to controls rather than assuming a screen height.
 
 Builds and Xcode tests are run locally by the project owner. Do not add GitHub Actions workflows for Xcode builds or tests.
 
