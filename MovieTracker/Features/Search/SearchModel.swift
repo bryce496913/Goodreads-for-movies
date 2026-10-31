@@ -18,6 +18,7 @@ final class SearchModel {
     let usesTestData: Bool
 
     private struct Key: Equatable { let query: String; let filter: SearchFilter }
+    @ObservationIgnored private let detailCache = MediaDetailCache()
     private let service: (any MediaMetadataService)?
     private let debounce: @Sendable () async throws -> Void
     private var currentKey: Key?
@@ -35,6 +36,10 @@ final class SearchModel {
         self.service = service
         self.usesTestData = usesTestData
         self.debounce = debounce
+    }
+
+    func detailModel(for destination: MediaDestination) -> MediaDetailModel {
+        MediaDetailModel(destination: destination, service: service, cache: detailCache, usesTestData: usesTestData)
     }
 
     static func normalizedQuery(_ query: String) -> String {

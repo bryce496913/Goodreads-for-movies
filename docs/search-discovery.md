@@ -16,7 +16,7 @@ Pagination is explicit **Load More**. No `onAppear` or rendering-triggered auto-
 
 Artwork resolution uses provider configuration and `w185` thumbnails, with AsyncImage and a bounded 56 × 84 point artwork area; row text has no fixed height. Missing, unsupported, or failed images show a neutral film placeholder. Configuration failure does not erase searchable titles, and exposes a separate Retry Artwork action. No custom image cache is introduced. The configuration task is independent of result ordering; it cannot publish an old query's titles.
 
-`MediaDestination` is the single typed route for movie/TV Details. Its title/type/year snapshot remains stable during search edits. `MediaDetailView` currently shows that snapshot; future full details should extend this destination rather than introduce a competing route. No ratings, reviews, or watchlist functionality is added.
+`MediaDestination` is the single typed route for movie/TV Details. Its title/type/year snapshot remains stable during search edits. `MediaDetailView` now loads full movie/TV content via this same route; see [pass 005](media-details.md). The route snapshot remains the initial loading/error fallback. No ratings, reviews, or watchlist functionality is added.
 
 Search includes a TMDB text attribution link and the established notice for real results. Provider documentation still returned HTTP 403 through this environment on 2026-10-31; current licensing, approved logo and placement requirements must be confirmed before distribution. No unverified logo asset is invented. Authorized live retrieval is not claimed here.
 
@@ -64,3 +64,5 @@ xcodebuild test -project MovieTracker.xcodeproj -scheme MovieTracker \
 Confirm **18 search tests actually run**, then run all **46** tests without the only-testing arguments. These commands have not been executed here. Keep logs/result bundles outside Git. Screenshots come from those actual runs, not previously saved results.
 
 Manual review on compact and larger iPhones should check light/dark mode, large and largest accessibility text, long titles, missing dates/images, both media types sharing a title, scrolling to Load More/retries, keyboard interactions, tab/detail/back preservation, and empty/offline/auth/rate-limit states. In a private authorized Run scheme, confirm real search, filters, pagination, and sized posters. No account is needed. Provider/network/credential requirements and local Xcode validation remain prerequisites for real-data acceptance.
+
+Pass 005 extends this architecture to full details and increases the suite to 67 methods; the counts and static results above record the original pass 004. Current detail validation and screenshots are tracked in [media-details.md](media-details.md).

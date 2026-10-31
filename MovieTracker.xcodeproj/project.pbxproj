@@ -27,9 +27,17 @@
 			isa = PBXBuildFile;
 			fileRef = 0DCF85F1F9F542CDD2871DFE;
 		};
+		BE5C0C42611FA7722B0F7736 = {
+			isa = PBXBuildFile;
+			fileRef = 22CBCA2F671ABC3D3DCE6A42;
+		};
 		290C682266CFF32FE9DE8FE8 = {
 			isa = PBXBuildFile;
 			fileRef = 076772DA103039CBFB8D4DF6;
+		};
+		C0C35AEEE17C11225ADF806A = {
+			isa = PBXBuildFile;
+			fileRef = 9B2F214B1B8AB78C8BF146A7;
 		};
 		A8C75CBB019B5CD228E452EB = {
 			isa = PBXBuildFile;
@@ -63,6 +71,10 @@
 			isa = PBXBuildFile;
 			fileRef = 8ABD22829B8488C2165C6DBD;
 		};
+		C5C62DA8D1C5F89BA2680489 = {
+			isa = PBXBuildFile;
+			fileRef = C072EA89ABA25D363C4B1D6F;
+		};
 		0DC9F0BB3A4453491EF38251 = {
 			isa = PBXBuildFile;
 			fileRef = 4DD449023A0E8724002D54BC;
@@ -79,9 +91,33 @@
 			isa = PBXBuildFile;
 			fileRef = E130496FD738F6D2E9657B7A;
 		};
+		36861BD169FAEAB06C855BF5 = {
+			isa = PBXBuildFile;
+			fileRef = 0E646D2CB06C40E48A41E41E;
+		};
+		A6A8677A35FC4580B813E27D = {
+			isa = PBXBuildFile;
+			fileRef = 16A755EAA3AECD21E86F10AF;
+		};
+		D4C72B0BF43630E72F28372E = {
+			isa = PBXBuildFile;
+			fileRef = 56ABEA9B71D20508C5C94C66;
+		};
+		CDC865D2057224951A317C8C = {
+			isa = PBXBuildFile;
+			fileRef = 85CCF6E842F1B25A930125D5;
+		};
 		DA8C65228B1393FAA066632C = {
 			isa = PBXBuildFile;
 			fileRef = 5EDBCCDB52982A8C0823802E;
+		};
+		EB3E83719A3BEF0CA8E04E1C = {
+			isa = PBXBuildFile;
+			fileRef = 2856CBC5B9063E9BB7394C22;
+		};
+		CBB6DFD48839F049FA460158 = {
+			isa = PBXBuildFile;
+			fileRef = 7145A78A1DEFAF46C6A2A1D2;
 		};
 		D580E63C8F081C23DB1B11AF = {
 			isa = PBXBuildFile;
@@ -127,6 +163,10 @@
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
 		};
+		9A427486F88A2575B38F4CB4 = {
+			isa = PBXBuildFile;
+			fileRef = 4E20A76B7C7EF088D1E99D85;
+		};
 		4EE69157CD9BD7BF9C1B0FA4 = {
 			isa = PBXBuildFile;
 			fileRef = B81324B268526137D62C7010;
@@ -138,6 +178,10 @@
 		9C404E772AD12FFA35FDE5E0 = {
 			isa = PBXBuildFile;
 			fileRef = F99AF792B85869771E997A91;
+		};
+		28E4B92F389400FDED0B5271 = {
+			isa = PBXBuildFile;
+			fileRef = 52086CCA2F397475D9DFBCC5;
 		};
 		4B1AD9EC1C5C9E6929EE11AE = {
 			isa = PBXBuildFile;
@@ -197,10 +241,22 @@
 			path = MovieTracker/Core/DesignSystem/SectionHeading.swift;
 			sourceTree = "<group>";
 		};
+		22CBCA2F671ABC3D3DCE6A42 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Models/CastMember.swift;
+			sourceTree = "<group>";
+		};
 		076772DA103039CBFB8D4DF6 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Models/MediaDestination.swift;
+			sourceTree = "<group>";
+		};
+		9B2F214B1B8AB78C8BF146A7 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Models/MediaGenre.swift;
 			sourceTree = "<group>";
 		};
 		ECA932BB0FD44B3779212AFF = {
@@ -251,6 +307,12 @@
 			path = MovieTracker/Core/Networking/TMDBConfiguration.swift;
 			sourceTree = "<group>";
 		};
+		C072EA89ABA25D363C4B1D6F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/TMDBCredits.swift;
+			sourceTree = "<group>";
+		};
 		4DD449023A0E8724002D54BC = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -275,10 +337,46 @@
 			path = MovieTracker/Core/Persistence/StoredLibraryEntry.swift;
 			sourceTree = "<group>";
 		};
+		0E646D2CB06C40E48A41E41E = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/DetailArtworkHeader.swift;
+			sourceTree = "<group>";
+		};
+		16A755EAA3AECD21E86F10AF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/DetailSections.swift;
+			sourceTree = "<group>";
+		};
+		56ABEA9B71D20508C5C94C66 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/MediaDetailCache.swift;
+			sourceTree = "<group>";
+		};
+		85CCF6E842F1B25A930125D5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/MediaDetailModel.swift;
+			sourceTree = "<group>";
+		};
 		5EDBCCDB52982A8C0823802E = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Features/Details/MediaDetailView.swift;
+			sourceTree = "<group>";
+		};
+		2856CBC5B9063E9BB7394C22 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/MovieDetailContent.swift;
+			sourceTree = "<group>";
+		};
+		7145A78A1DEFAF46C6A2A1D2 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Details/TVDetailContent.swift;
 			sourceTree = "<group>";
 		};
 		BF62952D55E1322E1463FFDF = {
@@ -347,6 +445,12 @@
 			path = MovieTrackerTests/DomainModelTests.swift;
 			sourceTree = "<group>";
 		};
+		4E20A76B7C7EF088D1E99D85 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/MediaDetailTests.swift;
+			sourceTree = "<group>";
+		};
 		B81324B268526137D62C7010 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -363,6 +467,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/SearchModelTests.swift;
+			sourceTree = "<group>";
+		};
+		52086CCA2F397475D9DFBCC5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/MediaDetailTests.swift;
 			sourceTree = "<group>";
 		};
 		4058E63ED1F4699E63158B1A = {
@@ -465,7 +575,9 @@
 		8CBF84A6563D8DA3006E2E51 = {
 			isa = PBXGroup;
 			children = (
+				22CBCA2F671ABC3D3DCE6A42,
 				076772DA103039CBFB8D4DF6,
+				9B2F214B1B8AB78C8BF146A7,
 				ECA932BB0FD44B3779212AFF,
 				5189A3CE8C3CA4C49F2910E4,
 				E4ADCF6ECDFE24C5A05D9A3E,
@@ -481,6 +593,7 @@
 				D729950F3E93A0ABA95E4CF4,
 				7C8FAE07861ED27A60C868FE,
 				8ABD22829B8488C2165C6DBD,
+				C072EA89ABA25D363C4B1D6F,
 				4DD449023A0E8724002D54BC,
 				C9839E77EFE71214444EE94B,
 			);
@@ -510,7 +623,13 @@
 		B5A04877AF369CB350B5325F = {
 			isa = PBXGroup;
 			children = (
+				0E646D2CB06C40E48A41E41E,
+				16A755EAA3AECD21E86F10AF,
+				56ABEA9B71D20508C5C94C66,
+				85CCF6E842F1B25A930125D5,
 				5EDBCCDB52982A8C0823802E,
+				2856CBC5B9063E9BB7394C22,
+				7145A78A1DEFAF46C6A2A1D2,
 			);
 			name = Details;
 			sourceTree = "<group>";
@@ -587,6 +706,7 @@
 			isa = PBXGroup;
 			children = (
 				FE6E088F851898863FD05BF1,
+				4E20A76B7C7EF088D1E99D85,
 				B81324B268526137D62C7010,
 				C237FF4E8F31348C51F4B8E4,
 				F99AF792B85869771E997A91,
@@ -597,6 +717,7 @@
 		CAB420EAEAFE405BAC92A70A = {
 			isa = PBXGroup;
 			children = (
+				52086CCA2F397475D9DFBCC5,
 				4058E63ED1F4699E63158B1A,
 				99849B97A637DAB2F12043CD,
 			);
@@ -760,7 +881,9 @@
 				9F55FA3A1C344FC90E3044F6,
 				124452D4A5B10C8C718314BB,
 				629A807C5790DB23D99DB65B,
+				BE5C0C42611FA7722B0F7736,
 				290C682266CFF32FE9DE8FE8,
+				C0C35AEEE17C11225ADF806A,
 				A8C75CBB019B5CD228E452EB,
 				B3B97ECE790C41E6BF64ED3A,
 				D2C9735ADF055A423E7D388E,
@@ -769,11 +892,18 @@
 				660989A616122DD98FED6D02,
 				A5DB7A94A0D9A0E240D6F8CD,
 				6746A7629AAB26C03E2AF002,
+				C5C62DA8D1C5F89BA2680489,
 				0DC9F0BB3A4453491EF38251,
 				BB656F8EC2E06ADBE6A56929,
 				41F0788157807A001EDE5A9D,
 				141ABEBB73E0F05F24AD6264,
+				36861BD169FAEAB06C855BF5,
+				A6A8677A35FC4580B813E27D,
+				D4C72B0BF43630E72F28372E,
+				CDC865D2057224951A317C8C,
 				DA8C65228B1393FAA066632C,
+				EB3E83719A3BEF0CA8E04E1C,
+				CBB6DFD48839F049FA460158,
 				D580E63C8F081C23DB1B11AF,
 				BEEB6356C33E9E2723EC9313,
 				C19B646EB89486A9D9703686,
@@ -791,6 +921,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4088C92A526ECE2C585B245C,
+				9A427486F88A2575B38F4CB4,
 				4EE69157CD9BD7BF9C1B0FA4,
 				277885EEBA314EFBB048231D,
 				9C404E772AD12FFA35FDE5E0,
@@ -801,6 +932,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				28E4B92F389400FDED0B5271,
 				4B1AD9EC1C5C9E6929EE11AE,
 				ED241ED78558D295D5E3EA53,
 			);

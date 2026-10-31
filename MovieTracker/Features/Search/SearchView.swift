@@ -70,7 +70,7 @@ struct SearchView: View {
         .searchable(text: $model.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Movies and TV shows")
         .autocorrectionDisabled()
         .scrollDismissesKeyboard(.interactively)
-        .navigationDestination(for: MediaDestination.self) { MediaDetailView(destination: $0) }
+        .navigationDestination(for: MediaDestination.self) { MediaDetailView(model: model.detailModel(for: $0)) }
     }
 
     @ViewBuilder

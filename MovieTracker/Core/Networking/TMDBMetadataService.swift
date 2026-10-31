@@ -66,6 +66,14 @@ actor TMDBMetadataService: MediaMetadataService {
         return list.genres.map { MediaGenre(id: "tmdb:\($0.id)", name: $0.name) }
     }
 
+    func castPreview(for id: MediaID) async throws -> [CastMember] {
+        let value = try providerID(id, kind: id.kind)
+        let path = id.kind == .movie ? "movie" : "tv"
+        let credits: TMDBCredits = try await load("\(path)/\(value)/credits")
+        try Task.checkCancellation()
+        return credits.preview()
+    }
+
     func imageResolver() async throws -> MetadataImageResolver {
         try Task.checkCancellation()
         let flight: (id: UUID, task: Task<TMDBImageConfiguration, Error>)

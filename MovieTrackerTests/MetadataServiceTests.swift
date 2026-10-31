@@ -233,6 +233,40 @@ final class MetadataServiceTests: XCTestCase {
         _ = try TMDBConfiguration.localDevelopment(environment: ["TMDB_READ_ACCESS_TOKEN": "local-test-credential"])
     }
 
+    @MainActor
+    func testDetailGenresEpisodeCountsAndStatusMapping() async throws {
+        let stub = StubMetadataTransport([.success(response(#"{"id":123,"name":"Series","number_of_seasons":3,"number_of_episodes":24,"status":"Returning Series","genres":[{"id":18,"name":"Drama"},{"id":18,"name":"Drama"}]}"#))])
+        let show = try await makeService(stub).tvShowDetails(id: MediaID(kind: .tvShow, value: "tmdb:123"))
+        XCTAssertEqual(show.episodeCount, 24)
+        XCTAssertEqual(show.seasonCount, 3)
+        XCTAssertEqual(show.seriesStatus, "Returning Series")
+        XCTAssertEqual(show.genres, [MediaGenre(id: "tmdb:18", name: "Drama")])
+    }
+
+    @MainActor
+    func testCastPreviewRoutesAndSkipsIncompletePeople() async throws {
+        let payload = response(#"{"cast":[{"id":1,"name":"Performer","character":"Lead","order":0},{"id":1,"name":"Duplicate","order":1},{"id":2,"name":"Second","character":null},{"id":3,"name":" "},{"name":"No identifier"}]}"#)
+        let stub = StubMetadataTransport([.success(payload), .success(payload)])
+        let service = try makeService(stub)
+        let movieCast = try await service.castPreview(for: MediaID(kind: .movie, value: "tmdb:123"))
+        let tvCast = try await service.castPreview(for: MediaID(kind: .tvShow, value: "tmdb:123"))
+        XCTAssertEqual(movieCast, tvCast)
+        XCTAssertEqual(movieCast.count, 2)
+        XCTAssertEqual(movieCast.first?.character, "Lead")
+        XCTAssertNil(movieCast.last?.character)
+        let paths = await stub.requests.compactMap { $0.url?.path }
+        XCTAssertEqual(paths, ["/3/movie/123/credits", "/3/tv/123/credits"])
+    }
+
+    @MainActor
+    func testUnknownTVCountsAndBlankStatusRemainUnavailable() async throws {
+        let stub = StubMetadataTransport([.success(response(#"{"id":123,"name":"Series","number_of_seasons":0,"number_of_episodes":0,"status":" "}"#))])
+        let show = try await makeService(stub).tvShowDetails(id: MediaID(kind: .tvShow, value: "tmdb:123"))
+        XCTAssertNil(show.seasonCount)
+        XCTAssertNil(show.episodeCount)
+        XCTAssertNil(show.seriesStatus)
+    }
+
     private func response(_ json: String, status: Int = 200, retryAfter: String? = nil) -> MetadataHTTPResponse {
         MetadataHTTPResponse(data: Data(json.utf8), status: status, retryAfter: retryAfter)
     }
