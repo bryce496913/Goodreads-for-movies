@@ -3,14 +3,16 @@ import SwiftUI
 
 @main
 struct MovieTrackerApp: App {
+    @State private var library: LibraryStore?
     @State private var container: ModelContainer?
     @State private var persistenceFailed = false
 
     var body: some Scene {
         WindowGroup {
             Group {
-                if let container {
+                if let container, let library {
                     AppRootView()
+                        .environment(library)
                         .modelContainer(container)
                 } else if persistenceFailed {
                     ContentUnavailableView {
@@ -41,7 +43,22 @@ struct MovieTrackerApp: App {
             #else
             let inMemory = false
             #endif
-            container = try PersistenceController.makeContainer(inMemory: inMemory)
+            #if DEBUG
+            if inMemory, let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--ui-testing-library-store=") }),
+               let identifier = UUID(uuidString: String(argument.dropFirst("--ui-testing-library-store=".count))) {
+                let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                                         appropriateFor: nil, create: true)
+                let directory = support.appendingPathComponent("LibraryUITests", isDirectory: true)
+                    .appendingPathComponent(identifier.uuidString, isDirectory: true)
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                container = try PersistenceController.makeContainer(at: directory.appendingPathComponent("Library.store"))
+            } else {
+                container = try PersistenceController.makeContainer(inMemory: inMemory)
+            }
+            #else
+            container = try PersistenceController.makeContainer()
+            #endif
+            if let container { library = LibraryStore(container: container) }
             persistenceFailed = false
         } catch {
             persistenceFailed = true

@@ -13,3 +13,5 @@
 - Report exactly which build/tests ran and any environment limitations. Linux cannot validate SwiftUI or SwiftData.
 - When development work is complete, commit and push the changes and create or update the pull request. Do not merge it. Report any access blocker explicitly.
 - Each cloud task is already isolated. Use the existing checkout; do not create a worktree unless explicitly requested.
+
+- Route personal library writes through the shared main-actor LibraryStore. Preserve its identity lookup, explicit saves, rollback behavior, and independent personal fields; do not add competing writers.

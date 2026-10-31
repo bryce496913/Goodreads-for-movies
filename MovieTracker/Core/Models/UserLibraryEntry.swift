@@ -9,7 +9,7 @@ enum LibraryStatus: String, Codable, CaseIterable, Sendable {
 struct UserLibraryEntry: Identifiable, Equatable, Sendable {
     let id: UUID
     let mediaID: MediaID
-    var status: LibraryStatus
+    var status: LibraryStatus?
     /// Favorites are independent of viewing status, so a watched item can also be a favorite.
     var isFavorite: Bool
     /// Optional future rating; the rating scale will be decided with the editing feature.
@@ -21,7 +21,7 @@ struct UserLibraryEntry: Identifiable, Equatable, Sendable {
     init(
         id: UUID = UUID(),
         mediaID: MediaID,
-        status: LibraryStatus = .watchlist,
+        status: LibraryStatus? = .watchlist,
         isFavorite: Bool = false,
         rating: Double? = nil,
         review: String? = nil,

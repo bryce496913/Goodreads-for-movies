@@ -1,6 +1,6 @@
 import Foundation
 
-struct TVShow: Identifiable, Equatable, Sendable {
+struct TVShow: Codable, Identifiable, Equatable, Sendable {
     let id: MediaID
     var title: String
     var overview: String

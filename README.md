@@ -1,6 +1,6 @@
 # MovieTracker
 
-A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. The app supplies navigation, accessible empty states, domain models, local persistence infrastructure, and an opt-in metadata service. Search now finds movie and TV metadata with authorized local TMDB configuration; library saving is not yet implemented.
+A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. The app supplies navigation, accessible empty states, domain models, local persistence infrastructure, and an opt-in metadata service. Search now finds movie and TV metadata with authorized local TMDB configuration; titles can be saved locally with independent favorites and viewing statuses.
 
 ## Requirements and running
 
@@ -42,6 +42,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; connected to the Search tab. See [provider evaluation and local setup](docs/metadata-provider.md). Current terms and live retrieval remain unverified because provider documentation access is blocked and no credential is configured.
 - Functional Search with a 300 ms debounce, All/Movies/TV Shows filters, loading/empty/retry states, sized poster thumbnails, explicit duplicate-safe pagination, and typed movie/TV detail pages. See [Search behavior and validation](docs/search-discovery.md).
 - Movie/TV detail pages with shared artwork, genre, synopsis, cast and metadata sections, TV season summaries, partial-failure recovery and session snapshots for previously loaded details. See [detail architecture and validation](docs/media-details.md).
+- Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Saved metadata supports offline title/detail display; see [library persistence](docs/library-persistence.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -74,7 +75,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (67 methods total, all require local macOS/Xcode execution):
+Included tests (79 methods total, all require local macOS/Xcode execution):
 
 - Twelve detail model/component tests, three added provider mapping/credits tests, and six detail UI tests, including long content, fallback artwork and cached offline reopening. See [detail test commands and screenshots](docs/media-details.md).
 

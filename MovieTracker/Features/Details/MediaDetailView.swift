@@ -17,9 +17,12 @@ struct MediaDetailView: View {
                             .accessibilityIdentifier("details.cached")
                             .accessibilityAddTraits(.updatesFrequently)
                     }
+                    DetailArtworkHeader(item: SearchItem(snapshot.media), backdropReference: backdrop(snapshot.media), resolver: snapshot.imageResolver)
+                    LibraryDetailActions(media: snapshot.media,
+                        posterURL: snapshot.imageResolver?.posterURL(reference: SearchItem(snapshot.media).posterReference))
                     switch snapshot.media {
-                    case .movie(let movie): MovieDetailContent(movie: movie, resolver: snapshot.imageResolver)
-                    case .tvShow(let show): TVDetailContent(show: show, resolver: snapshot.imageResolver)
+                    case .movie(let movie): MovieDetailContent(movie: movie)
+                    case .tvShow(let show): TVDetailContent(show: show)
                     }
                     DetailCast(members: snapshot.cast, isLoading: model.isLoadingExtras, unavailable: model.castUnavailable)
                     if model.artworkUnavailable {
@@ -69,4 +72,11 @@ struct MediaDetailView: View {
             if let error { AccessibilityNotification.Announcement(error.localizedDescription).post() }
         }
     }
+    private func backdrop(_ media: MediaSearchResult) -> String? {
+        switch media {
+        case .movie(let movie): movie.backdropReference
+        case .tvShow(let show): show.backdropReference
+        }
+    }
+
 }
