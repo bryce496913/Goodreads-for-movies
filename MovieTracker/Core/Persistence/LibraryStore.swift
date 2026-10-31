@@ -43,6 +43,11 @@ final class LibraryStore {
         try mutate(media: media, status: nil, changesStatus: false, favorite: favorite, posterURL: posterURL)
     }
 
+    func setPersonalRating(_ rating: PersonalRating?, media: MediaSearchResult, posterURL: URL? = nil) throws {
+        try mutate(media: media, status: nil, changesStatus: false, favorite: nil, posterURL: posterURL,
+                   rating: rating, changesRating: true)
+    }
+
     func remove(_ id: MediaID) throws {
         do {
             guard let record = try uniqueRecord(for: id) else { return }
@@ -57,26 +62,31 @@ final class LibraryStore {
     }
 
     private func mutate(media: MediaSearchResult, status: LibraryStatus?, changesStatus: Bool,
-                        favorite: Bool?, posterURL: URL?) throws {
+                        favorite: Bool?, posterURL: URL?, rating: PersonalRating? = nil, changesRating: Bool = false) throws {
         let item = SearchItem(media)
         guard !item.id.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw LibraryStoreError.invalidIdentity }
         do {
             let existing = try uniqueRecord(for: item.id)
             // Clearing an unsaved status/favorite is a no-op, not a new empty library row.
-            if existing == nil && status == nil && favorite != true { return }
+            if existing == nil && status == nil && favorite != true && (!changesRating || rating == nil) { return }
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             let data = try encoder.encode(media)
             let record = existing ?? StoredLibraryEntry(entry: UserLibraryEntry(mediaID: item.id, status: nil))
             let newStatus = changesStatus ? (status?.rawValue ?? "none") : record.status
             let newFavorite = favorite ?? record.isFavorite
+            let newUnits = changesRating ? rating?.halfStarUnits : record.ratingHalfStarUnits
+            let newLegacyStars = changesRating ? rating?.stars : record.rating
             let newURL = posterURL?.absoluteString ?? record.savedPosterURL
             guard existing == nil || record.status != newStatus || record.isFavorite != newFavorite
                     || record.snapshotData != data || record.savedTitle != item.title || record.savedYear != item.year
-                    || record.savedPosterReference != item.posterReference || record.savedPosterURL != newURL else { return }
+                    || record.savedPosterReference != item.posterReference || record.savedPosterURL != newURL
+                    || (changesRating && (record.ratingHalfStarUnits != newUnits || record.rating != newLegacyStars)) else { return }
             if existing == nil { context.insert(record) }
             record.status = newStatus
             record.isFavorite = newFavorite
+            record.ratingHalfStarUnits = newUnits
+            record.rating = newLegacyStars
             record.savedTitle = item.title
             record.savedYear = item.year
             record.savedPosterReference = item.posterReference

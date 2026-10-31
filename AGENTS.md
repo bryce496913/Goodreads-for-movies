@@ -15,3 +15,4 @@
 - Each cloud task is already isolated. Use the existing checkout; do not create a worktree unless explicitly requested.
 
 - Route personal library writes through the shared main-actor LibraryStore. Preserve its identity lookup, explicit saves, rollback behavior, and independent personal fields; do not add competing writers.
+- Use validated PersonalRating values (1...10 half-star units) for rating writes. Nil means unrated; do not mutate the retained legacy Double column from feature code.

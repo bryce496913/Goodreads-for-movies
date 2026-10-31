@@ -15,6 +15,9 @@ struct LibraryDetailActions: View {
             if let error = library.loadError { Text(error.localizedDescription).foregroundStyle(.secondary) }
             Text(entry?.statusLabel ?? "Not in your library")
                 .accessibilityIdentifier("library.currentStatus")
+            PersonalRatingControl(current: { try library.entry(for: item.id)?.validatedRating() }, save: {
+                try library.setPersonalRating($0, media: media, posterURL: posterURL)
+            })
             Button(entry?.status == "watchlist" ? "Remove from Watchlist" : "Add to Watchlist") {
                 perform { try library.setStatus(entry?.status == "watchlist" ? nil : .watchlist, media: media, posterURL: posterURL) }
             }.accessibilityIdentifier("library.watchlistAction")

@@ -12,8 +12,8 @@ struct UserLibraryEntry: Identifiable, Equatable, Sendable {
     var status: LibraryStatus?
     /// Favorites are independent of viewing status, so a watched item can also be a favorite.
     var isFavorite: Bool
-    /// Optional future rating; the rating scale will be decided with the editing feature.
-    var rating: Double?
+    /// Personal rating, independent of viewing status. Nil means unrated.
+    var rating: PersonalRating?
     var review: String?
     let addedAt: Date
     var updatedAt: Date
@@ -23,7 +23,7 @@ struct UserLibraryEntry: Identifiable, Equatable, Sendable {
         mediaID: MediaID,
         status: LibraryStatus? = .watchlist,
         isFavorite: Bool = false,
-        rating: Double? = nil,
+        rating: PersonalRating? = nil,
         review: String? = nil,
         addedAt: Date = .now,
         updatedAt: Date? = nil
