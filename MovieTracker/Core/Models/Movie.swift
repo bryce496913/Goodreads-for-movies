@@ -1,6 +1,6 @@
 import Foundation
 
-struct Movie: Identifiable, Equatable, Sendable {
+struct Movie: Codable, Identifiable, Equatable, Sendable {
     let id: MediaID
     var title: String
     var overview: String

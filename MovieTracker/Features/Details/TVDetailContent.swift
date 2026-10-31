@@ -2,9 +2,7 @@ import SwiftUI
 
 struct TVDetailContent: View {
     let show: TVShow
-    let resolver: MetadataImageResolver?
     var body: some View {
-        DetailArtworkHeader(item: SearchItem(.tvShow(show)), backdropReference: show.backdropReference, resolver: resolver)
         DetailFacts(title: "Series information", facts: [
             DetailFact(label: "First aired", value: DetailFormatting.date(show.firstAirDate)),
             DetailFact(label: "Series status", value: show.seriesStatus?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false

@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct AppRootView: View {
@@ -9,7 +10,7 @@ struct AppRootView: View {
                 .tabItem { Label("Home", systemImage: "house") }
             NavigationStack { SearchView(model: searchModel) }
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
-            NavigationStack { LibraryView() }
+            NavigationStack { LibraryView { destination, savedMedia in searchModel.detailModel(for: destination, savedMedia: savedMedia) } }
                 .tabItem { Label("Library", systemImage: "books.vertical") }
             NavigationStack { ProfileView() }
                 .tabItem { Label("Profile", systemImage: "person") }
@@ -18,5 +19,7 @@ struct AppRootView: View {
 }
 
 #Preview {
-    AppRootView()
+    if let container = try? PersistenceController.makeContainer(inMemory: true) {
+        AppRootView().environment(LibraryStore(container: container)).modelContainer(container)
+    }
 }

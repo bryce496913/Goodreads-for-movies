@@ -9,6 +9,10 @@ struct SearchItem: Identifiable, Equatable, Sendable {
     var mediaType: String { id.kind == .movie ? "Movie" : "TV Show" }
     var destination: MediaDestination { MediaDestination(id: id, title: title, year: year) }
 
+    init(id: MediaID, title: String, year: Int?, posterReference: String?) {
+        self.id = id; self.title = title; self.year = year; self.posterReference = posterReference
+    }
+
     init(_ result: MediaSearchResult) {
         let date: Date?
         switch result {

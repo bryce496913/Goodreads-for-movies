@@ -9,7 +9,7 @@ struct MetadataPage<Item: Sendable>: Sendable {
     var nextPage: Int? { page < totalPages ? page + 1 : nil }
 }
 
-enum MediaSearchResult: Equatable, Sendable {
+enum MediaSearchResult: Codable, Equatable, Sendable {
     case movie(Movie)
     case tvShow(TVShow)
 }

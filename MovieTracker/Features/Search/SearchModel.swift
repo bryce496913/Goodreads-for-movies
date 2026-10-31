@@ -38,8 +38,11 @@ final class SearchModel {
         self.debounce = debounce
     }
 
-    func detailModel(for destination: MediaDestination) -> MediaDetailModel {
-        MediaDetailModel(destination: destination, service: service, cache: detailCache, usesTestData: usesTestData)
+    func detailModel(for destination: MediaDestination, savedMedia: MediaSearchResult? = nil) -> MediaDetailModel {
+        if detailCache.snapshot(for: destination.id) == nil, let savedMedia, SearchItem(savedMedia).id == destination.id {
+            detailCache.save(.init(media: savedMedia), for: destination.id)
+        }
+        return MediaDetailModel(destination: destination, service: service, cache: detailCache, usesTestData: usesTestData)
     }
 
     static func normalizedQuery(_ query: String) -> String {

@@ -1,6 +1,6 @@
 import Foundation
 
-struct MediaGenre: Equatable, Sendable {
+struct MediaGenre: Codable, Equatable, Sendable {
     let id: String
     let name: String
 }

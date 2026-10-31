@@ -8,6 +8,7 @@ final class NavigationTests: XCTestCase {
     @MainActor
     func testTabsAndSettingsNavigation() async {
         let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing-search"]
         app.launch()
         assertScreen("Welcome", in: app)
         for title in ["Home", "Search", "Library", "Profile"] {
@@ -19,7 +20,7 @@ final class NavigationTests: XCTestCase {
         app.tabBars.buttons["Library"].tap()
         assertScreen("Library", in: app)
         // Cards combine their title and message for VoiceOver; do not query a hidden child label.
-        XCTAssertTrue(app.descendants(matching: .any)["library.watchlist"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["library.empty"].firstMatch.exists)
         app.tabBars.buttons["Profile"].tap()
         assertScreen("Profile", in: app)
         openSettings(in: app)
@@ -34,6 +35,7 @@ final class NavigationTests: XCTestCase {
     @MainActor
     func testStartupBackgroundAndColdRelaunch() async {
         let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing-search"]
         app.launch()
         assertScreen("Welcome", in: app)
         app.tabBars.buttons["Library"].tap()
@@ -50,7 +52,8 @@ final class NavigationTests: XCTestCase {
     @MainActor
     func testSettingsReachableAtLargestAccessibilityTextSize() async {
         let app = XCUIApplication()
-        app.launchArguments = [
+        app.launchArguments = ["--ui-testing-search"]
+        app.launchArguments += [
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"
         ]
         app.launch()
