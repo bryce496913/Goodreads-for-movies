@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+# Xcode local state and build products
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcresult
+# Swift package build products
+.build/
+.swiftpm/
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.p12
+*.mobileprovision
