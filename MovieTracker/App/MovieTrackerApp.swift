@@ -58,7 +58,15 @@ struct MovieTrackerApp: App {
             #else
             container = try PersistenceController.makeContainer()
             #endif
-            if let container { library = LibraryStore(container: container) }
+            if let container {
+                let store = LibraryStore(container: container)
+                #if DEBUG
+                if inMemory && ProcessInfo.processInfo.arguments.contains("--ui-testing-library-organization") {
+                    try LibraryOrganizationUITestData.seed(store)
+                }
+                #endif
+                library = store
+            }
             persistenceFailed = false
         } catch {
             persistenceFailed = true

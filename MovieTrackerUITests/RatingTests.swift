@@ -19,6 +19,7 @@ final class RatingUITests: XCTestCase {
         let row = app.buttons["library.row.movie.fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(row.label.contains("2.5 stars"))
+        reveal(row, in: app)
         row.tap()
         let clear = app.buttons["rating.clear"]
         reveal(clear, in: app)
@@ -57,6 +58,7 @@ final class RatingUITests: XCTestCase {
         let row = app.buttons["library.row.movie.fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(row.label.contains("5.0 stars"))
+        reveal(row, in: app)
         row.tap()
         XCTAssertTrue(app.staticTexts["rating.value"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["rating.value"].label, "5.0 stars")
@@ -74,6 +76,7 @@ final class RatingUITests: XCTestCase {
         field.tap(); field.typeText("sample")
         let row = app.buttons["search.result." + kind + ".fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
+        reveal(row, in: app)
         reveal(row, in: app)
         row.tap()
         XCTAssertTrue(app.staticTexts["details.title"].waitForExistence(timeout: 5))

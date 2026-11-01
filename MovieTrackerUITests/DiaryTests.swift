@@ -41,7 +41,8 @@ final class DiaryUITests: XCTestCase {
             app.buttons["diary.save"].tap()
         }
         app.tabBars.buttons["Library"].tap()
-        tap(app.buttons["diary.open"], in: app)
+        app.buttons["library.more"].tap()
+        tap(app.buttons["Viewing History"], in: app)
         XCTAssertTrue(app.navigationBars["Viewing History"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.buttons.matching(identifier: "diary.row").count, 2)
         tap(app.buttons.matching(identifier: "diary.delete").firstMatch, in: app)
@@ -106,7 +107,8 @@ final class DiaryUITests: XCTestCase {
     @MainActor
     private func openArchive(in app: XCUIApplication) {
         app.tabBars.buttons["Library"].tap()
-        tap(app.buttons["review.archive"], in: app)
+        app.buttons["library.more"].tap()
+        tap(app.buttons["Personal Reviews"], in: app)
         XCTAssertTrue(app.navigationBars["Personal Reviews"].waitForExistence(timeout: 5))
     }
 
