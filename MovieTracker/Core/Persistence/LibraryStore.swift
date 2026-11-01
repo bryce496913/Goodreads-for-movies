@@ -112,16 +112,18 @@ final class LibraryStore {
             let newFavorite = favorite ?? record.isFavorite
             let newUnits = changesRating ? rating?.halfStarUnits : record.ratingHalfStarUnits
             let newLegacyStars = changesRating ? rating?.stars : record.rating
+            let ratingChanged = changesRating && (record.ratingHalfStarUnits != newUnits || record.rating != newLegacyStars)
             let newURL = posterURL?.absoluteString ?? record.savedPosterURL
             guard existing == nil || record.status != newStatus || record.isFavorite != newFavorite
                     || record.snapshotData != data || record.savedTitle != item.title || record.savedYear != item.year
                     || record.savedPosterReference != item.posterReference || record.savedPosterURL != newURL
-                    || (changesRating && (record.ratingHalfStarUnits != newUnits || record.rating != newLegacyStars)) else { return }
+                    || ratingChanged else { return }
             if existing == nil { context.insert(record) }
             record.status = newStatus
             record.isFavorite = newFavorite
             record.ratingHalfStarUnits = newUnits
             record.rating = newLegacyStars
+            if ratingChanged { record.ratingUpdatedAt = .now }
             record.savedTitle = item.title
             record.savedYear = item.year
             record.savedPosterReference = item.posterReference
