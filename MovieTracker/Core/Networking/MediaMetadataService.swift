@@ -22,6 +22,8 @@ protocol MediaMetadataService: Sendable {
     func tvShowDetails(id: MediaID) async throws -> TVShow
     func genres(for kind: MediaID.Kind) async throws -> [MediaGenre]
     func castPreview(for id: MediaID) async throws -> [CastMember]
+    func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary]
+    func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails
     func imageResolver() async throws -> MetadataImageResolver
 }
 
@@ -64,4 +66,6 @@ extension MetadataError: LocalizedError {
 // Providers/mocks without credits support may explicitly return an empty preview.
 extension MediaMetadataService {
     func castPreview(for id: MediaID) async throws -> [CastMember] { [] }
+    func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] { throw MetadataError.invalidPayload }
+    func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails { throw MetadataError.invalidPayload }
 }

@@ -267,6 +267,48 @@ final class MetadataServiceTests: XCTestCase {
         XCTAssertNil(show.seriesStatus)
     }
 
+    @MainActor
+    func testTVSeasonCatalogMapsSpecialsAndUnknownCounts() async throws {
+        let stub = StubMetadataTransport([.success(response(#"{"id":123,"name":"Series","seasons":[{"id":7,"season_number":0,"name":"Specials","episode_count":2},{"season_number":1,"name":null,"episode_count":null}]}"#))])
+        let seasons = try await makeService(stub).tvSeasons(for: MediaID(kind: .tvShow, value: "tmdb:123"))
+        XCTAssertEqual(seasons.map(\.number), [0, 1])
+        XCTAssertEqual(seasons.first?.providerID, "tmdb:7")
+        XCTAssertNil(seasons.last?.episodeCount)
+        XCTAssertEqual(seasons.last?.name, "Season 1")
+        let path = await stub.requests.first?.url?.path
+        XCTAssertEqual(path, "/3/tv/123")
+    }
+
+    @MainActor
+    func testSeasonEpisodesMapStableIDsAndMissingMetadata() async throws {
+        let stub = StubMetadataTransport([.success(response(#"{"season_number":1,"name":"Season 1","episodes":[{"id":700,"episode_number":1,"season_number":1,"name":"Pilot","air_date":"2024-01-01","runtime":45},{"id":701,"episode_number":2,"name":null,"air_date":"","runtime":0}]}"#))])
+        let id = MediaID(kind: .tvShow, value: "tmdb:123")
+        let season = try await makeService(stub).tvSeasonDetails(for: id, number: 1)
+        XCTAssertEqual(season.episodes.count, 2)
+        XCTAssertEqual(season.episodes.first?.id, EpisodeID(seriesID: id, providerValue: "tmdb:700"))
+        XCTAssertEqual(season.episodes.first?.runtimeMinutes, 45)
+        XCTAssertEqual(season.episodes.last?.title, "Episode 2")
+        XCTAssertNil(season.episodes.last?.airDate)
+        XCTAssertNil(season.episodes.last?.runtimeMinutes)
+        let path = await stub.requests.first?.url?.path
+        XCTAssertEqual(path, "/3/tv/123/season/1")
+    }
+
+    @MainActor
+    func testSeasonBoundariesAndDuplicateEpisodeIDsAreRejected() async throws {
+        for payload in [#"{"season_number":2,"episodes":[]}"#,
+            #"{"season_number":1,"episodes":[{"id":7,"episode_number":1},{"id":7,"episode_number":2}]}"#] {
+            let service = try makeService(StubMetadataTransport([.success(response(payload))]))
+            await assertError(.invalidPayload) { _ = try await service.tvSeasonDetails(for: MediaID(kind: .tvShow, value: "tmdb:123"), number: 1) }
+        }
+        let stub = StubMetadataTransport([])
+        let service = try makeService(stub)
+        await assertError(.invalidIdentifier) { _ = try await service.tvSeasonDetails(for: MediaID(kind: .movie, value: "tmdb:123"), number: 1) }
+        await assertError(.invalidIdentifier) { _ = try await service.tvSeasonDetails(for: MediaID(kind: .tvShow, value: "tmdb:123"), number: -1) }
+        let count = await stub.requests.count
+        XCTAssertEqual(count, 0)
+    }
+
     private func response(_ json: String, status: Int = 200, retryAfter: String? = nil) -> MetadataHTTPResponse {
         MetadataHTTPResponse(data: Data(json.utf8), status: status, retryAfter: retryAfter)
     }

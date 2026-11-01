@@ -17,10 +17,11 @@ struct TMDBTitle: Decodable, Sendable {
     let numberOfSeasons: Int?
     let numberOfEpisodes: Int?
     let status: String?
+    let seasons: [TMDBSeasonSummary]?
     let mediaType: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, title, name, overview, genres, runtime, status
+        case id, title, name, overview, genres, runtime, status, seasons
         case releaseDate = "release_date", firstAirDate = "first_air_date"
         case posterPath = "poster_path", backdropPath = "backdrop_path"
         case genreIDs = "genre_ids", episodeRunTime = "episode_run_time"
@@ -51,8 +52,16 @@ struct TMDBTitle: Decodable, Sendable {
             episodeRuntimeMinutes: episodeRunTime?.first(where: { $0 > 0 }),
             backdropReference: backdropPath, genres: mappedGenreNames,
             episodeCount: numberOfEpisodes.flatMap { $0 > 0 ? $0 : nil },
-            seriesStatus: status?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? status : nil
+            seriesStatus: status?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? status : nil,
+            seasons: try mappedSeasons()
         )
+    }
+
+    private func mappedSeasons() throws -> [TVSeasonSummary]? {
+        guard let seasons else { return nil }
+        let values = try seasons.map { try $0.domain() }
+        guard Set(values.map(\.number)).count == values.count else { throw MetadataError.invalidPayload }
+        return values.sorted { $0.number < $1.number }
     }
 
     private var mappedGenreNames: [MediaGenre] {
@@ -68,7 +77,7 @@ struct TMDBTitle: Decodable, Sendable {
         (genreIDs ?? genres?.map(\.id) ?? []).filter { $0 > 0 }.map { "tmdb:\($0)" }
     }
 
-    private static func date(_ value: String?) -> Date? {
+    static func date(_ value: String?) -> Date? {
         guard let value, value.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else { return nil }
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)

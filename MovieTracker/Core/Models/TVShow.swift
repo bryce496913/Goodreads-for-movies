@@ -13,6 +13,7 @@ struct TVShow: Codable, Identifiable, Equatable, Sendable {
     var episodeCount: Int?
     var seriesStatus: String?
     var seasonCount: Int?
+    var seasons: [TVSeasonSummary]?
 
     init(
         id: String,
@@ -26,7 +27,8 @@ struct TVShow: Codable, Identifiable, Equatable, Sendable {
         backdropReference: String? = nil,
         genres: [MediaGenre] = [],
         episodeCount: Int? = nil,
-        seriesStatus: String? = nil
+        seriesStatus: String? = nil,
+        seasons: [TVSeasonSummary]? = nil
     ) {
         self.id = MediaID(kind: .tvShow, value: id)
         self.title = title
@@ -40,5 +42,6 @@ struct TVShow: Codable, Identifiable, Equatable, Sendable {
         self.seasonCount = seasonCount
         self.episodeCount = episodeCount
         self.seriesStatus = seriesStatus
+        self.seasons = seasons
     }
 }

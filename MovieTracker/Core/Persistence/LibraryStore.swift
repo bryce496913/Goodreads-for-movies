@@ -8,6 +8,8 @@ final class LibraryStore {
     private(set) var entries: [StoredLibraryEntry] = []
     private(set) var personalReviews: [StoredPersonalReview] = []
     private(set) var viewingEvents: [StoredViewingEvent] = []
+    private(set) var tvSeasons: [StoredTVSeason] = []
+    private(set) var episodeProgress: [StoredEpisodeProgress] = []
     private(set) var loadError: LibraryStoreError?
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
@@ -36,6 +38,12 @@ final class LibraryStore {
                 if $0.recordedAt != $1.recordedAt { return $0.recordedAt > $1.recordedAt }
                 return $0.id.uuidString < $1.id.uuidString
             }
+            let seasons = try context.fetch(FetchDescriptor<StoredTVSeason>()).sorted {
+                if $0.seriesValue != $1.seriesValue { return $0.seriesValue < $1.seriesValue }
+                return $0.number < $1.number
+            }
+            let progress = try context.fetch(FetchDescriptor<StoredEpisodeProgress>())
+            tvSeasons = seasons; episodeProgress = progress
             entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
             loadError = nil
         } catch { loadError = .readFailed }
@@ -119,7 +127,7 @@ final class LibraryStore {
         }
     }
 
-    func writeDiary(_ operation: (ModelContext) throws -> Void) throws {
+    func writeTransaction(_ operation: (ModelContext) throws -> Void) throws {
         do {
             try operation(context)
             try saveContext(context)
@@ -128,13 +136,14 @@ final class LibraryStore {
             context.rollback()
             reload()
             if let error = error as? DiaryError { throw error }
+            if let error = error as? TVProgressError { throw error }
             throw (error as? LibraryStoreError) ?? .saveFailed
         }
     }
 
     func diaryLibraryEntry(for id: MediaID) throws -> StoredLibraryEntry? { try uniqueRecord(for: id) }
 
-    func ensureDiaryEntry(media: MediaSearchResult) throws -> StoredLibraryEntry {
+    func ensureLibraryEntry(media: MediaSearchResult) throws -> StoredLibraryEntry {
         let item = SearchItem(media)
         guard !item.id.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw LibraryStoreError.invalidIdentity }
         if let existing = try uniqueRecord(for: item.id) { return existing }

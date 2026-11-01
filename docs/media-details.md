@@ -68,3 +68,5 @@ Manually review both a compact and a larger supported iPhone in light/dark appea
 Real-provider verification requires the authorized local Run configuration documented in [metadata-provider.md](metadata-provider.md). The prior documentation/network and credential limitations remain unresolved; new credits requests have not been verified live. Provider terms, image/caching permissions, approved attribution/logo requirements, and production credential architecture remain release prerequisites. The existing TMDB text attribution is retained; no unverified logo or secret is committed.
 
 Personal ratings, reviews, watchlist actions, and episode tracking remain outside this pass.
+
+Pass 009 extends the existing TV route with season/episode progress; the noninteractive-summary-only description above records pass 005. Current behavior is documented in [tv-episode-progress.md](tv-episode-progress.md).

@@ -23,7 +23,9 @@ struct MediaDetailView: View {
                     PersonalDiarySection(media: snapshot.media)
                     switch snapshot.media {
                     case .movie(let movie): MovieDetailContent(movie: movie)
-                    case .tvShow(let show): TVDetailContent(show: show)
+                    case .tvShow(let show):
+                        TVDetailContent(show: show)
+                        TVSeasonsSection(show: show, catalogIsFresh: model.hasCurrentMetadata, model: model.tvProgressModel(for: show))
                     }
                     DetailCast(members: snapshot.cast, isLoading: model.isLoadingExtras, unavailable: model.castUnavailable)
                     if model.artworkUnavailable {
