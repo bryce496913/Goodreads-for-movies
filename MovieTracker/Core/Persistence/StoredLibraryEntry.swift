@@ -11,6 +11,7 @@ final class StoredLibraryEntry {
     var isFavorite: Bool
     var rating: Double? // Legacy compatible mirror; retained for safe schema evolution.
     var ratingHalfStarUnits: Int? = nil
+    var ratingUpdatedAt: Date? = nil
     var review: String?
     var addedAt: Date
     var updatedAt: Date
