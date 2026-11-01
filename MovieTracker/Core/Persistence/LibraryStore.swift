@@ -5,6 +5,7 @@ import SwiftData
 @MainActor
 @Observable
 final class LibraryStore {
+    private(set) var revision = 0
     private(set) var entries: [StoredLibraryEntry] = []
     private(set) var personalReviews: [StoredPersonalReview] = []
     private(set) var viewingEvents: [StoredViewingEvent] = []
@@ -46,6 +47,7 @@ final class LibraryStore {
             tvSeasons = seasons; episodeProgress = progress
             entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
             loadError = nil
+            revision += 1
         } catch { loadError = .readFailed }
     }
 
@@ -61,6 +63,14 @@ final class LibraryStore {
 
     func setFavorite(_ favorite: Bool, media: MediaSearchResult, posterURL: URL? = nil) throws {
         try mutate(media: media, status: nil, changesStatus: false, favorite: favorite, posterURL: posterURL)
+    }
+
+    /// Existing-row favorite edits never replace snapshots or independent personal fields.
+    func setFavorite(_ favorite: Bool, for id: MediaID) throws {
+        try writeTransaction { _ in
+            guard let record = try diaryLibraryEntry(for: id) else { throw LibraryStoreError.readFailed }
+            if record.isFavorite != favorite { record.isFavorite = favorite; record.updatedAt = .now }
+        }
     }
 
     func setPersonalRating(_ rating: PersonalRating?, media: MediaSearchResult, posterURL: URL? = nil) throws {

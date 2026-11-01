@@ -195,6 +195,18 @@
 			isa = PBXBuildFile;
 			fileRef = BF62952D55E1322E1463FFDF;
 		};
+		1083C646F9F84CF9391BEAD0 = {
+			isa = PBXBuildFile;
+			fileRef = 3BFEDFA3B076C0A84DAF9F97;
+		};
+		8DD3CC53FC53E93670A6536E = {
+			isa = PBXBuildFile;
+			fileRef = 90CC0F67109E50256BD53E47;
+		};
+		60C214BDE5FF0A6099AC769D = {
+			isa = PBXBuildFile;
+			fileRef = 67AA1A37E36AC7FF97E7D8E9;
+		};
 		BEEB6356C33E9E2723EC9313 = {
 			isa = PBXBuildFile;
 			fileRef = B67CFE6DB8950A212F9DE4E6;
@@ -255,6 +267,10 @@
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
 		};
+		16E2C122E377BDCBAC557F05 = {
+			isa = PBXBuildFile;
+			fileRef = 1BA18E2BC3DAE944A2E61032;
+		};
 		BBD8BCE6CAC6B93D27B9AD66 = {
 			isa = PBXBuildFile;
 			fileRef = 4D0805D769B811DC5B6C33C6;
@@ -290,6 +306,10 @@
 		8D5E59F35785D2405EE5FE33 = {
 			isa = PBXBuildFile;
 			fileRef = 78FEB42D669400CF297FA2B2;
+		};
+		A2191715CBDCC79FB6A10445 = {
+			isa = PBXBuildFile;
+			fileRef = EA6819FA204CDE02F3C88014;
 		};
 		0650B6B6EFABD33659C9A18E = {
 			isa = PBXBuildFile;
@@ -617,6 +637,24 @@
 			path = MovieTracker/Features/Home/HomeView.swift;
 			sourceTree = "<group>";
 		};
+		3BFEDFA3B076C0A84DAF9F97 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Library/LibraryOrganizationModel.swift;
+			sourceTree = "<group>";
+		};
+		90CC0F67109E50256BD53E47 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Library/LibraryOrganizationUITestData.swift;
+			sourceTree = "<group>";
+		};
+		67AA1A37E36AC7FF97E7D8E9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Library/LibraryRow.swift;
+			sourceTree = "<group>";
+		};
 		B67CFE6DB8950A212F9DE4E6 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -707,6 +745,12 @@
 			path = MovieTrackerTests/DomainModelTests.swift;
 			sourceTree = "<group>";
 		};
+		1BA18E2BC3DAE944A2E61032 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/LibraryOrganizationTests.swift;
+			sourceTree = "<group>";
+		};
 		4D0805D769B811DC5B6C33C6 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -759,6 +803,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/DiaryTests.swift;
+			sourceTree = "<group>";
+		};
+		EA6819FA204CDE02F3C88014 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/LibraryOrganizationTests.swift;
 			sourceTree = "<group>";
 		};
 		B5B925089E8A469E28996E41 = {
@@ -980,6 +1030,9 @@
 		D751AC130BA91C4E08D2F2DF = {
 			isa = PBXGroup;
 			children = (
+				3BFEDFA3B076C0A84DAF9F97,
+				90CC0F67109E50256BD53E47,
+				67AA1A37E36AC7FF97E7D8E9,
 				B67CFE6DB8950A212F9DE4E6,
 			);
 			name = Library;
@@ -1055,6 +1108,7 @@
 			children = (
 				8F5260C0DE69F579396C6EF9,
 				FE6E088F851898863FD05BF1,
+				1BA18E2BC3DAE944A2E61032,
 				4D0805D769B811DC5B6C33C6,
 				4E20A76B7C7EF088D1E99D85,
 				B81324B268526137D62C7010,
@@ -1071,6 +1125,7 @@
 			isa = PBXGroup;
 			children = (
 				78FEB42D669400CF297FA2B2,
+				EA6819FA204CDE02F3C88014,
 				B5B925089E8A469E28996E41,
 				52086CCA2F397475D9DFBCC5,
 				4058E63ED1F4699E63158B1A,
@@ -1280,6 +1335,9 @@
 				CC111EF2F7CED785A61F9EDE,
 				05C793ACEB9A748DE5E8F49C,
 				D580E63C8F081C23DB1B11AF,
+				1083C646F9F84CF9391BEAD0,
+				8DD3CC53FC53E93670A6536E,
+				60C214BDE5FF0A6099AC769D,
 				BEEB6356C33E9E2723EC9313,
 				C19B646EB89486A9D9703686,
 				C73B2B8A854FFEA7711D693E,
@@ -1301,6 +1359,7 @@
 			files = (
 				014155E1E914C3835674D5AD,
 				4088C92A526ECE2C585B245C,
+				16E2C122E377BDCBAC557F05,
 				BBD8BCE6CAC6B93D27B9AD66,
 				9A427486F88A2575B38F4CB4,
 				4EE69157CD9BD7BF9C1B0FA4,
@@ -1317,6 +1376,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D5E59F35785D2405EE5FE33,
+				A2191715CBDCC79FB6A10445,
 				0650B6B6EFABD33659C9A18E,
 				28E4B92F389400FDED0B5271,
 				4B1AD9EC1C5C9E6929EE11AE,

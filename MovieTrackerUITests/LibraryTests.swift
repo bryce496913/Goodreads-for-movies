@@ -18,7 +18,7 @@ final class LibraryUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(row.label.contains("Watched"))
         XCTAssertTrue(row.label.contains("Favorite"))
-        row.tap()
+        tap(row.identifier, in: app)
         XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 5))
     }
 
@@ -47,7 +47,7 @@ final class LibraryUITests: XCTestCase {
         let row = app.buttons["library.row.movie.fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertTrue(row.label.contains("Sample Story"))
-        row.tap()
+        tap(row.identifier, in: app)
         XCTAssertTrue(app.staticTexts["details.cached"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["details.title"].exists)
     }
@@ -64,7 +64,7 @@ final class LibraryUITests: XCTestCase {
         field.tap(); field.typeText("sample")
         let row = app.buttons["search.result." + kind + ".fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.tap()
+        tap(row.identifier, in: app)
         XCTAssertTrue(app.staticTexts["details.title"].waitForExistence(timeout: 5))
         return app
     }
