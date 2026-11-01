@@ -66,8 +66,8 @@ final class SearchTests: XCTestCase {
     func testEmptyResults() {
         let app = launchSearch()
         search("empty", in: app)
-        XCTAssertTrue(app.descendants(matching: .any)["search.empty"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.descendants(matching: .any)["search.error"].firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "search.empty").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "search.error").firstMatch.exists)
         screenshot("Search — empty fixture response", app: app)
     }
 
@@ -75,10 +75,10 @@ final class SearchTests: XCTestCase {
     func testErrorAndExplicitRetry() {
         let app = launchSearch()
         search("retry", in: app)
-        let error = app.descendants(matching: .any)["search.error"].firstMatch
+        let error = app.descendants(matching: .any).matching(identifier: "search.error").firstMatch
         XCTAssertTrue(error.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["An internet connection is required to retrieve metadata."].exists)
-        XCTAssertFalse(app.descendants(matching: .any)["search.empty"].firstMatch.exists)
+        XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "search.empty").firstMatch.exists)
         screenshot("Search — offline fixture error", app: app)
         let retry = app.buttons["search.retry"]
         reveal(retry, in: app)

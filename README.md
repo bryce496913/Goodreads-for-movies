@@ -44,6 +44,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Movie/TV detail pages with shared artwork, genre, synopsis, cast and metadata sections, TV season summaries, partial-failure recovery and session snapshots for previously loaded details. See [detail architecture and validation](docs/media-details.md).
 - Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Saved metadata supports offline title/detail display; see [library persistence](docs/library-persistence.md).
 - Personal movie/TV ratings from 0.5–5.0 stars using precise integer half-star units, independent of viewing status, with native accessible editing and Library summaries. See [personal ratings and migration](docs/personal-ratings.md).
+- Private written reviews and a local viewing diary with optional watched dates, repeat watches, offline archives, explicit associations and independent deletion. See [review lifecycle, diary semantics and migration](docs/reviews-viewing-history.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -68,7 +69,7 @@ Feature views stay together. SearchModel owns observable search state on the mai
 
 `MediaID` combines a kind (`movie`/`tvShow`) with an opaque string, preventing movie and TV IDs from colliding. Provider identifiers are mapped to opaque namespace-qualified values at the metadata adapter boundary. Genre identifiers and poster references are opaque strings; no provider-specific URLs or SDK types enter the domain.
 
-Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written review values remain reserved legacy data with no editing UI. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
+Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written reviews and repeat viewings have separate entities; the old review column remains readable for safe legacy import. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
 
 SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. LibraryStore looks up the exact typed/provider-qualified media identity before inserting or updating; existing duplicate rows are reported rather than destructively merged. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
 
@@ -76,7 +77,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (94 methods total, all require local macOS/Xcode execution):
+Included tests (115 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 18 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -85,6 +86,7 @@ Included tests (94 methods total, all require local macOS/Xcode execution):
 - 12 detail model/component and 6 detail UI tests.
 - 3 rating value, 9 rating persistence and 3 rating UI tests.
 - 3 general navigation UI tests.
+- 17 review/diary store and 4 review/diary UI tests.
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
@@ -101,6 +103,6 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 
 ## Planned features
 
-Future passes may add written reviews, episode progress, viewing history/statistics, sorting/filtering, and later social discovery/recommendations. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. There is no written-review editing, viewing diary, episode progress, account system, cloud sync, notifications, monetization, or AI functionality.
+Future passes may add episode progress, viewing statistics, sorting/filtering, and later social discovery/recommendations. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. There is no episode progress, account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
 
-Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating migration and relaunch before choosing the next separately scoped feature. Episode progress remains unimplemented.
+Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating/review/diary migration and relaunch before choosing the next separately scoped feature. Episode progress remains unimplemented.

@@ -31,7 +31,7 @@ final class LibraryUITests: XCTestCase {
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
         confirmation.tap()
         app.tabBars.buttons["Library"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["library.empty"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "library.empty").firstMatch.waitForExistence(timeout: 5))
     }
 
     @MainActor

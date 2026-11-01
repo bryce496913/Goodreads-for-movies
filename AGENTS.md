@@ -16,3 +16,4 @@
 
 - Route personal library writes through the shared main-actor LibraryStore. Preserve its identity lookup, explicit saves, rollback behavior, and independent personal fields; do not add competing writers.
 - Use validated PersonalRating values (1...10 half-star units) for rating writes. Nil means unrated; do not mutate the retained legacy Double column from feature code.
+- Reviews and viewing events use the shared LibraryStore transaction path. Keep watched-date and recorded-date semantics distinct; never infer episode completion or duplicate a review when logging a rewatch. Detach review links on event deletion; preserve private text, ratings and unrelated events.
