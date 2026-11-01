@@ -74,6 +74,21 @@ actor TMDBMetadataService: MediaMetadataService {
         return credits.preview()
     }
 
+    func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] {
+        let show = try await tvShowDetails(id: id)
+        guard let seasons = show.seasons else { throw MetadataError.invalidPayload }
+        return seasons
+    }
+
+    func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails {
+        let value = try providerID(id, kind: .tvShow)
+        guard number >= 0 else { throw MetadataError.invalidIdentifier }
+        let response: TMDBSeasonResponse = try await load("tv/\(value)/season/\(number)")
+        let season = try response.domain(seriesID: id, requested: number)
+        try Task.checkCancellation()
+        return season
+    }
+
     func imageResolver() async throws -> MetadataImageResolver {
         try Task.checkCancellation()
         let flight: (id: UUID, task: Task<TMDBImageConfiguration, Error>)

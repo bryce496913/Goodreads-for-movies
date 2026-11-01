@@ -45,6 +45,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Saved metadata supports offline title/detail display; see [library persistence](docs/library-persistence.md).
 - Personal movie/TV ratings from 0.5–5.0 stars using precise integer half-star units, independent of viewing status, with native accessible editing and Library summaries. See [personal ratings and migration](docs/personal-ratings.md).
 - Private written reviews and a local viewing diary with optional watched dates, repeat watches, offline archives, explicit associations and independent deletion. See [review lifecycle, diary semantics and migration](docs/reviews-viewing-history.md).
+- TV season/episode tracking with direct watched toggles, saved offline lists, confirmed season actions, and conservative aired-episode progress. See [TV progress rules and validation](docs/tv-episode-progress.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -77,9 +78,9 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (115 methods total, all require local macOS/Xcode execution):
+Included tests (140 methods total, all require local macOS/Xcode execution):
 
-- 4 domain and 18 mocked metadata tests.
+- 4 domain and 21 mocked metadata tests.
 - 6 persistence container/conversion tests.
 - 9 library store and 3 library UI tests.
 - 13 SearchModel and 5 Search UI tests.
@@ -87,6 +88,7 @@ Included tests (115 methods total, all require local macOS/Xcode execution):
 - 3 rating value, 9 rating persistence and 3 rating UI tests.
 - 3 general navigation UI tests.
 - 17 review/diary store and 4 review/diary UI tests.
+- 18 TV progress store/calculation/model tests and 4 TV progress UI tests.
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
@@ -103,6 +105,6 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 
 ## Planned features
 
-Future passes may add episode progress, viewing statistics, sorting/filtering, and later social discovery/recommendations. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. There is no episode progress, account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
+Future passes may add viewing statistics, sorting/filtering, and later social discovery/recommendations. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. Episode progress is separate from series-level status and diary events. There is no account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
 
-Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating/review/diary migration and relaunch before choosing the next separately scoped feature. Episode progress remains unimplemented.
+Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating/review/diary migration and relaunch before choosing the next separately scoped feature. Live-provider, simulator and migration validation remain pending.

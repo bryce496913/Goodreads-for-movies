@@ -5,7 +5,7 @@ enum PersistenceController {
     /// No seed data and no CloudKit. Tests use an isolated in-memory store.
     @MainActor
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema([StoredLibraryEntry.self, StoredPersonalReview.self, StoredViewingEvent.self])
+        let schema = Schema([StoredLibraryEntry.self, StoredPersonalReview.self, StoredViewingEvent.self, StoredTVSeason.self, StoredEpisodeProgress.self])
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: inMemory,
@@ -17,7 +17,7 @@ enum PersistenceController {
     /// Explicit local URL for isolated disk persistence tests. The app keeps its default store.
     @MainActor
     static func makeContainer(at storeURL: URL) throws -> ModelContainer {
-        let schema = Schema([StoredLibraryEntry.self, StoredPersonalReview.self, StoredViewingEvent.self])
+        let schema = Schema([StoredLibraryEntry.self, StoredPersonalReview.self, StoredViewingEvent.self, StoredTVSeason.self, StoredEpisodeProgress.self])
         let configuration = ModelConfiguration(
             schema: schema,
             url: storeURL,

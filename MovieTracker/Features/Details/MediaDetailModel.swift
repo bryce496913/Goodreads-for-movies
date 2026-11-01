@@ -7,6 +7,7 @@ final class MediaDetailModel {
     let destination: MediaDestination
     let usesTestData: Bool
     private(set) var snapshot: MediaDetailCache.Snapshot?
+    private(set) var hasCurrentMetadata = false
     private(set) var isLoading = false
     private(set) var isLoadingExtras = false
     private(set) var error: MetadataError?
@@ -31,6 +32,7 @@ final class MediaDetailModel {
     func load() async {
         generation = UUID()
         let token = generation
+        hasCurrentMetadata = false
         isLoading = true
         isLoadingExtras = false
         error = nil
@@ -52,6 +54,7 @@ final class MediaDetailModel {
                 media: media, cast: snapshot?.cast ?? [], imageResolver: snapshot?.imageResolver
             )
             snapshot = updated
+            hasCurrentMetadata = true
             cache.save(updated, for: destination.id)
             isLoading = false
             isLoadingExtras = true
@@ -85,6 +88,8 @@ final class MediaDetailModel {
             }
         }
     }
+
+    func tvProgressModel(for show: TVShow) -> TVProgressModel { TVProgressModel(show: show, service: service, usesTestData: usesTestData) }
 
     private static func hasArtwork(_ media: MediaSearchResult) -> Bool {
         switch media {

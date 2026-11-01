@@ -54,7 +54,27 @@ actor SearchUITestService: MediaMetadataService {
         return TVShow(id: id.value, title: detailScenario == "long" ? longTitle : "Sample Story",
             overview: detailScenario == "long" ? longOverview : "A fictional series synopsis for deterministic UI testing.",
             firstAirDate: show.firstAirDate, seasonCount: 3, episodeRuntimeMinutes: 45,
-            genres: [MediaGenre(id: "fixture:drama", name: "Drama")], episodeCount: 24, seriesStatus: "Returning Series")
+            genres: [MediaGenre(id: "fixture:drama", name: "Drama")], episodeCount: 24, seriesStatus: "Returning Series", seasons: fixtureSeasons)
+    }
+
+    private var fixtureSeasons: [TVSeasonSummary] {
+        (0...3).map { TVSeasonSummary(number: $0, providerID: "fixture:season:\($0)",
+            name: $0 == 0 ? "Specials" : "Season \($0)", episodeCount: $0 == 0 ? 2 : 8) }
+    }
+    func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] {
+        if detailScenario == "error" { throw MetadataError.offline }
+        return fixtureSeasons
+    }
+    func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails {
+        if detailScenario == "error" { throw MetadataError.offline }
+        guard id.kind == .tvShow, id.value == "fixture:1", (0...3).contains(number) else { throw MetadataError.invalidIdentifier }
+        let episodes = (1...(number == 0 ? 2 : 8)).map { index in
+            TVEpisode(id: EpisodeID(seriesID: id, providerValue: "fixture:episode:\(number):\(index)"),
+                seasonNumber: number, number: index, title: "Sample Episode \(index)",
+                airDate: number == 1 && index == 7 ? nil : Date(timeIntervalSince1970: number == 1 && index == 8 ? 4_070_908_800 : 1_577_836_800),
+                overview: "A fictional episode synopsis for deterministic testing.", runtimeMinutes: 45)
+        }
+        return TVSeasonDetails(seriesID: id, number: number, name: number == 0 ? "Specials" : "Season \(number)", episodes: episodes)
     }
 
     func castPreview(for id: MediaID) async throws -> [CastMember] {

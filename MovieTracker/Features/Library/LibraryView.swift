@@ -6,6 +6,8 @@ struct LibraryView: View {
 
     var body: some View {
         List {
+            NavigationLink("TV Episode Progress") { SavedTVProgressView() }
+                .accessibilityIdentifier("tv.savedProgress")
             NavigationLink("Viewing History") { ViewingHistoryView() }
                 .accessibilityIdentifier("diary.open")
             NavigationLink("Personal Reviews") { PersonalReviewsView() }
@@ -42,6 +44,7 @@ struct LibraryView: View {
         .navigationDestination(for: MediaDestination.self) { destination in
             let media = library.entry(for: destination.id)?.offlineMedia
                 ?? library.events(for: destination.id).first?.savedMedia ?? library.reviews(for: destination.id).first?.savedMedia
+                ?? library.savedTVShow(for: destination.id).map { .tvShow($0) }
             MediaDetailView(model: detailModel(destination, media))
         }
     }

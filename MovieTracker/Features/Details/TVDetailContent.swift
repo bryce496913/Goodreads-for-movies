@@ -15,7 +15,7 @@ struct TVDetailContent: View {
             DetailFact(label: "Seasons", value: DetailFormatting.count(show.seasonCount)),
             DetailFact(label: "Episodes", value: DetailFormatting.count(show.episodeCount))
         ])
-        Text("Season and episode information is a summary. Episode tracking is not available yet.")
+        Text("Series-level status and diary events are separate from the episode progress below.")
             .font(.footnote).foregroundStyle(.secondary)
     }
 }

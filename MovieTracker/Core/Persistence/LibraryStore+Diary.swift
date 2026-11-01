@@ -24,7 +24,7 @@ extension LibraryStore {
                 let linked = try context.fetch(FetchDescriptor<StoredPersonalReview>(predicate: #Predicate { $0.viewingEventID == linkedEventID }))
                 guard !linked.contains(where: { $0.id != id }) else { throw DiaryError.eventHasReview }
             }
-            let entry = try ensureDiaryEntry(media: media)
+            let entry = try ensureLibraryEntry(media: media)
             if let legacyEntryID {
                 guard entry.id == legacyEntryID, existing != nil || entry.review != nil else { throw DiaryError.legacyChanged }
             }
@@ -64,7 +64,7 @@ extension LibraryStore {
         try writeDiary { context in
             let existing = try diaryEvent(id, in: context)
             if let existing, existing.mediaID != identity { throw DiaryError.identityMismatch }
-            _ = try ensureDiaryEntry(media: media)
+            _ = try ensureLibraryEntry(media: media)
             if let existing {
                 if existing.watchedDate != date {
                     existing.watchedDate = date
