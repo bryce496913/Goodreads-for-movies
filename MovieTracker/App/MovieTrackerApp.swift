@@ -6,6 +6,7 @@ struct MovieTrackerApp: App {
     @State private var library: LibraryStore?
     @State private var container: ModelContainer?
     @State private var persistenceFailed = false
+    @State private var persistenceDiagnostic: String?
 
     var body: some Scene {
         WindowGroup {
@@ -18,7 +19,7 @@ struct MovieTrackerApp: App {
                     ContentUnavailableView {
                         Label("Library unavailable", systemImage: "externaldrive.badge.exclamationmark")
                     } description: {
-                        Text("Your local library could not be opened. Try again to continue. Your saved data has not been reset.")
+                        Text(persistenceDiagnostic ?? "Your local library could not be opened. Your saved data has not been reset.")
                     } actions: {
                         Button("Try Again", action: loadPersistence)
                             .buttonStyle(.borderedProminent)
@@ -69,8 +70,11 @@ struct MovieTrackerApp: App {
                 library = store
             }
             persistenceFailed = false
+            persistenceDiagnostic = nil
         } catch {
             persistenceFailed = true
+            persistenceDiagnostic = (error as? PersistenceOpenError)?.localizedDescription
+                ?? "Your local library could not be opened. No reset was attempted. Preserve the saved store and retry."
         }
     }
 }

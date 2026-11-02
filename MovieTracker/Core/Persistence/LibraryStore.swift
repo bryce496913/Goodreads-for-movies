@@ -12,6 +12,8 @@ final class LibraryStore {
     private(set) var tvSeasons: [StoredTVSeason] = []
     private(set) var episodeProgress: [StoredEpisodeProgress] = []
     private(set) var loadError: LibraryStoreError?
+    private(set) var integrityIssueCount = 0
+    @ObservationIgnored private var acceptedIntegrityIssues = Set<StoreIntegrityIssue>()
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
 
@@ -46,7 +48,10 @@ final class LibraryStore {
             let progress = try context.fetch(FetchDescriptor<StoredEpisodeProgress>())
             tvSeasons = seasons; episodeProgress = progress
             entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
-            loadError = nil
+            acceptedIntegrityIssues = StoreIntegrityReport.audit(entries: savedEntries, reviews: savedReviews, events: savedEvents,
+                                                                 seasons: seasons, progress: progress)
+            integrityIssueCount = acceptedIntegrityIssues.count
+            loadError = acceptedIntegrityIssues.isEmpty ? nil : .integrityViolation
             revision += 1
         } catch { loadError = .readFailed }
     }
@@ -87,6 +92,7 @@ final class LibraryStore {
                                                        viewingEventID: nil, isLegacyImport: true))
             }
             context.delete(record)
+            try validatePendingIntegrity()
             try saveContext(context)
             reload()
         } catch {
@@ -130,6 +136,7 @@ final class LibraryStore {
             record.savedPosterURL = newURL
             record.snapshotData = data
             record.updatedAt = .now
+            try validatePendingIntegrity()
             try saveContext(context)
             reload()
         } catch {
@@ -142,6 +149,7 @@ final class LibraryStore {
     func writeTransaction(_ operation: (ModelContext) throws -> Void) throws {
         do {
             try operation(context)
+            try validatePendingIntegrity()
             try saveContext(context)
             reload()
         } catch {
@@ -151,6 +159,11 @@ final class LibraryStore {
             if let error = error as? TVProgressError { throw error }
             throw (error as? LibraryStoreError) ?? .saveFailed
         }
+    }
+
+    private func validatePendingIntegrity() throws {
+        let pending = try StoreIntegrityReport.read(context)
+        guard pending.isSubset(of: acceptedIntegrityIssues) else { throw LibraryStoreError.integrityViolation }
     }
 
     func diaryLibraryEntry(for id: MediaID) throws -> StoredLibraryEntry? { try uniqueRecord(for: id) }
@@ -181,9 +194,10 @@ final class LibraryStore {
 }
 
 enum LibraryStoreError: Error, LocalizedError {
-    case readFailed, saveFailed, duplicateRecords, invalidIdentity, invalidStatus
+    case readFailed, saveFailed, duplicateRecords, invalidIdentity, invalidStatus, integrityViolation
     var errorDescription: String? {
         switch self {
+        case .integrityViolation: "Saved records have identity or association conflicts. No records were merged or deleted. Changes that introduce conflicts are rejected; preserve a safety backup before resolving existing records."
         case .readFailed: "Your library could not be read. Try loading it again."
         case .saveFailed: "Your library changes could not be saved. Your previous saved state has been restored. Try again."
         case .duplicateRecords: "Multiple saved records exist for this title. No changes were made; the existing records need review."

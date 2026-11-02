@@ -113,8 +113,11 @@ extension LibraryStore {
 
     func setSeasonWatched(_ watched: Bool, season: StoredTVSeason, show: TVShow, now: Date = .now) throws {
         guard season.seriesID == show.id, show.id.kind == .tvShow else { throw TVProgressError.invalidEpisode }
-        let eligible = episodes(for: season).filter { $0.airDate != nil && !isFuture($0, now: now) }
         try writeTransaction { context in
+            guard let owned = try seasonRows(show.id, context: context).first(where: { $0.id == season.id && $0.number == season.number }) else {
+                throw TVProgressError.invalidEpisode
+            }
+            let eligible = episodes(for: owned).filter { $0.airDate != nil && !isFuture($0, now: now) }
             if watched {
                 if !eligible.isEmpty { try prepareWatching(show) }
                 let grouped = Dictionary(grouping: try progressRows(show.id, context: context), by: \.episodeValue)
@@ -158,11 +161,15 @@ extension LibraryStore {
 
     private func seasonRows(_ id: MediaID, context: ModelContext) throws -> [StoredTVSeason] {
         let value = id.value
-        return try context.fetch(FetchDescriptor<StoredTVSeason>(predicate: #Predicate { $0.seriesValue == value }))
+        let rows = try context.fetch(FetchDescriptor<StoredTVSeason>(predicate: #Predicate { $0.seriesValue == value }))
+        guard !Dictionary(grouping: rows, by: \.number).values.contains(where: { $0.count > 1 }) else { throw LibraryStoreError.duplicateRecords }
+        return rows
     }
     private func progressRows(_ id: MediaID, context: ModelContext) throws -> [StoredEpisodeProgress] {
         let value = id.value
-        return try context.fetch(FetchDescriptor<StoredEpisodeProgress>(predicate: #Predicate { $0.seriesValue == value }))
+        let rows = try context.fetch(FetchDescriptor<StoredEpisodeProgress>(predicate: #Predicate { $0.seriesValue == value }))
+        guard !Dictionary(grouping: rows, by: \.episodeValue).values.contains(where: { $0.count > 1 }) else { throw LibraryStoreError.duplicateRecords }
+        return rows
     }
     func isFuture(_ episode: TVEpisode, now: Date = .now) -> Bool {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .gmt

@@ -73,10 +73,10 @@ final class StabilizationTests: XCTestCase {
         let movie = MediaSearchResult.movie(Movie(id: "fixture:legacy", title: "Legacy title"))
         let id = SearchItem(movie).id, reviewID = UUID(), eventID = UUID()
         try autoreleasepool {
-            let schema = Schema([Legacy010Schema.StoredLibraryEntry.self, StoredPersonalReview.self,
+            let schema = Schema([LibrarySchemaTVProgress.StoredLibraryEntry.self, StoredPersonalReview.self,
                 StoredViewingEvent.self, StoredTVSeason.self, StoredEpisodeProgress.self])
             let old = try ModelContainer(for: schema, configurations: [ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none)])
-            let row = Legacy010Schema.StoredLibraryEntry(entry: UserLibraryEntry(mediaID: id, status: .watched,
+            let row = LibrarySchemaTVProgress.StoredLibraryEntry(entry: UserLibraryEntry(mediaID: id, status: .watched,
                 isFavorite: true, rating: try PersonalRating(halfStarUnits: 9), review: "Legacy reserved text"))
             row.savedTitle = "Legacy title"; row.snapshotData = try JSONEncoder().encode(movie)
             old.mainContext.insert(row)

@@ -119,6 +119,26 @@
 			isa = PBXBuildFile;
 			fileRef = 41022E4A3C040BBAC254A5B7;
 		};
+		E2B4F91CDD2080D27AE6998D = {
+			isa = PBXBuildFile;
+			fileRef = 4057CF3D96D44CB1FC664C52;
+		};
+		B5028C1CBB478FB467CADAD6 = {
+			isa = PBXBuildFile;
+			fileRef = 97DFA7196B655E7DB8A1E11D;
+		};
+		422E6B13F15CF7947616770A = {
+			isa = PBXBuildFile;
+			fileRef = 6EB554F964CE0C00886019A3;
+		};
+		850444D786F31F358CD5D761 = {
+			isa = PBXBuildFile;
+			fileRef = BD6AF5B140057E9E2DC4E705;
+		};
+		3CAD8E937F02176051ECB9C8 = {
+			isa = PBXBuildFile;
+			fileRef = DCA6631BBB878397DB9BDE6C;
+		};
 		5A2AAF38E1AC5C947953CACA = {
 			isa = PBXBuildFile;
 			fileRef = 956591898ECE8523351D14C3;
@@ -303,6 +323,14 @@
 			isa = PBXBuildFile;
 			fileRef = B07A2ED1EF22E3815AE8E542;
 		};
+		9C66DC5B7F284D452762FE74 = {
+			isa = PBXBuildFile;
+			fileRef = 38EE8DCBC200AA77D0EBCD0C;
+		};
+		970FF44C69872C1D47679B9C = {
+			isa = PBXBuildFile;
+			fileRef = 67C92802A337B56B1068A32A;
+		};
 		014155E1E914C3835674D5AD = {
 			isa = PBXBuildFile;
 			fileRef = 8F5260C0DE69F579396C6EF9;
@@ -310,10 +338,6 @@
 		4088C92A526ECE2C585B245C = {
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
-		};
-		A29D1FD7A8FD68B9A45E146A = {
-			isa = PBXBuildFile;
-			fileRef = 1C2C8D0FE716BF60B40E8455;
 		};
 		16E2C122E377BDCBAC557F05 = {
 			isa = PBXBuildFile;
@@ -334,6 +358,10 @@
 		4EE69157CD9BD7BF9C1B0FA4 = {
 			isa = PBXBuildFile;
 			fileRef = B81324B268526137D62C7010;
+		};
+		739FCE6E60221D6A773C58E0 = {
+			isa = PBXBuildFile;
+			fileRef = B5EDEE67D13F2D163FA02984;
 		};
 		277885EEBA314EFBB048231D = {
 			isa = PBXBuildFile;
@@ -563,6 +591,18 @@
 			path = MovieTracker/Core/Networking/TMDBSeasons.swift;
 			sourceTree = "<group>";
 		};
+		4057CF3D96D44CB1FC664C52 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/Schema/LibraryHistoricalSchemas.swift;
+			sourceTree = "<group>";
+		};
+		97DFA7196B655E7DB8A1E11D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/Schema/LibrarySchemaV1.swift;
+			sourceTree = "<group>";
+		};
 		CF34283A9BA78A010318CCB3 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -585,6 +625,24 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Persistence/PersistenceController.swift;
+			sourceTree = "<group>";
+		};
+		6EB554F964CE0C00886019A3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/StoreIntegrityReport.swift;
+			sourceTree = "<group>";
+		};
+		BD6AF5B140057E9E2DC4E705 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/StoreSafetyBackup.swift;
+			sourceTree = "<group>";
+		};
+		DCA6631BBB878397DB9BDE6C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/StoreSchemaRecognition.swift;
 			sourceTree = "<group>";
 		};
 		956591898ECE8523351D14C3 = {
@@ -863,6 +921,18 @@
 			path = MovieTrackerTests/DashboardTests.swift;
 			sourceTree = "<group>";
 		};
+		38EE8DCBC200AA77D0EBCD0C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/DataIntegrityTests.swift;
+			sourceTree = "<group>";
+		};
+		67C92802A337B56B1068A32A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/DataMigrationTests.swift;
+			sourceTree = "<group>";
+		};
 		8F5260C0DE69F579396C6EF9 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -873,12 +943,6 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/DomainModelTests.swift;
-			sourceTree = "<group>";
-		};
-		1C2C8D0FE716BF60B40E8455 = {
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.swift;
-			path = MovieTrackerTests/Legacy010Schema.swift;
 			sourceTree = "<group>";
 		};
 		1BA18E2BC3DAE944A2E61032 = {
@@ -909,6 +973,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/MetadataServiceTests.swift;
+			sourceTree = "<group>";
+		};
+		B5EDEE67D13F2D163FA02984 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/MigrationFixtures.swift;
 			sourceTree = "<group>";
 		};
 		C237FF4E8F31348C51F4B8E4 = {
@@ -1131,13 +1201,26 @@
 			name = Networking;
 			sourceTree = "<group>";
 		};
+		7F8C791FA6FFD5614FE3D286 = {
+			isa = PBXGroup;
+			children = (
+				4057CF3D96D44CB1FC664C52,
+				97DFA7196B655E7DB8A1E11D,
+			);
+			name = Schema;
+			sourceTree = "<group>";
+		};
 		55BE8A23BA13127BBD0A5894 = {
 			isa = PBXGroup;
 			children = (
+				7F8C791FA6FFD5614FE3D286,
 				CF34283A9BA78A010318CCB3,
 				510B253901060A63EDC1BE25,
 				C87D3B3C186529295B300EFC,
 				41022E4A3C040BBAC254A5B7,
+				6EB554F964CE0C00886019A3,
+				BD6AF5B140057E9E2DC4E705,
+				DCA6631BBB878397DB9BDE6C,
 				956591898ECE8523351D14C3,
 				E130496FD738F6D2E9657B7A,
 				2F6DC3D4BCEDC3CA3A97B450,
@@ -1299,14 +1382,16 @@
 			isa = PBXGroup;
 			children = (
 				B07A2ED1EF22E3815AE8E542,
+				38EE8DCBC200AA77D0EBCD0C,
+				67C92802A337B56B1068A32A,
 				8F5260C0DE69F579396C6EF9,
 				FE6E088F851898863FD05BF1,
-				1C2C8D0FE716BF60B40E8455,
 				1BA18E2BC3DAE944A2E61032,
 				4D0805D769B811DC5B6C33C6,
 				4E20A76B7C7EF088D1E99D85,
 				1406C910CC3FB69418A92D8D,
 				B81324B268526137D62C7010,
+				B5EDEE67D13F2D163FA02984,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
 				09530DA063AD6D28353BDC84,
@@ -1516,6 +1601,11 @@
 				C816A3D67AD639BAE4C2753F,
 				ABFBFA13554947E665B11F00,
 				41F0788157807A001EDE5A9D,
+				E2B4F91CDD2080D27AE6998D,
+				B5028C1CBB478FB467CADAD6,
+				422E6B13F15CF7947616770A,
+				850444D786F31F358CD5D761,
+				3CAD8E937F02176051ECB9C8,
 				5A2AAF38E1AC5C947953CACA,
 				141ABEBB73E0F05F24AD6264,
 				9271EEB2A4FD895FCF54EE64,
@@ -1567,14 +1657,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				CBFD94AB6BBCB94A7B6FC7B6,
+				9C66DC5B7F284D452762FE74,
+				970FF44C69872C1D47679B9C,
 				014155E1E914C3835674D5AD,
 				4088C92A526ECE2C585B245C,
-				A29D1FD7A8FD68B9A45E146A,
 				16E2C122E377BDCBAC557F05,
 				BBD8BCE6CAC6B93D27B9AD66,
 				9A427486F88A2575B38F4CB4,
 				F97EBF54D2C40BDB0DC58F14,
 				4EE69157CD9BD7BF9C1B0FA4,
+				739FCE6E60221D6A773C58E0,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
 				FF9338EDCB5DA8CEBFC645FC,

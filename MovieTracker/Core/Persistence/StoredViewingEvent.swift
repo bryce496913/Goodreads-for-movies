@@ -1,33 +1,38 @@
 import Foundation
 import SwiftData
 
-@Model
-final class StoredViewingEvent {
-    @Attribute(.unique) var id: UUID
-    var mediaKind: String
-    var mediaValue: String
-    /// A UTC-normalized civil date, not the timestamp when the record was created.
-    var watchedDate: Date?
-    var recordedAt: Date
-    var updatedAt: Date
-    var savedTitle: String
-    var snapshotData: Data?
+// Frozen V1 storage. Add a new schema for future persisted changes.
+extension LibrarySchemaV1 {
+    @Model
+    final class StoredViewingEvent {
+        @Attribute(.unique) var id: UUID
+        var mediaKind: String
+        var mediaValue: String
+        /// A UTC-normalized civil date, not the timestamp when the record was created.
+        var watchedDate: Date?
+        var recordedAt: Date
+        var updatedAt: Date
+        var savedTitle: String
+        var snapshotData: Data?
 
-    init(id: UUID, media: MediaSearchResult, watchedDate: Date?, recordedAt: Date) throws {
-        let item = SearchItem(media)
-        self.id = id; mediaKind = item.id.kind.rawValue; mediaValue = item.id.value
-        self.watchedDate = watchedDate; self.recordedAt = recordedAt; updatedAt = recordedAt
-        savedTitle = item.title; snapshotData = try JSONEncoder().encode(media)
-    }
+        init(id: UUID, media: MediaSearchResult, watchedDate: Date?, recordedAt: Date) throws {
+            let item = SearchItem(media)
+            self.id = id; mediaKind = item.id.kind.rawValue; mediaValue = item.id.value
+            self.watchedDate = watchedDate; self.recordedAt = recordedAt; updatedAt = recordedAt
+            savedTitle = item.title; snapshotData = try JSONEncoder().encode(media)
+        }
 
-    var mediaID: MediaID? { DiaryMedia.identity(kind: mediaKind, value: mediaValue) }
-    var savedMedia: MediaSearchResult? { DiaryMedia.restore(data: snapshotData, kind: mediaKind, value: mediaValue, title: savedTitle) }
-    var sortDate: Date { watchedDate ?? recordedAt }
-    var dateLabel: String {
-        if let watchedDate { return "Watched " + DetailFormatting.date(watchedDate) }
-        return "Date recorded " + recordedAt.formatted(date: .abbreviated, time: .shortened)
+        var mediaID: MediaID? { DiaryMedia.identity(kind: mediaKind, value: mediaValue) }
+        var savedMedia: MediaSearchResult? { DiaryMedia.restore(data: snapshotData, kind: mediaKind, value: mediaValue, title: savedTitle) }
+        var sortDate: Date { watchedDate ?? recordedAt }
+        var dateLabel: String {
+            if let watchedDate { return "Watched " + DetailFormatting.date(watchedDate) }
+            return "Date recorded " + recordedAt.formatted(date: .abbreviated, time: .shortened)
+        }
     }
 }
+
+typealias StoredViewingEvent = LibrarySchemaV1.StoredViewingEvent
 
 enum DiaryMedia {
     static func identity(kind: String, value: String) -> MediaID? {
