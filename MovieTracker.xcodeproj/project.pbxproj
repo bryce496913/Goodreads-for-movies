@@ -95,6 +95,10 @@
 			isa = PBXBuildFile;
 			fileRef = D729950F3E93A0ABA95E4CF4;
 		};
+		30EF1259C006112DE87FF5EF = {
+			isa = PBXBuildFile;
+			fileRef = 3542BEE75FB86CCC10423069;
+		};
 		A5DB7A94A0D9A0E240D6F8CD = {
 			isa = PBXBuildFile;
 			fileRef = 7C8FAE07861ED27A60C868FE;
@@ -395,6 +399,10 @@
 			isa = PBXBuildFile;
 			fileRef = B5EDEE67D13F2D163FA02984;
 		};
+		CEFBEF59132121E7D833C3B1 = {
+			isa = PBXBuildFile;
+			fileRef = C4386E0EA40DF302178F50D0;
+		};
 		277885EEBA314EFBB048231D = {
 			isa = PBXBuildFile;
 			fileRef = C237FF4E8F31348C51F4B8E4;
@@ -609,6 +617,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Networking/MetadataImageResolver.swift;
+			sourceTree = "<group>";
+		};
+		3542BEE75FB86CCC10423069 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/MetadataRetryPolicy.swift;
 			sourceTree = "<group>";
 		};
 		7C8FAE07861ED27A60C868FE = {
@@ -1061,6 +1075,12 @@
 			path = MovieTrackerTests/MigrationFixtures.swift;
 			sourceTree = "<group>";
 		};
+		C4386E0EA40DF302178F50D0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/NetworkingHardeningTests.swift;
+			sourceTree = "<group>";
+		};
 		C237FF4E8F31348C51F4B8E4 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1282,6 +1302,7 @@
 				B64E3FC84870DA32E6412B4E,
 				48F7F94B1D2DF5CDF4EDEF03,
 				D729950F3E93A0ABA95E4CF4,
+				3542BEE75FB86CCC10423069,
 				7C8FAE07861ED27A60C868FE,
 				8ABD22829B8488C2165C6DBD,
 				C072EA89ABA25D363C4B1D6F,
@@ -1488,6 +1509,7 @@
 				C1CC26B5B6B178276A7915D7,
 				B81324B268526137D62C7010,
 				B5EDEE67D13F2D163FA02984,
+				C4386E0EA40DF302178F50D0,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
 				09530DA063AD6D28353BDC84,
@@ -1691,6 +1713,7 @@
 				9F09F75B02FD1A3596CD8DE6,
 				5ABB36F8A3EAE3B9C271D79C,
 				660989A616122DD98FED6D02,
+				30EF1259C006112DE87FF5EF,
 				A5DB7A94A0D9A0E240D6F8CD,
 				6746A7629AAB26C03E2AF002,
 				C5C62DA8D1C5F89BA2680489,
@@ -1771,6 +1794,7 @@
 				F854A923620C0015C05B6330,
 				4EE69157CD9BD7BF9C1B0FA4,
 				739FCE6E60221D6A773C58E0,
+				CEFBEF59132121E7D833C3B1,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
 				FF9338EDCB5DA8CEBFC645FC,

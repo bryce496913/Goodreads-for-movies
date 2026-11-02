@@ -86,12 +86,12 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (239 methods total, all require local macOS/Xcode execution):
+Included tests (257 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
 - 9 library store and 3 library UI tests.
-- 15 SearchModel and 5 Search UI tests.
+- 18 SearchModel and 5 Search UI tests.
 - 12 detail model/component and 6 detail UI tests.
 - 3 rating value, 9 rating persistence and 3 rating UI tests.
 - 3 general navigation UI tests.
@@ -102,6 +102,7 @@ Included tests (239 methods total, all require local macOS/Xcode execution):
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
+- 15 HTTP/authentication/retry hardening tests; see [TMDB networking, credential exposure and live-check status](docs/TMDB_NETWORKING.md).
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 

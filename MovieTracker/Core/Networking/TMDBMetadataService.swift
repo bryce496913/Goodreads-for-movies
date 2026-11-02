@@ -1,6 +1,10 @@
 import Foundation
 
 actor TMDBMetadataService: MediaMetadataService {
+    private let retryPolicy: MetadataRetryPolicy
+    private let wait: @Sendable (TimeInterval) async throws -> Void
+    private var cooldownUntil: Date?
+    private var cooldownError: MetadataError?
     private let authorization: @Sendable () async throws -> Void
     private let clock: @Sendable () -> Date
     private let configuration: TMDBConfiguration
@@ -9,7 +13,9 @@ actor TMDBMetadataService: MediaMetadataService {
     private var configurationFetchedAt: Date?
     private var configurationRequest: (id: UUID, task: Task<(TMDBImageConfiguration, Date), Error>)?
 
-    init(configuration: TMDBConfiguration, transport: any MetadataTransport = URLSessionMetadataTransport(), clock: @escaping @Sendable () -> Date = { .now }, authorization: @escaping @Sendable () async throws -> Void = {}) {
+    init(configuration: TMDBConfiguration, transport: any MetadataTransport = URLSessionMetadataTransport(), clock: @escaping @Sendable () -> Date = { .now }, authorization: @escaping @Sendable () async throws -> Void = {}, retryPolicy: MetadataRetryPolicy = .standard,
+         wait: @escaping @Sendable (TimeInterval) async throws -> Void = { try await Task.sleep(for: .seconds($0)) }) {
+        self.retryPolicy = retryPolicy; self.wait = wait
         self.authorization = authorization
         self.clock = clock
         self.configuration = configuration
@@ -95,6 +101,7 @@ actor TMDBMetadataService: MediaMetadataService {
     }
 
     func expireMetadataMemory(at now: Date) {
+        if let until = cooldownUntil, until <= now { cooldownUntil = nil; cooldownError = nil }
         if let fetched = configurationFetchedAt, !MetadataPolicy.isUsable(fetched, at: now) {
             configurationRequest = nil; configurationFetchedAt = nil
         }
@@ -108,12 +115,10 @@ actor TMDBMetadataService: MediaMetadataService {
         if let configurationRequest {
             flight = configurationRequest
         } else {
-            let configuration = configuration
-            let transport = transport
             let clock = clock
-            let authorization = authorization
-            flight = (UUID(), Task {
-                let response: TMDBImageConfiguration = try await Self.request("configuration", configuration: configuration, transport: transport, authorization: authorization)
+            flight = (UUID(), Task { [weak self] in
+                guard let self else { throw CancellationError() }
+                let response: TMDBImageConfiguration = try await self.request("configuration")
                 return (response, clock())
             })
             configurationRequest = flight
@@ -171,13 +176,10 @@ actor TMDBMetadataService: MediaMetadataService {
     }
 
     private func load<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
-        try await Self.request(path, query: query, configuration: configuration, transport: transport, authorization: authorization)
+        try await request(path, query: query)
     }
 
-    private static func request<T: Decodable & Sendable>(
-        _ path: String, query: [URLQueryItem] = [],
-        configuration: TMDBConfiguration, transport: any MetadataTransport, authorization: @Sendable () async throws -> Void
-    ) async throws -> T {
+    private func request<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
         try await authorization()
         try Task.checkCancellation()
         var components = URLComponents()
@@ -190,31 +192,8 @@ actor TMDBMetadataService: MediaMetadataService {
         request.timeoutInterval = 30
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("Bearer " + configuration.readAccessToken, forHTTPHeaderField: "Authorization")
-        let response: MetadataHTTPResponse
-        do {
-            response = try await transport.send(request)
-        } catch {
-            if Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled {
-                throw CancellationError()
-            }
-            if let urlError = error as? URLError {
-                switch urlError.code {
-                case .timedOut: throw MetadataError.timedOut
-                case .notConnectedToInternet, .networkConnectionLost: throw MetadataError.offline
-                default: throw MetadataError.transport
-                }
-            }
-            throw (error as? MetadataError) ?? MetadataError.transport
-        }
-        try Task.checkCancellation()
-        try await authorization()
-        switch response.status {
-        case 200...299: break
-        case 401, 403: throw MetadataError.unauthorized
-        case 429: throw MetadataError.rateLimited(retryAfter: response.retryAfter)
-        case 500...599: throw MetadataError.server(status: response.status)
-        default: throw MetadataError.http(status: response.status)
-        }
+        request.httpMethod = "GET"
+        let response = try await sendWithRetry(request, automaticRetries: path != "configuration")
         guard !response.data.isEmpty else { throw MetadataError.emptyResponse }
         do {
             let value = try JSONDecoder().decode(T.self, from: response.data)
@@ -227,6 +206,71 @@ actor TMDBMetadataService: MediaMetadataService {
             throw error
         } catch {
             throw MetadataError.invalidPayload
+        }
+    }
+
+    private func sendWithRetry(_ request: URLRequest, automaticRetries: Bool) async throws -> MetadataHTTPResponse {
+        var retries = 0
+        var totalDelay: TimeInterval = 0
+        while true {
+            try Task.checkCancellation()
+            try await authorization()
+            try Task.checkCancellation()
+            if let until = cooldownUntil {
+                if until > clock() { throw cooldownError ?? MetadataError.rateLimited(retryAfter: nil) }
+                cooldownUntil = nil; cooldownError = nil
+            }
+            do {
+                let response = try await transport.send(request)
+                try await authorization()
+                let failure = Self.httpError(response, at: clock())
+                if let failure {
+                    let serverDelay = MetadataRetryPolicy.retryAfterSeconds(response.retryAfter, at: clock())
+                    if response.status == 429 || serverDelay != nil {
+                        let until = clock().addingTimeInterval(serverDelay ?? 1)
+                        if cooldownUntil == nil || until > (cooldownUntil ?? .distantPast) { cooldownUntil = until; cooldownError = failure }
+                    }
+                }
+                // A server throttle applies to the service even if this query became obsolete.
+                try Task.checkCancellation()
+                if let failure { throw failure }
+                return response
+            } catch {
+                if Task.isCancelled || error is CancellationError || (error as? URLError)?.code == .cancelled { throw CancellationError() }
+                let mapped = Self.networkError(error)
+                let remaining = max(0, cooldownUntil?.timeIntervalSince(clock()) ?? 0)
+                guard automaticRetries, let delay = retryPolicy.delay(for: mapped, retries: retries, totalDelay: totalDelay, serverDelay: remaining) else { throw mapped }
+                retries += 1; totalDelay += delay
+                try await wait(delay)
+                try Task.checkCancellation()
+            }
+        }
+    }
+
+    private static func httpError(_ response: MetadataHTTPResponse, at now: Date) -> MetadataError? {
+        switch response.status {
+        case 200...299: nil
+        case 401: .unauthorized
+        case 403: .forbidden
+        case 404: .notFound
+        case 429: .rateLimited(retryAfter: MetadataRetryPolicy.sanitizedDelay(MetadataRetryPolicy.retryAfterSeconds(response.retryAfter, at: now)))
+        case 500...599: .server(status: response.status)
+        default: .http(status: response.status)
+        }
+    }
+    private static func networkError(_ error: Error) -> MetadataError {
+        if let error = error as? MetadataError { return error }
+        guard let error = error as? URLError else { return .transport }
+        switch error.code {
+        case .timedOut: return .timedOut
+        case .notConnectedToInternet, .dataNotAllowed: return .offline
+        case .networkConnectionLost: return .connectionLost
+        case .cannotFindHost, .dnsLookupFailed: return .dnsFailure
+        case .cannotConnectToHost: return .connectionFailed
+        case .secureConnectionFailed, .serverCertificateHasBadDate, .serverCertificateUntrusted,
+             .serverCertificateHasUnknownRoot, .serverCertificateNotYetValid, .clientCertificateRejected,
+             .clientCertificateRequired: return .secureTransport
+        default: return .transport
         }
     }
 }
