@@ -33,7 +33,7 @@ struct TMDBSeasonResponse: Decodable, Sendable {
             case number = "episode_number", season = "season_number", airDate = "air_date"
         }
     }
-    func domain(seriesID: MediaID, requested: Int) throws -> TVSeasonDetails {
+    func domain(seriesID: MediaID, requested: Int, retrievedAt: Date? = nil) throws -> TVSeasonDetails {
         guard seasonNumber == requested else { throw MetadataError.invalidPayload }
         var seen = Set<Int>()
         let values = try episodes.map { episode -> TVEpisode in
@@ -44,10 +44,10 @@ struct TMDBSeasonResponse: Decodable, Sendable {
                 seasonNumber: requested, number: episode.number,
                 title: title?.isEmpty == false ? title ?? "" : "Episode \(episode.number)",
                 airDate: TMDBTitle.date(episode.airDate), overview: episode.overview ?? "",
-                runtimeMinutes: episode.runtime.flatMap { $0 > 0 ? $0 : nil })
+                runtimeMinutes: episode.runtime.flatMap { $0 > 0 ? $0 : nil }, metadataRetrievedAt: retrievedAt)
         }
         let seasonName = name?.trimmingCharacters(in: .whitespacesAndNewlines)
         return TVSeasonDetails(seriesID: seriesID, number: requested,
-            name: seasonName?.isEmpty == false ? seasonName ?? "" : (requested == 0 ? "Specials" : "Season \(requested)"), episodes: values)
+            name: seasonName?.isEmpty == false ? seasonName ?? "" : (requested == 0 ? "Specials" : "Season \(requested)"), episodes: values, metadataRetrievedAt: retrievedAt)
     }
 }

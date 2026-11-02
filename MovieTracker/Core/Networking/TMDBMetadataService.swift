@@ -1,26 +1,31 @@
 import Foundation
 
 actor TMDBMetadataService: MediaMetadataService {
+    private let authorization: @Sendable () async throws -> Void
+    private let clock: @Sendable () -> Date
     private let configuration: TMDBConfiguration
     private let transport: any MetadataTransport
     // Share only the configuration request; no title/image response cache is introduced.
-    private var configurationRequest: (id: UUID, task: Task<TMDBImageConfiguration, Error>)?
+    private var configurationFetchedAt: Date?
+    private var configurationRequest: (id: UUID, task: Task<(TMDBImageConfiguration, Date), Error>)?
 
-    init(configuration: TMDBConfiguration, transport: any MetadataTransport = URLSessionMetadataTransport()) {
+    init(configuration: TMDBConfiguration, transport: any MetadataTransport = URLSessionMetadataTransport(), clock: @escaping @Sendable () -> Date = { .now }, authorization: @escaping @Sendable () async throws -> Void = {}) {
+        self.authorization = authorization
+        self.clock = clock
         self.configuration = configuration
         self.transport = transport
     }
 
     func searchMovies(query: String, page: Int = 1) async throws -> MetadataPage<Movie> {
         let response: TMDBPage = try await search("movie", query: query, page: page)
-        let result = try mappedPage(response, requestedPage: page) { try $0.movie() }
+        let result = try mappedPage(response, requestedPage: page) { try $0.movie(retrievedAt: clock()) }
         try Task.checkCancellation()
         return result
     }
 
     func searchTVShows(query: String, page: Int = 1) async throws -> MetadataPage<TVShow> {
         let response: TMDBPage = try await search("tv", query: query, page: page)
-        let result = try mappedPage(response, requestedPage: page) { try $0.tvShow() }
+        let result = try mappedPage(response, requestedPage: page) { try $0.tvShow(retrievedAt: clock()) }
         try Task.checkCancellation()
         return result
     }
@@ -29,8 +34,8 @@ actor TMDBMetadataService: MediaMetadataService {
         let response: TMDBPage = try await search("multi", query: query, page: page)
         let result = try mappedPage(response, requestedPage: page) { record -> MediaSearchResult? in
             switch record.mediaType {
-            case "movie": return .movie(try record.movie())
-            case "tv": return .tvShow(try record.tvShow())
+            case "movie": return .movie(try record.movie(retrievedAt: clock()))
+            case "tv": return .tvShow(try record.tvShow(retrievedAt: clock()))
             case "person": return nil // Multi-search includes people, outside this app's scope.
             default: throw MetadataError.invalidPayload
             }
@@ -43,7 +48,7 @@ actor TMDBMetadataService: MediaMetadataService {
         let value = try providerID(id, kind: .movie)
         let response: TMDBTitle = try await load("movie/\(value)")
         guard response.id == value else { throw MetadataError.invalidPayload }
-        let movie = try response.movie()
+        let movie = try response.movie(retrievedAt: clock())
         try Task.checkCancellation()
         return movie
     }
@@ -52,7 +57,7 @@ actor TMDBMetadataService: MediaMetadataService {
         let value = try providerID(id, kind: .tvShow)
         let response: TMDBTitle = try await load("tv/\(value)")
         guard response.id == value else { throw MetadataError.invalidPayload }
-        let show = try response.tvShow()
+        let show = try response.tvShow(retrievedAt: clock())
         try Task.checkCancellation()
         return show
     }
@@ -84,31 +89,48 @@ actor TMDBMetadataService: MediaMetadataService {
         let value = try providerID(id, kind: .tvShow)
         guard number >= 0 else { throw MetadataError.invalidIdentifier }
         let response: TMDBSeasonResponse = try await load("tv/\(value)/season/\(number)")
-        let season = try response.domain(seriesID: id, requested: number)
+        let season = try response.domain(seriesID: id, requested: number, retrievedAt: clock())
         try Task.checkCancellation()
         return season
     }
 
+    func expireMetadataMemory(at now: Date) {
+        if let fetched = configurationFetchedAt, !MetadataPolicy.isUsable(fetched, at: now) {
+            configurationRequest = nil; configurationFetchedAt = nil
+        }
+    }
+
     func imageResolver() async throws -> MetadataImageResolver {
+        try await authorization()
         try Task.checkCancellation()
-        let flight: (id: UUID, task: Task<TMDBImageConfiguration, Error>)
+        expireMetadataMemory(at: clock())
+        let flight: (id: UUID, task: Task<(TMDBImageConfiguration, Date), Error>)
         if let configurationRequest {
             flight = configurationRequest
         } else {
             let configuration = configuration
             let transport = transport
+            let clock = clock
+            let authorization = authorization
             flight = (UUID(), Task {
-                try await Self.request("configuration", configuration: configuration, transport: transport)
+                let response: TMDBImageConfiguration = try await Self.request("configuration", configuration: configuration, transport: transport, authorization: authorization)
+                return (response, clock())
             })
             configurationRequest = flight
         }
         do {
-            let response = try await flight.task.value
+            let (response, fetched) = try await flight.task.value
+            if configurationRequest?.id == flight.id { configurationFetchedAt = fetched }
+            guard MetadataPolicy.isUsable(fetched, at: clock()) else {
+                if configurationRequest?.id == flight.id { configurationRequest = nil; configurationFetchedAt = nil }
+                throw MetadataError.metadataExpired
+            }
             // A canceled consumer never publishes a result; other consumers keep the shared request.
             try Task.checkCancellation()
+            try await authorization()
             return try MetadataImageResolver(
                 baseURL: response.images.secureBaseURL,
-                posterSizes: response.images.posterSizes, backdropSizes: response.images.backdropSizes
+                posterSizes: response.images.posterSizes, backdropSizes: response.images.backdropSizes, metadataRetrievedAt: configurationFetchedAt
             )
         } catch {
             if Task.isCancelled || error is CancellationError { throw CancellationError() }
@@ -149,13 +171,14 @@ actor TMDBMetadataService: MediaMetadataService {
     }
 
     private func load<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
-        try await Self.request(path, query: query, configuration: configuration, transport: transport)
+        try await Self.request(path, query: query, configuration: configuration, transport: transport, authorization: authorization)
     }
 
     private static func request<T: Decodable & Sendable>(
         _ path: String, query: [URLQueryItem] = [],
-        configuration: TMDBConfiguration, transport: any MetadataTransport
+        configuration: TMDBConfiguration, transport: any MetadataTransport, authorization: @Sendable () async throws -> Void
     ) async throws -> T {
+        try await authorization()
         try Task.checkCancellation()
         var components = URLComponents()
         components.scheme = "https"
@@ -184,6 +207,7 @@ actor TMDBMetadataService: MediaMetadataService {
             throw (error as? MetadataError) ?? MetadataError.transport
         }
         try Task.checkCancellation()
+        try await authorization()
         switch response.status {
         case 200...299: break
         case 401, 403: throw MetadataError.unauthorized
@@ -194,10 +218,13 @@ actor TMDBMetadataService: MediaMetadataService {
         guard !response.data.isEmpty else { throw MetadataError.emptyResponse }
         do {
             let value = try JSONDecoder().decode(T.self, from: response.data)
+            try await authorization()
             try Task.checkCancellation()
             return value
         } catch is CancellationError {
             throw CancellationError()
+        } catch let error as MetadataError {
+            throw error
         } catch {
             throw MetadataError.invalidPayload
         }

@@ -1,5 +1,7 @@
 # Movie and television details — pass 005
 
+**Retention update (014):** TMDB content is reusable only while its retrieval lease is valid (maximum 150 days, refresh eligible at 30 days). Unknown/expired content becomes an identifier placeholder; personal ratings/review text/diary/flags remain. Artwork is ephemeral and memory-only. See [METADATA_POLICY.md](METADATA_POLICY.md) for backups, refresh and unresolved licensing/runtime gates. Historical test counts below describe their original pass.
+
 ## Architecture and behavior
 
 The existing `MediaDestination` remains the single typed route. Search injects its existing metadata service and a shared session snapshot store into `MediaDetailModel`; future Library/Home callers can construct the same model and screen without a competing detail route. Search results and navigation state are not replaced or reset by detail loading.
@@ -24,7 +26,7 @@ All content is in one vertical ScrollView. Text has native Dynamic Type styles a
 
 `MediaDetailCache` stores at most 20 domain snapshots in memory for the current tab-root lifetime, evicting the oldest inserted identity. Movie/TV IDs remain separate. A primary success is retained even if optional work is canceled. Reopening a cached identity shows the snapshot immediately while attempting a refresh; a failed refresh preserves it with “Showing previously loaded details” and a meaningful error/retry action. With no snapshot, the known Search title/type is shown alongside the loading/error state, without fabricating additional metadata.
 
-This is **not a persistent offline catalog**: snapshots disappear on process termination/eviction, and images are available offline only if the system can still supply previously loaded content. There is no disk metadata cache, no custom image caching/downloading layer, and no SwiftData schema/store reset or migration. The source provider's current retention/caching rules still need verification for this session policy before distribution; do not assume permission for long-lived storage or redistribution.
+This is **not a persistent offline catalog**: session snapshots disappear on process termination/eviction; persisted snapshots also expire. Images are available offline only while held in bounded process memory. Unexpired metadata may be persisted through the Library lifecycle; images use bounded memory-only caching. Current requirements and remaining licensing/runtime gates are in METADATA_POLICY.md. No permanent provider archive or redistribution right is assumed.
 
 ## Tests and actual validation status
 

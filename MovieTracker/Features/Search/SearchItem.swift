@@ -1,6 +1,7 @@
 import Foundation
 
 struct SearchItem: Identifiable, Equatable, Sendable {
+    var metadataRetrievedAt: Date? = nil
     let id: MediaID
     let title: String
     let year: Int?
@@ -14,6 +15,7 @@ struct SearchItem: Identifiable, Equatable, Sendable {
     }
 
     init(_ result: MediaSearchResult) {
+        metadataRetrievedAt = result.metadataRetrievedAt
         let date: Date?
         switch result {
         case .movie(let movie):

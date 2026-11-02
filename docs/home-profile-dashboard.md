@@ -1,6 +1,8 @@
 # Personal Home and Profile
 
-Home and the anonymous local Profile read the same immutable `DashboardSnapshot`. They do not call a provider or analytics service. Posters read the existing OS response cache only; absent artwork gets the existing accessible row placeholder. Opening a detail/season destination reuses its existing cached-first screen and may refresh metadata through the existing service. No account or recommendations are introduced.
+**Retention update (014):** TMDB content is reusable only while its retrieval lease is valid (maximum 150 days, refresh eligible at 30 days). Unknown/expired content becomes an identifier placeholder; personal ratings/review text/diary/flags remain. Artwork is ephemeral and memory-only. See [METADATA_POLICY.md](METADATA_POLICY.md) for backups, refresh and unresolved licensing/runtime gates. Historical test counts below describe their original pass.
+
+Home and the anonymous local Profile read the same immutable `DashboardSnapshot`. They do not call a provider or analytics service. Posters read the bounded in-memory artwork cache only; absent artwork gets the existing accessible row placeholder. Opening a detail/season destination reuses its existing cached-first screen and may refresh metadata through the existing service. No account or recommendations are introduced.
 
 ## Definitions
 

@@ -19,7 +19,7 @@ extension StoredLibraryEntry {
     var displayTitle: String {
         if let savedTitle, !savedTitle.isEmpty { return savedTitle }
         if let savedMedia { return SearchItem(savedMedia).title }
-        return "Saved title — metadata unavailable"
+        return mediaID.map(MetadataPolicy.placeholder) ?? "Saved title — metadata unavailable"
     }
 
     var statusLabel: String {

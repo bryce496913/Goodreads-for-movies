@@ -6,6 +6,12 @@ import SwiftData
 @Observable
 final class LibraryStore {
     private(set) var revision = 0
+    private(set) var metadataStates: [StoredMetadataState] = []
+    var metadataWarning: String?
+    var metadataPolicyEnabled = false
+    var metadataInvalidation = 0
+    var metadataReferenceDate = Date.now
+    @ObservationIgnored let metadataClock: @Sendable () -> Date
     private(set) var entries: [StoredLibraryEntry] = []
     private(set) var personalReviews: [StoredPersonalReview] = []
     private(set) var viewingEvents: [StoredViewingEvent] = []
@@ -17,7 +23,8 @@ final class LibraryStore {
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
 
-    init(container: ModelContainer, save: @escaping (ModelContext) throws -> Void = { try $0.save() }) {
+    init(container: ModelContainer, clock: @escaping @Sendable () -> Date = { .now }, save: @escaping (ModelContext) throws -> Void = { try $0.save() }) {
+        metadataClock = clock; metadataReferenceDate = clock()
         context = ModelContext(container)
         context.autosaveEnabled = false
         saveContext = save
@@ -46,10 +53,12 @@ final class LibraryStore {
                 return $0.number < $1.number
             }
             let progress = try context.fetch(FetchDescriptor<StoredEpisodeProgress>())
+            let states = try context.fetch(FetchDescriptor<StoredMetadataState>())
+            metadataStates = states
             tvSeasons = seasons; episodeProgress = progress
             entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
             acceptedIntegrityIssues = StoreIntegrityReport.audit(entries: savedEntries, reviews: savedReviews, events: savedEvents,
-                                                                 seasons: seasons, progress: progress)
+                                                                 seasons: seasons, progress: progress, metadata: states)
             integrityIssueCount = acceptedIntegrityIssues.count
             loadError = acceptedIntegrityIssues.isEmpty ? nil : .integrityViolation
             revision += 1
@@ -92,6 +101,7 @@ final class LibraryStore {
                                                        viewingEventID: nil, isLegacyImport: true))
             }
             context.delete(record)
+            if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
             try validatePendingIntegrity()
             try saveContext(context)
             reload()
@@ -136,6 +146,7 @@ final class LibraryStore {
             record.savedPosterURL = newURL
             record.snapshotData = data
             record.updatedAt = .now
+            if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
             try validatePendingIntegrity()
             try saveContext(context)
             reload()
@@ -149,6 +160,8 @@ final class LibraryStore {
     func writeTransaction(_ operation: (ModelContext) throws -> Void) throws {
         do {
             try operation(context)
+            if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
+            guard context.hasChanges else { return }
             try validatePendingIntegrity()
             try saveContext(context)
             reload()

@@ -25,11 +25,17 @@ enum SearchLaunchConfiguration {
                 .map { String($0.dropFirst("--detail-fixture=".count)) } ?? "complete"
             return SearchUITestService(detailScenario: mode)
         }
+        guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
         if ProcessInfo.processInfo.environment["TMDB_READ_ACCESS_TOKEN"] != nil {
-            return TMDBMetadataService(configuration: try TMDBConfiguration.localDevelopment())
+            return authorizedService(try TMDBConfiguration.localDevelopment())
         }
         #endif
+        guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
         let token = try credentialStorage().read() ?? ""
-        return TMDBMetadataService(configuration: try TMDBConfiguration(readAccessToken: token))
+        return authorizedService(try TMDBConfiguration(readAccessToken: token))
+    }
+    private static func authorizedService(_ configuration: TMDBConfiguration) -> TMDBMetadataService {
+        let epoch = MetadataRuntimeGate.credentialEpoch
+        return TMDBMetadataService(configuration: configuration, authorization: { try await MetadataRuntimeGate.authorize(epoch) })
     }
 }

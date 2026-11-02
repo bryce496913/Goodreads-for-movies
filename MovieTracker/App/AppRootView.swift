@@ -31,7 +31,14 @@ struct AppRootView: View {
             }
                 .tabItem { Label("Library", systemImage: "books.vertical") }.tag(RootTab.library)
             NavigationStack {
-                ProfileView(dashboard: dashboard, configurationChanged: { searchModel.replaceService(try? SearchLaunchConfiguration.makeService()) })
+                ProfileView(dashboard: dashboard, configurationChanged: {
+                    MetadataRuntimeGate.credentialEpoch += 1
+                    try? library.clearMetadataBackoff()
+                    if (try? SearchLaunchConfiguration.credentialStorage().read()) == nil {
+                        try? library.clearProviderMetadata(); searchModel.clearProviderSession()
+                    } else { library.metadataInvalidation += 1 }
+                    searchModel.replaceService(try? SearchLaunchConfiguration.makeService())
+                })
                     .modifier(SavedMediaNavigation(detailModel: { searchModel.detailModel(for: $0, savedMedia: $1) }))
             }
                 .tabItem { Label("Profile", systemImage: "person") }.tag(RootTab.profile)
@@ -40,6 +47,20 @@ struct AppRootView: View {
             let now = Date.now
             guard library.loadError == nil, dashboard.needsRefresh(revision: library.revision, now: now) else { return }
             await dashboard.refresh(DashboardInput.capture(library), revision: library.revision, now: now)
+        }
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            while !Task.isCancelled {
+                do {
+                    try library.maintainMetadata()
+                    ProviderArtworkCache.shared.expire(at: library.metadataReferenceDate)
+                    searchModel.expireMetadata(at: library.metadataReferenceDate)
+                    await searchModel.expireProviderMemory(at: library.metadataReferenceDate)
+                    foregroundRevision += 1
+                    try await Task.sleep(for: .seconds(60))
+                } catch is CancellationError { return }
+                catch { library.metadataWarning = "Metadata cleanup could not be saved. Preserve your personal data and retry."; return }
+            }
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { foregroundRevision += 1 } }
     }

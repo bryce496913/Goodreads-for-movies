@@ -49,6 +49,7 @@ struct TVSeasonsSection: View {
                 Button("Refresh Seasons") { refresh += 1 }.accessibilityIdentifier("tv.refreshSeasons")
             }
         }
+        .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
         .task(id: CatalogTask(series: show.id, seasons: show.seasons, refresh: refresh, fresh: catalogIsFresh)) {
             let force = refresh != lastRefreshRequest
             lastRefreshRequest = refresh

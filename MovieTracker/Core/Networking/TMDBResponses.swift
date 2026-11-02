@@ -29,7 +29,7 @@ struct TMDBTitle: Decodable, Sendable {
         case numberOfEpisodes = "number_of_episodes"
     }
 
-    func movie() throws -> Movie {
+    func movie(retrievedAt: Date? = nil) throws -> Movie {
         guard id > 0, let title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw MetadataError.invalidPayload
         }
@@ -37,11 +37,11 @@ struct TMDBTitle: Decodable, Sendable {
             id: "tmdb:\(id)", title: title, overview: overview ?? "",
             releaseDate: Self.date(releaseDate), posterReference: posterPath,
             genreIDs: mappedGenres, runtimeMinutes: runtime.flatMap { $0 > 0 ? $0 : nil },
-            backdropReference: backdropPath, genres: mappedGenreNames
+            backdropReference: backdropPath, genres: mappedGenreNames, metadataRetrievedAt: retrievedAt
         )
     }
 
-    func tvShow() throws -> TVShow {
+    func tvShow(retrievedAt: Date? = nil) throws -> TVShow {
         guard id > 0, let name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw MetadataError.invalidPayload
         }
@@ -53,7 +53,7 @@ struct TMDBTitle: Decodable, Sendable {
             backdropReference: backdropPath, genres: mappedGenreNames,
             episodeCount: numberOfEpisodes.flatMap { $0 > 0 ? $0 : nil },
             seriesStatus: status?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? status : nil,
-            seasons: try mappedSeasons()
+            seasons: try mappedSeasons(), metadataRetrievedAt: retrievedAt
         )
     }
 

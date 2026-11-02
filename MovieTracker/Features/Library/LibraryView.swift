@@ -18,6 +18,7 @@ struct LibraryView: View {
                 Text("UI test data").font(.caption).accessibilityIdentifier("library.testData")
             }
             #endif
+            if let warning = library.metadataWarning { Text(warning).font(.footnote) }
             Section("Organize") {
                 if textSize.isAccessibilitySize {
                     mediaPicker.pickerStyle(.menu)

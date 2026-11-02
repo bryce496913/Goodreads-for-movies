@@ -10,7 +10,7 @@ struct DetailArtwork: View {
         Rectangle().fill(AppStyle.surface)
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
-                AsyncImage(url: url) { phase in
+                EphemeralAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()

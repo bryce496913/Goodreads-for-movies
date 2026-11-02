@@ -27,10 +27,11 @@ struct LibraryRow: View {
     }
 }
 
-/// Read the existing OS response cache only. Local Library filtering never starts image requests.
+/// Read the bounded in-memory artwork cache only. Local Library filtering never starts image requests.
 struct LibraryCachedPoster: View {
     let url: URL?
     @State private var image: UIImage?
+    @Environment(LibraryStore.self) private var library
     var body: some View {
         Group {
             if let image { Image(uiImage: image).resizable().scaledToFill() }
@@ -41,8 +42,11 @@ struct LibraryCachedPoster: View {
         .accessibilityHidden(true)
         .task(id: url) {
             image = nil
-            guard !Task.isCancelled, let url, let response = URLCache.shared.cachedResponse(for: URLRequest(url: url)) else { return }
-            image = UIImage(data: response.data)
+            guard !Task.isCancelled, let url else { return }
+            image = ProviderArtworkCache.shared.image(url)
+        }
+        .onChange(of: library.metadataReferenceDate) { _, now in
+            image = url.flatMap { ProviderArtworkCache.shared.image($0, at: now) }
         }
     }
 }

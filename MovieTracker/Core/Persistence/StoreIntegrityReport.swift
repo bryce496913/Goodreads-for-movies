@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 struct StoreIntegrityIssue: Hashable {
-    enum Entity: String { case library, review, viewing, season, episode }
+    enum Entity: String { case library, review, viewing, season, episode, metadata }
     enum Kind: String { case duplicateUUID, duplicateIdentity, invalidIdentity, danglingAssociation, crossMediaAssociation, duplicateAssociation, inconsistentSnapshot }
     let entity: Entity
     let kind: Kind
@@ -17,11 +17,11 @@ enum StoreIntegrityReport {
               reviews: try context.fetch(FetchDescriptor<StoredPersonalReview>()),
               events: try context.fetch(FetchDescriptor<StoredViewingEvent>()),
               seasons: try context.fetch(FetchDescriptor<StoredTVSeason>()),
-              progress: try context.fetch(FetchDescriptor<StoredEpisodeProgress>()))
+              progress: try context.fetch(FetchDescriptor<StoredEpisodeProgress>()), metadata: try context.fetch(FetchDescriptor<StoredMetadataState>()))
     }
 
     static func audit(entries: [StoredLibraryEntry], reviews: [StoredPersonalReview], events: [StoredViewingEvent],
-                      seasons: [StoredTVSeason], progress: [StoredEpisodeProgress]) -> Set<StoreIntegrityIssue> {
+                      seasons: [StoredTVSeason], progress: [StoredEpisodeProgress], metadata: [StoredMetadataState] = []) -> Set<StoreIntegrityIssue> {
         var issues = Set<StoreIntegrityIssue>()
         func add(_ entity: StoreIntegrityIssue.Entity, _ kind: StoreIntegrityIssue.Kind, _ records: [UUID]) {
             issues.insert(.init(entity: entity, kind: kind, records: records.sorted { $0.uuidString < $1.uuidString }))
@@ -30,6 +30,9 @@ enum StoreIntegrityReport {
                                           key: (T) -> Key, id: (T) -> UUID) {
             for group in Dictionary(grouping: rows, by: key).values where group.count > 1 { add(entity, kind, group.map(id)) }
         }
+        struct MetadataKey: Hashable { let id: MediaID?; let scope: String }
+        duplicates(metadata, entity: .metadata, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })
+        duplicates(metadata, entity: .metadata, kind: .duplicateIdentity, key: { MetadataKey(id: $0.mediaID, scope: $0.scope) }, id: { $0.id })
         duplicates(entries, entity: .library, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })
         duplicates(reviews, entity: .review, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })
         duplicates(events, entity: .viewing, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })

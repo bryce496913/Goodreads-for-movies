@@ -25,10 +25,13 @@ protocol MediaMetadataService: Sendable {
     func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary]
     func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails
     func imageResolver() async throws -> MetadataImageResolver
+    func expireMetadataMemory(at now: Date) async
 }
 
 enum MetadataError: Error, Equatable, Sendable {
     case missingCredential
+    case retentionBlocked
+    case metadataExpired
     case invalidQuery
     case invalidPage
     case invalidIdentifier
@@ -47,6 +50,8 @@ enum MetadataError: Error, Equatable, Sendable {
 extension MetadataError: LocalizedError {
     var errorDescription: String? {
         switch self {
+        case .metadataExpired: "Provider metadata expired. Your personal records remain available; retry online to retrieve current metadata."
+        case .retentionBlocked: "Provider metadata is paused because a retained safety archive needs review. Your personal library remains available."
         case .missingCredential: "Add an authorized TMDB read access token in Profile Settings to retrieve new metadata."
         case .invalidQuery: "Enter a nonempty search query."
         case .invalidPage: "The requested results page is out of range."
@@ -65,6 +70,7 @@ extension MetadataError: LocalizedError {
 
 // Providers/mocks without credits support may explicitly return an empty preview.
 extension MediaMetadataService {
+    func expireMetadataMemory(at now: Date) async {}
     func castPreview(for id: MediaID) async throws -> [CastMember] { [] }
     func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] { throw MetadataError.invalidPayload }
     func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails { throw MetadataError.invalidPayload }

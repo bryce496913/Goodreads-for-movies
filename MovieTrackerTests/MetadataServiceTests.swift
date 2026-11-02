@@ -309,6 +309,15 @@ final class MetadataServiceTests: XCTestCase {
         XCTAssertEqual(count, 0)
     }
 
+    @MainActor
+    func testProviderPayloadReceiptUsesInjectedSuccessfulRetrievalClock() async throws {
+        let date = Date(timeIntervalSince1970: 1_767_225_600)
+        let transport = StubMetadataTransport([.success(response(#"{"id":123,"title":"Fetched metadata"}"#))])
+        let service = TMDBMetadataService(configuration: try TMDBConfiguration(readAccessToken: "nonsecret-test-token"), transport: transport, clock: { date })
+        let movie = try await service.movieDetails(id: MediaID(kind: .movie, value: "tmdb:123"))
+        XCTAssertEqual(movie.metadataRetrievedAt, date)
+    }
+
     private func response(_ json: String, status: Int = 200, retryAfter: String? = nil) -> MetadataHTTPResponse {
         MetadataHTTPResponse(data: Data(json.utf8), status: status, retryAfter: retryAfter)
     }

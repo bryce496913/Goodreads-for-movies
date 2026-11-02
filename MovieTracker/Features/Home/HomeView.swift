@@ -33,7 +33,7 @@ struct HomeView: View {
                             } else {
                                 Text("Next episode unavailable from saved metadata.")
                                 if let last = item.lastMarked {
-                                    Text("Last marked watched: Season \(last.seasonNumber), Episode \(last.number)").font(.footnote)
+                                    Text(last.number == 0 ? "Watched episode reference: " + last.id.providerValue : "Last marked watched: Season \(last.seasonNumber), Episode \(last.number)").font(.footnote)
                                 }
                             }
                         }

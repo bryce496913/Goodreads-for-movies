@@ -31,7 +31,7 @@ struct SettingsView: View {
                     Button("Remove Provider Credential", role: .destructive) { confirmRemoval = true }
                         .accessibilityIdentifier("settings.removeCredential")
                 }
-                Text("Removing the credential leaves your saved titles, ratings, reviews and episode progress intact. Reopen an already open detail page to use changed credentials. Local Debug Run-scheme credentials override this device setting when present.").font(.footnote)
+                Text("Removing the credential clears TMDB cached metadata while retaining stable references, ratings, reviews, diary and episode progress. Titles can become identifier placeholders. Reopen an already open detail page to use changed credentials. Local Debug Run-scheme credentials override this device setting when present.").font(.footnote)
                 if let url = URL(string: "https://www.themoviedb.org/settings/api") {
                     Link("TMDB API account and authorization", destination: url)
                 }

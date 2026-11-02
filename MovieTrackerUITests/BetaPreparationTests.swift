@@ -31,6 +31,16 @@ final class BetaPreparationUITests: XCTestCase {
         XCTAssertTrue(result.isHittable)
         XCTAssertFalse(app.buttons["search.result.tvShow.fixture:1"].exists)
     }
+    @MainActor func testMetadataPolicyAndApprovedAttributionAreVisibleOffline() {
+        let app = launch()
+        app.tabBars.buttons["Profile"].tap()
+        let credits = app.buttons["profile.credits"]; reveal(credits, app); credits.tap()
+        XCTAssertTrue(app.staticTexts["credits.tmdbNotice"].waitForExistence(timeout: 5))
+        let logo = app.images["credits.tmdbLogo"]; reveal(logo, app); XCTAssertTrue(logo.exists)
+        let policy = app.staticTexts["credits.cachePolicy"]; reveal(policy, app)
+        XCTAssertTrue(policy.label.contains("150 days")); XCTAssertTrue(policy.label.contains("identifier placeholder"))
+    }
+
     @MainActor private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra

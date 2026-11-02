@@ -4,7 +4,7 @@ import SwiftData
 enum PersistenceController {
     @MainActor
     static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: LibrarySchemaV1.self)
+        let schema = Schema(versionedSchema: LibrarySchemaV2.self)
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
         return try open(schema: schema, configuration: configuration)
     }
@@ -12,7 +12,7 @@ enum PersistenceController {
     /// Explicit URL is used by disk regression tests. The app retains SwiftData's default URL/name.
     @MainActor
     static func makeContainer(at storeURL: URL) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: LibrarySchemaV1.self)
+        let schema = Schema(versionedSchema: LibrarySchemaV2.self)
         let configuration = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
         return try open(schema: schema, configuration: configuration)
     }
