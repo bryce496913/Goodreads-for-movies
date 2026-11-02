@@ -140,7 +140,7 @@ final class MetadataLifecycleTests: XCTestCase {
     @MainActor func testArtworkMemoryHasBoundedFreshnessWithoutDiskReads() throws {
         let cache = ProviderArtworkCache()
         let url = try XCTUnwrap(URL(string: "https://image.tmdb.org/t/p/w185/fixture.png"))
-        let png = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII="))
+        let png = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII="))
         cache.save(png, url: url, at: now)
         XCTAssertNotNil(cache.image(url, at: now))
         XCTAssertNil(cache.image(url, at: now.addingTimeInterval(MetadataPolicy.retention)))

@@ -33,6 +33,7 @@ struct DetailArtworkHeader: View {
     let item: SearchItem
     let backdropReference: String?
     let resolver: MetadataImageResolver?
+    var savedPosterURL: URL? = nil
     @Environment(\.dynamicTypeSize) private var dynamicType
 
     var body: some View {
@@ -53,7 +54,7 @@ struct DetailArtworkHeader: View {
 
     private var poster: some View {
         DetailArtwork(title: item.title, kind: "Poster",
-                      url: resolver?.posterURL(reference: item.posterReference, size: .card), aspectRatio: 2 / 3)
+                      url: resolver?.posterURL(reference: item.posterReference, size: .card) ?? savedPosterURL, aspectRatio: 2 / 3)
     }
 
     private var title: some View {

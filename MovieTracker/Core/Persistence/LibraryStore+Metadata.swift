@@ -49,14 +49,17 @@ extension LibraryStore {
         let id = SearchItem(media).id
         guard MetadataPolicy.isTMDB(id), let fetched = media.metadataRetrievedAt,
               MetadataPolicy.isUsable(fetched, at: metadataClock()) else { return }
+        if let successful = metadataState(for: id)?.lastSuccessfulFetch, successful > fetched { return }
+        if let retained = cachedMedia(for: id)?.metadataRetrievedAt, retained > fetched { return }
         let item = SearchItem(media), data = try JSONEncoder().encode(media)
         let kind = id.kind.rawValue, value = id.value
         try writeTransaction { context in
             let state = try uniqueMetadataState(id, scope: "title", in: context)
-            state.lastSuccessfulFetch = fetched; state.lastAttempt = metadataClock(); state.lastFailure = nil; state.retryAfter = nil
+            state.lastSuccessfulFetch = max(state.lastSuccessfulFetch ?? fetched, fetched); state.lastAttempt = metadataClock(); state.lastFailure = nil; state.retryAfter = nil
             for row in try context.fetch(FetchDescriptor<StoredLibraryEntry>(predicate: #Predicate { $0.mediaKind == kind && $0.mediaValue == value })) {
+                let previousURL = row.savedPosterReference == item.posterReference ? row.savedPosterURL : nil
                 row.savedTitle = item.title; row.savedYear = item.year; row.savedPosterReference = item.posterReference
-                row.savedPosterURL = posterURL?.absoluteString; row.snapshotData = data
+                row.savedPosterURL = posterURL?.absoluteString ?? previousURL; row.snapshotData = data
             }
             for row in try context.fetch(FetchDescriptor<StoredPersonalReview>(predicate: #Predicate { $0.mediaKind == kind && $0.mediaValue == value })) {
                 row.savedTitle = item.title; row.snapshotData = data
@@ -67,10 +70,12 @@ extension LibraryStore {
         }
     }
     func seasonRefreshSucceeded(_ details: TVSeasonDetails) throws {
-        guard MetadataPolicy.isTMDB(details.seriesID), let fetched = details.metadataRetrievedAt else { return }
+        guard MetadataPolicy.isTMDB(details.seriesID), let fetched = details.metadataRetrievedAt,
+              MetadataPolicy.isUsable(fetched, at: metadataClock()) else { return }
+        if let current = metadataState(for: details.seriesID, scope: "season:\(details.number)")?.lastSuccessfulFetch, current > fetched { return }
         try writeTransaction { context in
             let state = try uniqueMetadataState(details.seriesID, scope: "season:\(details.number)", in: context)
-            state.lastSuccessfulFetch = fetched; state.lastAttempt = metadataClock(); state.lastFailure = nil; state.retryAfter = nil
+            state.lastSuccessfulFetch = max(state.lastSuccessfulFetch ?? fetched, fetched); state.lastAttempt = metadataClock(); state.lastFailure = nil; state.retryAfter = nil
         }
     }
     private func uniqueMetadataState(_ id: MediaID, scope: String, in context: ModelContext) throws -> StoredMetadataState {

@@ -33,6 +33,7 @@ enum MetadataError: Error, Equatable, Sendable {
     case invalidCredentialFormat
     case credentialUnavailable
     case retentionBlocked
+    case refreshDeferred
     case metadataExpired
     case invalidQuery
     case invalidPage
@@ -64,6 +65,7 @@ extension MetadataError {
 extension MetadataError: LocalizedError {
     var errorDescription: String? {
         switch self {
+        case .refreshDeferred: "Metadata updates are paused after a recent failure. Your saved data remains available; retry when the connection has recovered."
         case .metadataExpired: "Provider metadata expired. Your personal records remain available; retry online to retrieve current metadata."
         case .retentionBlocked: "Provider metadata is paused because a retained safety archive needs review. Your personal library remains available."
         case .credentialUnavailable: "The device credential store is unavailable. Unlock the device and check Profile Settings."

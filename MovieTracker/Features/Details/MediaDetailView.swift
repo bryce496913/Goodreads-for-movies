@@ -14,11 +14,16 @@ struct MediaDetailView: View {
                 if model.usesTestData { Text("UI test data").font(.caption) }
                 if let snapshot = model.snapshot(at: max(library.metadataReferenceDate, Date.now)) {
                     if let error = model.error {
-                        Text("Showing previously loaded details. \(error.localizedDescription)")
+                        Text((model.hasSavedMetadata ? "Showing saved details. " : "Provider metadata unavailable. ") + error.localizedDescription)
                             .accessibilityIdentifier("details.cached")
                             .accessibilityAddTraits(.updatesFrequently)
                     }
-                    DetailArtworkHeader(item: SearchItem(snapshot.media), backdropReference: backdrop(snapshot.media), resolver: snapshot.imageResolver)
+                    Text(model.availability.message).font(.footnote).accessibilityIdentifier("details.availability")
+                    if let date = model.availability.retrievedAt {
+                        Text("Last retrieved: " + date.formatted(date: .abbreviated, time: .shortened)).font(.footnote)
+                    }
+                    DetailArtworkHeader(item: SearchItem(snapshot.media), backdropReference: backdrop(snapshot.media), resolver: snapshot.imageResolver, savedPosterURL: model.cachedPosterURL)
+                        .id(refreshID)
                     LibraryDetailActions(media: snapshot.media,
                         posterURL: snapshot.imageResolver?.posterURL(reference: SearchItem(snapshot.media).posterReference))
                     PersonalDiarySection(media: snapshot.media)
@@ -53,7 +58,7 @@ struct MediaDetailView: View {
                         Text("Loading was canceled. Try again when you are ready.")
                     }
                 }
-                if !model.isLoading && !model.isLoadingExtras {
+                if model.canRefresh && !model.isLoading && !model.isLoadingExtras {
                     Button(model.error == nil && !model.castUnavailable && !model.artworkUnavailable ? "Refresh Details" : "Retry Details") {
                         refreshID += 1
                     }

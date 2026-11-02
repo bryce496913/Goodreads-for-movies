@@ -18,6 +18,13 @@ final class MediaDetailModel {
         if MetadataPolicy.isTMDB(destination.id), let resolver = visible.imageResolver, !MetadataPolicy.isUsable(resolver.metadataRetrievedAt, at: now) { visible.imageResolver = nil }
         return visible
     }
+    private var lastRetrieved: Date?
+    private(set) var cachedPosterURL: URL?
+    var canRefresh: Bool { service != nil && MetadataRuntimeGate.blockingReason == nil }
+    var availability: MetadataAvailability {
+        .resolve(media: storedSnapshot?.media, lastRetrieved: lastRetrieved ?? storedSnapshot?.media.metadataRetrievedAt, at: clock())
+    }
+    var hasSavedMetadata: Bool { storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) } == true }
     private(set) var hasCurrentMetadata = false
     private(set) var isLoading = false
     private(set) var isLoadingExtras = false
@@ -44,6 +51,7 @@ final class MediaDetailModel {
 
     /// SwiftUI's task owns cancellation. A generation also guards noncooperative transports.
     func load(store: LibraryStore? = nil, force: Bool = false) async {
+        if !force && (isLoading || isLoadingExtras) { return }
         generation = UUID()
         let token = generation
         let credentialEpoch = MetadataRuntimeGate.credentialEpoch
@@ -58,28 +66,38 @@ final class MediaDetailModel {
             try Task.checkCancellation()
             if MetadataPolicy.isTMDB(destination.id), let store {
                 try store.maintainMetadata()
-                guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
+                lastRetrieved = store.metadataState(for: destination.id)?.lastSuccessfulFetch ?? lastRetrieved
+                if let local = store.cachedMedia(for: destination.id),
+                   storedSnapshot == nil || !hasSavedMetadata || (local.metadataRetrievedAt ?? .distantPast) > (storedSnapshot?.media.metadataRetrievedAt ?? .distantPast) {
+                    storedSnapshot = .init(media: local)
+                }
+                cachedPosterURL = store.entry(for: destination.id)?.thumbnailURL
             }
+            let reuse = MetadataPolicy.isTMDB(destination.id) && !force && storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && !MetadataPolicy.refreshEligible($0.media.metadataRetrievedAt, at: clock()) } == true
+            if reuse {
+                hasCurrentMetadata = true; isLoading = false
+                return // Fresh retained metadata never requires credentials, credits or image configuration to open.
+            }
+            guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
             guard let service else { throw configurationError }
             let media: MediaSearchResult
-            let reuse = MetadataPolicy.isTMDB(destination.id) && !force && storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && !MetadataPolicy.refreshEligible($0.media.metadataRetrievedAt, at: clock()) } == true
-            if reuse, let cached = storedSnapshot {
-                media = cached.media
-                if cached.extrasAttemptedAt != nil { hasCurrentMetadata = true; isLoading = false; return }
-            } else {
-                if let store, !store.mayRefreshMetadata(destination.id, force: force) { throw MetadataError.rateLimited(retryAfter: nil) }
-                switch destination.id.kind {
-                case .movie: media = .movie(try await service.movieDetails(id: destination.id))
-                case .tvShow: media = .tvShow(try await service.tvShowDetails(id: destination.id))
-                }
+            if let store, !store.mayRefreshMetadata(destination.id, force: force) {
+                error = store.refreshDeferral(for: destination.id); isLoading = false
+                return // Reading during backoff must not renew the failure deadline.
+            }
+            switch destination.id.kind {
+            case .movie: media = .movie(try await service.movieDetails(id: destination.id))
+            case .tvShow: media = .tvShow(try await service.tvShowDetails(id: destination.id))
             }
             try Task.checkCancellation()
             guard generation == token else { return }
             if MetadataPolicy.isTMDB(destination.id), credentialEpoch != MetadataRuntimeGate.credentialEpoch { throw CancellationError() }
             guard SearchItem(media).id == destination.id else { throw MetadataError.invalidPayload }
             guard MetadataPolicy.mayDisplay(media, at: clock()) else { throw MetadataError.invalidPayload }
-            if !reuse { try store?.metadataRefreshSucceeded(media) }
-            var updated = reuse ? (storedSnapshot ?? .init(media: media)) : .init(media: media)
+            try store?.metadataRefreshSucceeded(media)
+            let preferred = store?.preferredMetadata(media) ?? media
+            lastRetrieved = preferred.metadataRetrievedAt ?? lastRetrieved
+            var updated = MediaDetailCache.Snapshot(media: preferred)
             updated.extrasAttemptedAt = clock()
             storedSnapshot = updated
             hasCurrentMetadata = true
@@ -87,7 +105,7 @@ final class MediaDetailModel {
             isLoading = false
             isLoadingExtras = true
             let mediaID = destination.id
-            let needsArtwork = Self.hasArtwork(media)
+            let needsArtwork = Self.hasArtwork(preferred)
             async let cast = Self.fetchCast(service, id: mediaID)
             async let artwork = Self.fetchArtwork(service, needed: needsArtwork)
             let (castResult, artworkResult) = await (cast, artwork)
@@ -105,7 +123,7 @@ final class MediaDetailModel {
             }
             storedSnapshot = completed
             cache.save(completed, for: destination.id)
-            if !reuse { try store?.metadataRefreshSucceeded(media, posterURL: completed.imageResolver?.posterURL(reference: SearchItem(media).posterReference)) }
+            try store?.metadataRefreshSucceeded(preferred, posterURL: completed.imageResolver?.posterURL(reference: SearchItem(preferred).posterReference))
             isLoadingExtras = false
         } catch {
             guard generation == token else { return }
@@ -124,12 +142,16 @@ final class MediaDetailModel {
 
     func expireMetadata(at now: Date) {
         if let value = storedSnapshot, !MetadataPolicy.mayDisplay(value.media, at: now) {
+            hasCurrentMetadata = false; cachedPosterURL = nil
+            lastRetrieved = value.media.metadataRetrievedAt ?? lastRetrieved
             storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
         }
     }
     func invalidateProviderMetadata() {
         guard MetadataPolicy.isTMDB(destination.id) else { return }
+        hasCurrentMetadata = false
         generation = UUID(); storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
+        cachedPosterURL = nil
         cache.clear(); isLoading = false; isLoadingExtras = false
         let resolved = SearchLaunchConfiguration.resolveService()
         service = resolved.service; configurationError = resolved.error

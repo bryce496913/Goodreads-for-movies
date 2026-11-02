@@ -126,6 +126,9 @@ final class LibraryStore {
 
     private func mutate(media: MediaSearchResult, status: LibraryStatus?, changesStatus: Bool,
                         favorite: Bool?, posterURL: URL?, rating: PersonalRating? = nil, changesRating: Bool = false) throws {
+        let preferred = preferredMetadata(media)
+        let incomingIsOlder = preferred != media
+        let media = preferred
         let item = SearchItem(media)
         guard !item.id.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw LibraryStoreError.invalidIdentity }
         do {
@@ -141,7 +144,7 @@ final class LibraryStore {
             let newUnits = changesRating ? rating?.halfStarUnits : record.ratingHalfStarUnits
             let newLegacyStars = changesRating ? rating?.stars : record.rating
             let ratingChanged = changesRating && (record.ratingHalfStarUnits != newUnits || record.rating != newLegacyStars)
-            let newURL = posterURL?.absoluteString ?? record.savedPosterURL
+            let newURL = (incomingIsOlder ? nil : posterURL?.absoluteString) ?? record.savedPosterURL
             guard existing == nil || record.status != newStatus || record.isFavorite != newFavorite
                     || record.snapshotData != data || record.savedTitle != item.title || record.savedYear != item.year
                     || record.savedPosterReference != item.posterReference || record.savedPosterURL != newURL

@@ -53,10 +53,7 @@ struct SavedMediaNavigation: ViewModifier {
     let detailModel: (MediaDestination, MediaSearchResult?) -> MediaDetailModel
     func body(content: Content) -> some View {
         content.navigationDestination(for: MediaDestination.self) { destination in
-            let media = library.entry(for: destination.id)?.offlineMedia
-                ?? library.events(for: destination.id).first?.savedMedia
-                ?? library.reviews(for: destination.id).first?.savedMedia
-                ?? library.savedTVShow(for: destination.id).map { .tvShow($0) }
+            let media = library.cachedMedia(for: destination.id)
             MediaDetailView(model: detailModel(destination, media))
         }
     }

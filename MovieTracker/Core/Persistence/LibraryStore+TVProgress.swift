@@ -68,6 +68,9 @@ extension LibraryStore {
         }
         try writeTransaction { context in
             let rows = try seasonRows(show.id, context: context)
+            if MetadataPolicy.isTMDB(show.id), rows.contains(where: {
+                ($0.savedShow?.metadataRetrievedAt ?? .distantPast) > (show.metadataRetrievedAt ?? .distantPast)
+            }) { return }
             for row in rows {
                 row.isListed = summaries.contains { $0.number == row.number }
                 row.expectedRegularSeasonCount = summaries.filter { $0.number > 0 }.count
@@ -88,6 +91,8 @@ extension LibraryStore {
               Set(details.episodes.map(\.id)).count == details.episodes.count else { throw TVProgressError.invalidEpisode }
         try writeTransaction { context in
             let row = try seasonRecord(show, number: details.number, context: context)
+            if MetadataPolicy.isTMDB(show.id), let incoming = details.metadataRetrievedAt,
+               let current = row.refreshedAt, current > incoming { return }
             var merged: [EpisodeID: TVEpisode] = [:]
             for episode in row.episodes { merged[episode.id] = episode }
             for episode in details.episodes { merged[episode.id] = episode }
@@ -95,7 +100,7 @@ extension LibraryStore {
             row.expectedEpisodeCount = max(row.expectedEpisodeCount ?? details.episodes.count, details.episodes.count)
             row.episodesData = try JSONEncoder().encode(Array(merged.values).sorted { $0.id.providerValue < $1.id.providerValue })
             row.listedIDsData = try JSONEncoder().encode(details.episodes.map(\.id))
-            row.listingLoaded = true; row.refreshedAt = now
+            row.listingLoaded = true; row.refreshedAt = details.metadataRetrievedAt ?? now
             row.seriesData = try JSONEncoder().encode(show)
             // A stable provider ID may move seasons. Move cached metadata, never the watched flag.
             let newIDs = Set(details.episodes.map(\.id))

@@ -45,7 +45,7 @@ struct TVSeasonsSection: View {
                 }
                 .accessibilityIdentifier("tv.season.\(season.number)")
             }
-            if !model.isLoading {
+            if model.canRefresh && !model.isLoading {
                 Button("Refresh Seasons") { refresh += 1 }.accessibilityIdentifier("tv.refreshSeasons")
             }
         }
