@@ -71,6 +71,10 @@
 			isa = PBXBuildFile;
 			fileRef = B64E3FC84870DA32E6412B4E;
 		};
+		5ABB36F8A3EAE3B9C271D79C = {
+			isa = PBXBuildFile;
+			fileRef = 48F7F94B1D2DF5CDF4EDEF03;
+		};
 		660989A616122DD98FED6D02 = {
 			isa = PBXBuildFile;
 			fileRef = D729950F3E93A0ABA95E4CF4;
@@ -235,9 +239,17 @@
 			isa = PBXBuildFile;
 			fileRef = B67CFE6DB8950A212F9DE4E6;
 		};
+		3C15921072A9890D2879C02B = {
+			isa = PBXBuildFile;
+			fileRef = BF1EC16D4C8FC7421E15C830;
+		};
 		C19B646EB89486A9D9703686 = {
 			isa = PBXBuildFile;
 			fileRef = 9EE01B01EA00E101A0E4378C;
+		};
+		97BAD03874F4A1082CD485E8 = {
+			isa = PBXBuildFile;
+			fileRef = 601F83CD8B780AF9F3DFB580;
 		};
 		C73B2B8A854FFEA7711D693E = {
 			isa = PBXBuildFile;
@@ -283,6 +295,10 @@
 			isa = PBXBuildFile;
 			fileRef = 80FEAB2F0021D89A64C5F75B;
 		};
+		B14A8354BF18ECEBADE93920 = {
+			isa = PBXBuildFile;
+			fileRef = A688816C9E4B5F701372B798;
+		};
 		CBFD94AB6BBCB94A7B6FC7B6 = {
 			isa = PBXBuildFile;
 			fileRef = B07A2ED1EF22E3815AE8E542;
@@ -295,6 +311,10 @@
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
 		};
+		A29D1FD7A8FD68B9A45E146A = {
+			isa = PBXBuildFile;
+			fileRef = 1C2C8D0FE716BF60B40E8455;
+		};
 		16E2C122E377BDCBAC557F05 = {
 			isa = PBXBuildFile;
 			fileRef = 1BA18E2BC3DAE944A2E61032;
@@ -306,6 +326,10 @@
 		9A427486F88A2575B38F4CB4 = {
 			isa = PBXBuildFile;
 			fileRef = 4E20A76B7C7EF088D1E99D85;
+		};
+		F97EBF54D2C40BDB0DC58F14 = {
+			isa = PBXBuildFile;
+			fileRef = 1406C910CC3FB69418A92D8D;
 		};
 		4EE69157CD9BD7BF9C1B0FA4 = {
 			isa = PBXBuildFile;
@@ -327,9 +351,17 @@
 			isa = PBXBuildFile;
 			fileRef = F99AF792B85869771E997A91;
 		};
+		BF192058C1105DE3DDF377DF = {
+			isa = PBXBuildFile;
+			fileRef = C03118EF5B2C2F275546DD44;
+		};
 		896490EAAD1DA4FCDB5F7799 = {
 			isa = PBXBuildFile;
 			fileRef = 9D51F8C9A9D2C542DC312FF1;
+		};
+		58D1FA99DAC95D24831483B1 = {
+			isa = PBXBuildFile;
+			fileRef = 8D8AF28CCBA6F498217CA525;
 		};
 		7519C2ACDAF13BC3032EC416 = {
 			isa = PBXBuildFile;
@@ -481,6 +513,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Networking/MediaMetadataService.swift;
+			sourceTree = "<group>";
+		};
+		48F7F94B1D2DF5CDF4EDEF03 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Networking/MetadataCredentialStorage.swift;
 			sourceTree = "<group>";
 		};
 		D729950F3E93A0ABA95E4CF4 = {
@@ -729,10 +767,22 @@
 			path = MovieTracker/Features/Library/LibraryView.swift;
 			sourceTree = "<group>";
 		};
+		BF1EC16D4C8FC7421E15C830 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Profile/CreditsView.swift;
+			sourceTree = "<group>";
+		};
 		9EE01B01EA00E101A0E4378C = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Features/Profile/ProfileView.swift;
+			sourceTree = "<group>";
+		};
+		601F83CD8B780AF9F3DFB580 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Profile/SettingsView.swift;
 			sourceTree = "<group>";
 		};
 		1E30D4D58A001E321344D357 = {
@@ -801,6 +851,12 @@
 			path = MovieTracker/Resources/Assets.xcassets;
 			sourceTree = "<group>";
 		};
+		A688816C9E4B5F701372B798 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			path = MovieTracker/Resources/PrivacyInfo.xcprivacy;
+			sourceTree = "<group>";
+		};
 		B07A2ED1EF22E3815AE8E542 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -819,6 +875,12 @@
 			path = MovieTrackerTests/DomainModelTests.swift;
 			sourceTree = "<group>";
 		};
+		1C2C8D0FE716BF60B40E8455 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/Legacy010Schema.swift;
+			sourceTree = "<group>";
+		};
 		1BA18E2BC3DAE944A2E61032 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -835,6 +897,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/MediaDetailTests.swift;
+			sourceTree = "<group>";
+		};
+		1406C910CC3FB69418A92D8D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/MetadataCredentialTests.swift;
 			sourceTree = "<group>";
 		};
 		B81324B268526137D62C7010 = {
@@ -867,10 +935,22 @@
 			path = MovieTrackerTests/SearchModelTests.swift;
 			sourceTree = "<group>";
 		};
+		C03118EF5B2C2F275546DD44 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/StabilizationTests.swift;
+			sourceTree = "<group>";
+		};
 		9D51F8C9A9D2C542DC312FF1 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		8D8AF28CCBA6F498217CA525 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/BetaPreparationTests.swift;
 			sourceTree = "<group>";
 		};
 		18C8C4848DA878170E46132D = {
@@ -925,6 +1005,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		D495B45FC041AF8497EB67DE = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xcconfig;
+			path = Config/Beta.xcconfig;
 			sourceTree = "<group>";
 		};
 		42C59AF8A4BAE559BC5A5D5D = {
@@ -1033,6 +1119,7 @@
 			isa = PBXGroup;
 			children = (
 				B64E3FC84870DA32E6412B4E,
+				48F7F94B1D2DF5CDF4EDEF03,
 				D729950F3E93A0ABA95E4CF4,
 				7C8FAE07861ED27A60C868FE,
 				8ABD22829B8488C2165C6DBD,
@@ -1142,7 +1229,9 @@
 		2D572DE6703D4D08E3F8731B = {
 			isa = PBXGroup;
 			children = (
+				BF1EC16D4C8FC7421E15C830,
 				9EE01B01EA00E101A0E4378C,
+				601F83CD8B780AF9F3DFB580,
 			);
 			name = Profile;
 			sourceTree = "<group>";
@@ -1190,6 +1279,7 @@
 			isa = PBXGroup;
 			children = (
 				80FEAB2F0021D89A64C5F75B,
+				A688816C9E4B5F701372B798,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1211,14 +1301,17 @@
 				B07A2ED1EF22E3815AE8E542,
 				8F5260C0DE69F579396C6EF9,
 				FE6E088F851898863FD05BF1,
+				1C2C8D0FE716BF60B40E8455,
 				1BA18E2BC3DAE944A2E61032,
 				4D0805D769B811DC5B6C33C6,
 				4E20A76B7C7EF088D1E99D85,
+				1406C910CC3FB69418A92D8D,
 				B81324B268526137D62C7010,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
 				09530DA063AD6D28353BDC84,
 				F99AF792B85869771E997A91,
+				C03118EF5B2C2F275546DD44,
 				9D51F8C9A9D2C542DC312FF1,
 			);
 			name = MovieTrackerTests;
@@ -1227,6 +1320,7 @@
 		CAB420EAEAFE405BAC92A70A = {
 			isa = PBXGroup;
 			children = (
+				8D8AF28CCBA6F498217CA525,
 				18C8C4848DA878170E46132D,
 				78FEB42D669400CF297FA2B2,
 				EA6819FA204CDE02F3C88014,
@@ -1256,6 +1350,7 @@
 				FBD52ADFD14D16DB3ACFB91D,
 				F6D116F0CCEECD0D9255B23D,
 				CAB420EAEAFE405BAC92A70A,
+				D495B45FC041AF8497EB67DE,
 				42C59AF8A4BAE559BC5A5D5D,
 				4EBD7701B348B93342227820,
 				DFAA9A79675E5B61B48843E5,
@@ -1368,6 +1463,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				999FF37E9C5A0FFB78E1CDE2,
+				B14A8354BF18ECEBADE93920,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1408,6 +1504,7 @@
 				D2C9735ADF055A423E7D388E,
 				8A2B0891A2488D8C50BA2D25,
 				9F09F75B02FD1A3596CD8DE6,
+				5ABB36F8A3EAE3B9C271D79C,
 				660989A616122DD98FED6D02,
 				A5DB7A94A0D9A0E240D6F8CD,
 				6746A7629AAB26C03E2AF002,
@@ -1449,7 +1546,9 @@
 				8DD3CC53FC53E93670A6536E,
 				60C214BDE5FF0A6099AC769D,
 				BEEB6356C33E9E2723EC9313,
+				3C15921072A9890D2879C02B,
 				C19B646EB89486A9D9703686,
+				97BAD03874F4A1082CD485E8,
 				C73B2B8A854FFEA7711D693E,
 				09D2FABDA729DC075E6EE476,
 				36A0FFE4A11ACD51FA77C762,
@@ -1470,14 +1569,17 @@
 				CBFD94AB6BBCB94A7B6FC7B6,
 				014155E1E914C3835674D5AD,
 				4088C92A526ECE2C585B245C,
+				A29D1FD7A8FD68B9A45E146A,
 				16E2C122E377BDCBAC557F05,
 				BBD8BCE6CAC6B93D27B9AD66,
 				9A427486F88A2575B38F4CB4,
+				F97EBF54D2C40BDB0DC58F14,
 				4EE69157CD9BD7BF9C1B0FA4,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
 				FF9338EDCB5DA8CEBFC645FC,
 				9C404E772AD12FFA35FDE5E0,
+				BF192058C1105DE3DDF377DF,
 				896490EAAD1DA4FCDB5F7799,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1486,6 +1588,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				58D1FA99DAC95D24831483B1,
 				7519C2ACDAF13BC3032EC416,
 				8D5E59F35785D2405EE5FE33,
 				A2191715CBDCC79FB6A10445,
@@ -1518,16 +1621,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTracker;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = MovieTracker;
+				INFOPLIST_KEY_CFBundleDisplayName = "MovieTracker Beta";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1545,16 +1646,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTracker;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = MovieTracker;
+				INFOPLIST_KEY_CFBundleDisplayName = "MovieTracker Beta";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1572,10 +1671,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTrackerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1595,10 +1692,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTrackerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1618,10 +1713,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTrackerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1635,10 +1728,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MovieTrackerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_BUNDLE_IDENTIFIER)UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1650,6 +1741,7 @@
 		};
 		3CCE7051BAA1B8E65CDEECD3 = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D495B45FC041AF8497EB67DE;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -1676,6 +1768,7 @@
 		};
 		EB9B6A82A6FECD10C0E43155 = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = D495B45FC041AF8497EB67DE;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;

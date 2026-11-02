@@ -20,3 +20,5 @@ xcuserdata/
 !.env.example
 *.p12
 *.mobileprovision
+Config/Local.xcconfig
+*.xcarchive/

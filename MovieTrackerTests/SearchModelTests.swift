@@ -195,6 +195,42 @@ final class SearchModelTests: XCTestCase {
     }
 
     @MainActor
+    func testCanceledArtworkFailureCannotAffectReplacementProvider() async {
+        let old = LateArtworkService(), replacement = ControlledSearchService()
+        let model = SearchModel(service: old, debounce: {})
+        model.query = "artwork"
+        await model.waitForSearch()
+        await old.waitForArtwork()
+        let obsoleteArtwork = model.artworkTask
+        model.replaceService(replacement)
+        await replacement.waitForCalls(1)
+        await replacement.succeed(0, items: [])
+        await model.waitForSearch()
+        await old.failArtwork()
+        await obsoleteArtwork?.value
+        XCTAssertFalse(model.artworkUnavailable)
+        XCTAssertNil(model.imageResolver)
+    }
+
+    @MainActor
+    func testProviderReplacementCancelsOldQueryAndRetainsCurrentSearch() async {
+        let old = ControlledSearchService(), replacement = ControlledSearchService()
+        let model = SearchModel(service: old, debounce: {})
+        model.query = "current title"
+        await old.waitForCalls(1)
+        let obsolete = model.searchTask
+        model.replaceService(replacement)
+        XCTAssertTrue(obsolete?.isCancelled == true)
+        await replacement.waitForCalls(1)
+        await replacement.succeed(0, items: [.movie(Movie(id: "new", title: "Authorized result"))])
+        await model.waitForSearch()
+        await old.succeed(0, items: [.movie(Movie(id: "old", title: "Obsolete result"))])
+        await obsolete?.value
+        XCTAssertEqual(model.query, "current title")
+        XCTAssertEqual(model.items.map(\.title), ["Authorized result"])
+    }
+
+    @MainActor
     func testNormalizedEquivalentQueryDoesNotRefetch() async {
         let service = ControlledSearchService()
         let model = SearchModel(service: service, debounce: {})
@@ -293,4 +329,26 @@ private actor SearchDebounceGate {
         waiters = []
         pending.forEach { $0.resume() }
     }
+}
+
+private actor LateArtworkService: MediaMetadataService {
+    private var pending: CheckedContinuation<MetadataImageResolver, Error>?
+    private var observer: CheckedContinuation<Void, Never>?
+    func imageResolver() async throws -> MetadataImageResolver {
+        try await withCheckedThrowingContinuation { continuation in
+            pending = continuation; observer?.resume(); observer = nil
+        }
+    }
+    func waitForArtwork() async {
+        if pending == nil { await withCheckedContinuation { observer = $0 } }
+    }
+    func failArtwork() { pending?.resume(throwing: MetadataError.offline); pending = nil }
+    func searchAll(query: String, page: Int) async throws -> MetadataPage<MediaSearchResult> {
+        MetadataPage(items: [.movie(Movie(id: "fixture:art", title: "Artwork", posterReference: "/fixture.jpg"))], page: 1, totalPages: 1, totalResults: 1)
+    }
+    func searchMovies(query: String, page: Int) async throws -> MetadataPage<Movie> { throw MetadataError.invalidQuery }
+    func searchTVShows(query: String, page: Int) async throws -> MetadataPage<TVShow> { throw MetadataError.invalidQuery }
+    func movieDetails(id: MediaID) async throws -> Movie { throw MetadataError.invalidIdentifier }
+    func tvShowDetails(id: MediaID) async throws -> TVShow { throw MetadataError.invalidIdentifier }
+    func genres(for kind: MediaID.Kind) async throws -> [MediaGenre] { [] }
 }

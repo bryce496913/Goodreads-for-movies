@@ -47,7 +47,7 @@ enum MetadataError: Error, Equatable, Sendable {
 extension MetadataError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .missingCredential: "Configure an authorized metadata provider credential for local development."
+        case .missingCredential: "Add an authorized TMDB read access token in Profile Settings to retrieve new metadata."
         case .invalidQuery: "Enter a nonempty search query."
         case .invalidPage: "The requested results page is out of range."
         case .invalidIdentifier: "This title does not have a supported metadata identifier."

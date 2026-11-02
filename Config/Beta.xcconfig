@@ -1,0 +1,7 @@
+// Shared Debug/Release defaults. No credentials or signing material belong in this file.
+MARKETING_VERSION = 0.5.0
+CURRENT_PROJECT_VERSION = 12
+// Preserve the pre-beta sandbox by default. Replace locally with an OWNED App ID before distribution.
+APP_BUNDLE_IDENTIFIER = com.example.MovieTracker
+// Optional, git-ignored file for APP_BUNDLE_IDENTIFIER, DEVELOPMENT_TEAM and build-number overrides.
+#include? "Local.xcconfig"

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     let dashboard: DashboardModel
+    let configurationChanged: () -> Void
     var body: some View {
         List {
             Section {
@@ -39,9 +40,9 @@ struct ProfileView: View {
                 }
             }
             Section {
+                NavigationLink("About & Credits") { CreditsView() }.accessibilityIdentifier("profile.credits")
                 NavigationLink {
-                    ContentUnavailableView("Settings coming soon", systemImage: "gearshape", description: Text("Preferences will be available in a future update."))
-                        .navigationTitle("Settings")
+                    SettingsView(credentials: SearchLaunchConfiguration.credentialStorage(), configurationChanged: configurationChanged)
                 } label: { Label("Settings", systemImage: "gearshape") }
                 .accessibilityIdentifier("profile.settings")
             }
