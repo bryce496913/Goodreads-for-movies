@@ -6,7 +6,7 @@ struct SearchResultRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: AppStyle.Spacing.medium) {
-            AsyncImage(url: posterURL) { phase in
+            EphemeralAsyncImage(url: posterURL) { phase in
                 if let image = phase.image {
                     image.resizable().scaledToFill()
                 } else {

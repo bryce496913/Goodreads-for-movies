@@ -2,6 +2,7 @@ import Foundation
 
 struct TVShow: Codable, Identifiable, Equatable, Sendable {
     let id: MediaID
+    var metadataRetrievedAt: Date?
     var title: String
     var overview: String
     var firstAirDate: Date?
@@ -28,8 +29,10 @@ struct TVShow: Codable, Identifiable, Equatable, Sendable {
         genres: [MediaGenre] = [],
         episodeCount: Int? = nil,
         seriesStatus: String? = nil,
-        seasons: [TVSeasonSummary]? = nil
+        seasons: [TVSeasonSummary]? = nil,
+        metadataRetrievedAt: Date? = nil
     ) {
+        self.metadataRetrievedAt = metadataRetrievedAt
         self.id = MediaID(kind: .tvShow, value: id)
         self.title = title
         self.overview = overview

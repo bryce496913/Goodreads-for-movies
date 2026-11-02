@@ -2,6 +2,7 @@ import Foundation
 
 struct Movie: Codable, Identifiable, Equatable, Sendable {
     let id: MediaID
+    var metadataRetrievedAt: Date?
     var title: String
     var overview: String
     var releaseDate: Date?
@@ -21,8 +22,10 @@ struct Movie: Codable, Identifiable, Equatable, Sendable {
         genreIDs: [String] = [],
         runtimeMinutes: Int? = nil,
         backdropReference: String? = nil,
-        genres: [MediaGenre] = []
+        genres: [MediaGenre] = [],
+        metadataRetrievedAt: Date? = nil
     ) {
+        self.metadataRetrievedAt = metadataRetrievedAt
         self.id = MediaID(kind: .movie, value: id)
         self.title = title
         self.overview = overview

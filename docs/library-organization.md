@@ -1,5 +1,7 @@
 # Library organization — pass 010
 
+**Retention update (014):** TMDB content is reusable only while its retrieval lease is valid (maximum 150 days, refresh eligible at 30 days). Unknown/expired content becomes an identifier placeholder; personal ratings/review text/diary/flags remain. Artwork is ephemeral and memory-only. See [METADATA_POLICY.md](METADATA_POLICY.md) for backups, refresh and unresolved licensing/runtime gates. Historical test counts below describe their original pass.
+
 ## Filtering and local search
 
 The saved Library has independent media (All/Movies/TV Shows), status (All statuses/Watchlist/Watching/Watched), Favorites-only, local title query and sort controls. Media/status/favorite/query conditions combine with **AND**. Favorites are not a viewing status: All statuses includes favorites with any status or no status. A Watching + Movies intersection normally has no matches; controls never silently change another active filter or hide legacy records from the All view.
@@ -37,7 +39,7 @@ LibraryStore already owns the complete local entries collection. This pass proje
 
 In-memory filtering is deliberate: it supports exact diacritic/case rules, legacy rating fallback and missing metadata using the already loaded single-writer collection, avoiding uncertain predicate translations or competing contexts. At larger-than-memory collection scales, serverless paginated SwiftData queries/indexing could replace this projection behind the same UI; that is not built speculatively here. Store commits still reload its existing collections; this pass does not claim measured frame rates or optimize every unrelated persistence transaction. The 5,000-item correctness dataset is not a runtime benchmark.
 
-No query, filter or sort makes HTTP requests or writes saved data. Library posters perform **cache-only reads of the existing OS URLCache**; they do not initiate image downloads on row appearance/filter changes. If the system no longer holds an image, the row shows a film placeholder, even online. No custom disk/image cache or image download is added. Discovery/Details keep their existing separate image-loading behavior. Selecting a detail or the explicit Find action is separate user navigation, not a filtering request. Library search works without provider credentials or internet.
+No query, filter or sort makes HTTP requests or writes saved data. Library posters perform **cache-only reads of the bounded in-memory artwork cache**; they do not initiate image downloads on row appearance/filter changes. If that memory cache no longer holds an image, the row shows a film placeholder, even online. No custom disk/image cache or image download is added. Discovery/Details keep their existing separate image-loading behavior. Selecting a detail or the explicit Find action is separate user navigation, not a filtering request. Library search works without provider credentials or internet.
 
 ## Schema and integrity
 

@@ -17,6 +17,8 @@ final class URLSessionMetadataTransport: MetadataTransport {
     init() {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.urlCache = nil
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 60

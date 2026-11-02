@@ -6,7 +6,18 @@ import Observation
 final class MediaDetailModel {
     let destination: MediaDestination
     let usesTestData: Bool
-    private(set) var snapshot: MediaDetailCache.Snapshot?
+    private var storedSnapshot: MediaDetailCache.Snapshot?
+    private let clock: @Sendable () -> Date
+    var snapshot: MediaDetailCache.Snapshot? { snapshot(at: clock()) }
+    func snapshot(at now: Date) -> MediaDetailCache.Snapshot? {
+        guard let value = storedSnapshot else {
+            return MetadataPolicy.isTMDB(destination.id) ? .init(media: MetadataPolicy.placeholderMedia(destination.id)) : nil
+        }
+        guard MetadataPolicy.mayDisplay(value.media, at: now) else { return .init(media: MetadataPolicy.placeholderMedia(destination.id)) }
+        var visible = value
+        if MetadataPolicy.isTMDB(destination.id), let resolver = visible.imageResolver, !MetadataPolicy.isUsable(resolver.metadataRetrievedAt, at: now) { visible.imageResolver = nil }
+        return visible
+    }
     private(set) var hasCurrentMetadata = false
     private(set) var isLoading = false
     private(set) var isLoadingExtras = false
@@ -15,23 +26,25 @@ final class MediaDetailModel {
     private(set) var castUnavailable = false
     private(set) var artworkUnavailable = false
 
-    private let service: (any MediaMetadataService)?
+    private var service: (any MediaMetadataService)?
     private let cache: MediaDetailCache
     private var generation = UUID()
 
     init(destination: MediaDestination, service: (any MediaMetadataService)?,
-         cache: MediaDetailCache, usesTestData: Bool = false) {
+         cache: MediaDetailCache, usesTestData: Bool = false, clock: @escaping @Sendable () -> Date = { .now }) {
+        self.clock = clock
         self.destination = destination
         self.service = service
         self.cache = cache
         self.usesTestData = usesTestData
-        snapshot = cache.snapshot(for: destination.id)
+        storedSnapshot = cache.snapshot(for: destination.id)
     }
 
     /// SwiftUI's task owns cancellation. A generation also guards noncooperative transports.
-    func load() async {
+    func load(store: LibraryStore? = nil, force: Bool = false) async {
         generation = UUID()
         let token = generation
+        let credentialEpoch = MetadataRuntimeGate.credentialEpoch
         hasCurrentMetadata = false
         isLoading = true
         isLoadingExtras = false
@@ -41,19 +54,32 @@ final class MediaDetailModel {
         artworkUnavailable = false
         do {
             try Task.checkCancellation()
+            if MetadataPolicy.isTMDB(destination.id), let store {
+                try store.maintainMetadata()
+                guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
+            }
             guard let service else { throw MetadataError.missingCredential }
             let media: MediaSearchResult
-            switch destination.id.kind {
-            case .movie: media = .movie(try await service.movieDetails(id: destination.id))
-            case .tvShow: media = .tvShow(try await service.tvShowDetails(id: destination.id))
+            let reuse = MetadataPolicy.isTMDB(destination.id) && !force && storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && !MetadataPolicy.refreshEligible($0.media.metadataRetrievedAt, at: clock()) } == true
+            if reuse, let cached = storedSnapshot {
+                media = cached.media
+                if cached.extrasAttemptedAt != nil { hasCurrentMetadata = true; isLoading = false; return }
+            } else {
+                if let store, !store.mayRefreshMetadata(destination.id, force: force) { throw MetadataError.rateLimited(retryAfter: nil) }
+                switch destination.id.kind {
+                case .movie: media = .movie(try await service.movieDetails(id: destination.id))
+                case .tvShow: media = .tvShow(try await service.tvShowDetails(id: destination.id))
+                }
             }
             try Task.checkCancellation()
             guard generation == token else { return }
+            if MetadataPolicy.isTMDB(destination.id), credentialEpoch != MetadataRuntimeGate.credentialEpoch { throw CancellationError() }
             guard SearchItem(media).id == destination.id else { throw MetadataError.invalidPayload }
-            let updated = MediaDetailCache.Snapshot(
-                media: media, cast: snapshot?.cast ?? [], imageResolver: snapshot?.imageResolver
-            )
-            snapshot = updated
+            guard MetadataPolicy.mayDisplay(media, at: clock()) else { throw MetadataError.invalidPayload }
+            if !reuse { try store?.metadataRefreshSucceeded(media) }
+            var updated = reuse ? (storedSnapshot ?? .init(media: media)) : .init(media: media)
+            updated.extrasAttemptedAt = clock()
+            storedSnapshot = updated
             hasCurrentMetadata = true
             cache.save(updated, for: destination.id)
             isLoading = false
@@ -65,6 +91,7 @@ final class MediaDetailModel {
             let (castResult, artworkResult) = await (cast, artwork)
             try Task.checkCancellation()
             guard generation == token else { return }
+            if MetadataPolicy.isTMDB(destination.id), credentialEpoch != MetadataRuntimeGate.credentialEpoch { throw CancellationError() }
             var completed = updated
             switch castResult {
             case .success(let members): completed.cast = members
@@ -74,8 +101,9 @@ final class MediaDetailModel {
             case .success(let resolver): completed.imageResolver = resolver
             case .failure: artworkUnavailable = true
             }
-            snapshot = completed
+            storedSnapshot = completed
             cache.save(completed, for: destination.id)
+            if !reuse { try store?.metadataRefreshSucceeded(media, posterURL: completed.imageResolver?.posterURL(reference: SearchItem(media).posterReference)) }
             isLoadingExtras = false
         } catch {
             guard generation == token else { return }
@@ -85,8 +113,23 @@ final class MediaDetailModel {
                 wasCancelled = true
             } else {
                 self.error = (error as? MetadataError) ?? .transport
+                if let providerError = error as? MetadataError, providerError != .missingCredential, providerError != .retentionBlocked {
+                    try? store?.metadataRefreshFailed(destination.id, error: providerError)
+                }
             }
         }
+    }
+
+    func expireMetadata(at now: Date) {
+        if let value = storedSnapshot, !MetadataPolicy.mayDisplay(value.media, at: now) {
+            storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
+        }
+    }
+    func invalidateProviderMetadata() {
+        guard MetadataPolicy.isTMDB(destination.id) else { return }
+        generation = UUID(); storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
+        cache.clear(); isLoading = false; isLoadingExtras = false
+        service = try? SearchLaunchConfiguration.makeService()
     }
 
     func tvProgressModel(for show: TVShow) -> TVProgressModel { TVProgressModel(show: show, service: service, usesTestData: usesTestData) }

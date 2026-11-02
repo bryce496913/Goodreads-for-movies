@@ -67,6 +67,13 @@ struct MovieTrackerApp: App {
                 }
                 try DashboardUITestImport.load(into: store)
                 #endif
+                try store.maintainMetadata()
+                URLCache.shared.removeAllCachedResponses() // Drop artwork left by pre-policy AsyncImage builds.
+                if !inMemory {
+                    let count = container.configurations.first.map { MetadataArchiveMaintenance.convertBackups(beside: $0.url) } ?? 0
+                    let warning = count == 0 ? nil : "Provider metadata is paused: \(count) safety archives need recovery review. Personal records remain available."
+                    store.metadataWarning = warning; MetadataRuntimeGate.blockingReason = warning
+                }
                 library = store
             }
             persistenceFailed = false

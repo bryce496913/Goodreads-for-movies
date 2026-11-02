@@ -14,6 +14,7 @@ struct TVEpisode: Codable, Identifiable, Equatable, Sendable {
     var airDate: Date?
     var overview: String
     var runtimeMinutes: Int?
+    var metadataRetrievedAt: Date? = nil
 }
 
 struct TVSeasonSummary: Codable, Identifiable, Hashable, Sendable {
@@ -29,6 +30,7 @@ struct TVSeasonDetails: Sendable {
     let number: Int
     let name: String
     let episodes: [TVEpisode]
+    var metadataRetrievedAt: Date? = nil
 }
 
 struct EpisodeProgressSummary: Equatable, Sendable {

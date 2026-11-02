@@ -33,7 +33,7 @@ struct TVSeasonEpisodesView: View {
                 }
                 ForEach(library.episodes(for: cached)) { episode in
                     VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-                        Text("Episode \(episode.number): \(episode.title)").font(.headline)
+                        Text(episode.number == 0 ? "Episode metadata unavailable — " + episode.id.providerValue : "Episode \(episode.number): \(episode.title)").font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         if let airDate = episode.airDate {
                             Text((library.isFuture(episode) ? "Future air date: " : "Air date: ") + DetailFormatting.date(airDate)).font(.subheadline)
@@ -48,7 +48,7 @@ struct TVSeasonEpisodesView: View {
                             perform { try library.setEpisodeWatched(watched, episode: episode, show: model.show) }
                         }))
                         .disabled(library.isFuture(episode) && !library.isWatched(episode.id))
-                        .accessibilityLabel("Watched: season \(number), episode \(episode.number), \(episode.title)")
+                        .accessibilityLabel(episode.number == 0 ? "Watched episode reference " + episode.id.providerValue : "Watched: season \(number), episode \(episode.number), \(episode.title)")
                         .accessibilityIdentifier("episode.toggle.\(episode.id.providerValue)")
                     }
                 }
@@ -59,7 +59,8 @@ struct TVSeasonEpisodesView: View {
         }
         .navigationTitle(number == 0 ? "Specials" : "Season \(number)")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: refresh) { await model.loadSeason(number, store: library) }
+        .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
+        .task(id: refresh) { await model.loadSeason(number, store: library, force: refresh > 0) }
         .confirmationDialog(batchWatched == true ? "Mark known aired episodes watched?" : "Mark this season unwatched?",
             isPresented: Binding(get: { batchWatched != nil }, set: { if !$0 { batchWatched = nil } }), titleVisibility: .visible) {
             Button(batchWatched == true ? "Mark Aired Watched" : "Mark Unwatched", role: batchWatched == true ? nil : .destructive) {

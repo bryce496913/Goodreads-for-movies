@@ -19,6 +19,7 @@ final class SearchModel {
 
     private struct Key: Equatable { let query: String; let filter: SearchFilter }
     @ObservationIgnored private let detailCache = MediaDetailCache()
+    private let clock: @Sendable () -> Date
     private var service: (any MediaMetadataService)?
     private let debounce: @Sendable () async throws -> Void
     private var currentKey: Key?
@@ -28,15 +29,26 @@ final class SearchModel {
     @ObservationIgnored private(set) var artworkTask: Task<Void, Never>?
 
     init(
-        service: (any MediaMetadataService)?, usesTestData: Bool = false,
+        service: (any MediaMetadataService)?, usesTestData: Bool = false, clock: @escaping @Sendable () -> Date = { .now },
         debounce: @escaping @Sendable () async throws -> Void = {
             try await Task.sleep(for: .milliseconds(300))
         }
     ) {
+        self.clock = clock
         self.service = service
         self.usesTestData = usesTestData
         self.debounce = debounce
     }
+
+    func expireMetadata(at now: Date) {
+        detailCache.expire(at: now)
+        if let resolver = imageResolver, !MetadataPolicy.isUsable(resolver.metadataRetrievedAt, at: now) { imageResolver = nil; artworkTask = nil }
+        guard items.contains(where: { MetadataPolicy.isTMDB($0.id) && !MetadataPolicy.isUsable($0.metadataRetrievedAt, at: now) }) else { return }
+        generation = UUID(); searchTask?.cancel(); pageTask?.cancel(); artworkTask?.cancel()
+        items = []; nextPage = nil; pageError = nil; imageResolver = nil; isLoadingMore = false; phase = .failed(.metadataExpired)
+    }
+    func expireProviderMemory(at now: Date) async { await service?.expireMetadataMemory(at: now) }
+    func clearProviderSession() { detailCache.clear(); items = []; imageResolver = nil }
 
     func replaceService(_ service: (any MediaMetadataService)?) {
         self.service = service
@@ -134,7 +146,7 @@ final class SearchModel {
     }
 
     private func fetch(_ key: Key, page: Int) async throws -> MetadataPage<MediaSearchResult> {
-        guard let service else { throw MetadataError.missingCredential }
+        guard let service else { throw MetadataRuntimeGate.blockingReason == nil ? MetadataError.missingCredential : .retentionBlocked }
         let response: MetadataPage<MediaSearchResult>
         switch key.filter {
         case .all:
@@ -149,6 +161,7 @@ final class SearchModel {
                                     totalPages: value.totalPages, totalResults: value.totalResults)
         }
         guard response.page == page else { throw MetadataError.invalidPayload }
+        guard response.items.allSatisfy({ MetadataPolicy.mayDisplay($0, at: clock()) }) else { throw MetadataError.metadataExpired }
         return response
     }
 

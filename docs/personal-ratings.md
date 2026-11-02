@@ -1,5 +1,7 @@
 # Personal ratings — pass 007
 
+**Retention update (014):** TMDB content is reusable only while its retrieval lease is valid (maximum 150 days, refresh eligible at 30 days). Unknown/expired content becomes an identifier placeholder; personal ratings/review text/diary/flags remain. Artwork is ephemeral and memory-only. See [METADATA_POLICY.md](METADATA_POLICY.md) for backups, refresh and unresolved licensing/runtime gates. Historical test counts below describe their original pass.
+
 ## Rating boundary and UI
 
 `PersonalRating` is a validated value containing integer half-star units **1...10**, representing **0.5...5.0 stars**. Its initializer and Codable decoder reject all other integers. Nil means unrated; zero is not a valid PersonalRating or new saved rating. Presentation divides by two only for display and the compatibility mirror, so canonical comparisons/sorting use precise integers. All ten increments have value/encoding tests.

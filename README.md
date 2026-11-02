@@ -4,7 +4,7 @@ A native, local-first iPhone foundation for tracking movies and television toget
 
 ## V0.5 beta status
 
-**NOT READY — BLOCKERS REMAIN.** Version 0.5.0/build 12 is prepared for local validation, not uploaded or certified. See the [release checklist and TestFlight steps](docs/V0.5_RELEASE_CHECKLIST.md), [regression matrix/evidence](docs/V0.5_TEST_PLAN.md), [known issues](docs/KNOWN_ISSUES.md), and [release notes](docs/V0.5_RELEASE_NOTES.md). Current TMDB terms impose a six-month metadata retention limit; indefinite snapshots need a compliant policy or applicable authorization before distribution.
+**NOT READY — BLOCKERS REMAIN.** Version 0.5.0/build 12 is prepared for local validation, not uploaded or certified. See the [release checklist and TestFlight steps](docs/V0.5_RELEASE_CHECKLIST.md), [regression matrix/evidence](docs/V0.5_TEST_PLAN.md), [known issues](docs/KNOWN_ISSUES.md), and [release notes](docs/V0.5_RELEASE_NOTES.md). TMDB cache content now uses a 150-day lifecycle with personal data preserved separately; see [metadata policy and remaining licensing/operational gates](docs/METADATA_POLICY.md). Runtime behavior, dormant-device retention and provider authorization still require verification.
 
 ## Requirements and running
 
@@ -43,10 +43,10 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Reusable semantic surfaces, spacing, section headings, and empty-state cards.
 - Movie, TV show, typed media identity, viewing status, and user library domain values.
 - A SwiftData container and stored library entry with explicit domain conversion, ready for future tracking features.
-- An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; connected to the Search tab. See [provider evaluation and local setup](docs/metadata-provider.md). Current official documentation is now reachable; the six-month caching restriction remains unresolved, and authorized live retrieval remains unverified.
+- An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; connected to the Search tab. See [provider evaluation and local setup](docs/metadata-provider.md). Current official requirements, conservative expiry and outstanding licensing decisions are recorded in [metadata policy](docs/METADATA_POLICY.md); authorized live retrieval remains unverified.
 - Functional Search with a 300 ms debounce, All/Movies/TV Shows filters, loading/empty/retry states, sized poster thumbnails, explicit duplicate-safe pagination, and typed movie/TV detail pages. See [Search behavior and validation](docs/search-discovery.md).
 - Movie/TV detail pages with shared artwork, genre, synopsis, cast and metadata sections, TV season summaries, partial-failure recovery and session snapshots for previously loaded details. See [detail architecture and validation](docs/media-details.md).
-- Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Saved metadata supports offline title/detail display; see [library persistence](docs/library-persistence.md).
+- Persistent Library rows and detail actions for Watchlist, TV Watching, Watched, independent favorites, clear status and removal. Unexpired provider metadata supports offline display; expired/unknown-age content becomes an identifier placeholder while personal records remain; see [library persistence](docs/library-persistence.md).
 - Personal movie/TV ratings from 0.5–5.0 stars using precise integer half-star units, independent of viewing status, with native accessible editing and Library summaries. See [personal ratings and migration](docs/personal-ratings.md).
 - Private written reviews and a local viewing diary with optional watched dates, repeat watches, offline archives, explicit associations and independent deletion. See [review lifecycle, diary semantics and migration](docs/reviews-viewing-history.md).
 - TV season/episode tracking with direct watched toggles, saved offline lists, confirmed season actions, and conservative aired-episode progress. See [TV progress rules and validation](docs/tv-episode-progress.md).
@@ -78,7 +78,7 @@ Feature views stay together. SearchModel owns observable search state on the mai
 
 Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written reviews and repeat viewings have separate entities; the old review column remains readable for safe legacy import. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
 
-SwiftData now uses a frozen VersionedSchema and an explicit additive migration plan, with pre-open safety backups and schema recognition. Historical adoption remains unverified until the disk fixtures and real store copies execute; see [migration support and failure recovery](docs/DATA_MIGRATIONS.md).
+SwiftData now uses a frozen VersionedSchema and an explicit additive migration plan, with pre-open safety backups and schema recognition. V2 adds metadata refresh state; recognized raw backups become verified personal-only recovery archives after successful application startup. Historical adoption remains unverified until the disk fixtures and real store copies execute; see [migration support and failure recovery](docs/DATA_MIGRATIONS.md).
 
 SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. LibraryStore looks up the exact typed/provider-qualified media identity before inserting or updating; existing duplicate rows are reported rather than destructively merged. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
 
@@ -86,9 +86,9 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (218 methods total, all require local macOS/Xcode execution):
+Included tests (239 methods total, all require local macOS/Xcode execution):
 
-- 4 domain and 21 mocked metadata tests.
+- 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
 - 9 library store and 3 library UI tests.
 - 15 SearchModel and 5 Search UI tests.
@@ -101,6 +101,7 @@ Included tests (218 methods total, all require local macOS/Xcode execution):
 - 24 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 4 dashboard UI tests.
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
+- 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
@@ -113,7 +114,7 @@ Before accepting this foundation, run the suite in Xcode and manually check:
 - Cold launch with networking disabled, empty library on first launch, and successful local-store initialization after relaunch.
 - All tabs and Settings navigation, with no sample content presented as saved data.
 
-Entering a Search query triggers metadata requests with approved local TMDB configuration; poster loading uses AsyncImage. Other tabs and app startup remain independent of the network. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Final app icon, distribution signing, production branding, and App Store preparation are intentionally deferred.
+Entering a Search query triggers metadata requests with approved local TMDB configuration; poster loading uses ephemeral, cache-disabled requests with bounded memory caching. Other tabs and app startup remain independent of the network. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Final app icon, distribution signing, production branding, and App Store preparation are intentionally deferred.
 
 ## Planned features
 

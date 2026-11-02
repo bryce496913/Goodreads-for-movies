@@ -1,5 +1,7 @@
 # Private reviews and viewing diary — pass 008
 
+**Retention update (014):** TMDB content is reusable only while its retrieval lease is valid (maximum 150 days, refresh eligible at 30 days). Unknown/expired content becomes an identifier placeholder; personal ratings/review text/diary/flags remain. Artwork is ephemeral and memory-only. See [METADATA_POLICY.md](METADATA_POLICY.md) for backups, refresh and unresolved licensing/runtime gates. Historical test counts below describe their original pass.
+
 ## Data model and identity
 
 The existing StoredLibraryEntry, rating columns, status/favorite fields, dates, snapshot fields and UUID identity are unchanged. Two entities are added to both production and test schemas:
@@ -35,7 +37,7 @@ Schema changes add two new entity tables; the existing Library entity/fields/con
 
 Old text in StoredLibraryEntry.review remains readable as an **Earlier saved review — original date unavailable**. Explicit Edit/Save imports it into the new review table and clears the old column only in the successful transaction. If a user explicitly removes that Library row, nonempty legacy text is first preserved in the review archive in the same transaction. Imported records are labeled **Imported (original date unavailable)** until a later known edit; their new record-creation time is not presented as the original writing date. No reviews are copied during rewatches, status/rating changes, or app startup. Explicit deletion can clear a legacy review without requiring metadata.
 
-Removing a Library row keeps new reviews and viewing events with their own offline snapshots. Personal Reviews and Viewing History remain accessible from an otherwise empty Library. Removal of the Library row still removes that row's rating/status/favorite as the confirmation explains; deleting an individual review/event does not. Ratings and statuses are not migrated or rewritten by review/event edits.
+Removing a Library row keeps new reviews and viewing events with personal data independent of their expiring provider snapshots. Personal Reviews and Viewing History remain accessible from an otherwise empty Library. Removal of the Library row still removes that row's rating/status/favorite as the confirmation explains; deleting an individual review/event does not. Ratings and statuses are not migrated or rewritten by review/event edits.
 
 ## Tests and observed results
 

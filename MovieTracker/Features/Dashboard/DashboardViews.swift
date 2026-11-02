@@ -31,6 +31,7 @@ struct DashboardReadState: View {
     @Environment(LibraryStore.self) private var library
     let model: DashboardModel
     var body: some View {
+        if let warning = library.metadataWarning { Text(warning).font(.footnote) }
         if let error = library.loadError {
             Section {
                 Text("Saved data could not be refreshed. Any displayed information is the last loaded snapshot.")

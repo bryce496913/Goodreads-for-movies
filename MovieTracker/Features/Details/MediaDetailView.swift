@@ -4,6 +4,7 @@ import SwiftUI
 struct MediaDetailView: View {
     @State private var model: MediaDetailModel
     @State private var refreshID = 0
+    @Environment(LibraryStore.self) private var library
 
     init(model: MediaDetailModel) { _model = State(initialValue: model) }
 
@@ -11,7 +12,7 @@ struct MediaDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppStyle.Spacing.large) {
                 if model.usesTestData { Text("UI test data").font(.caption) }
-                if let snapshot = model.snapshot {
+                if let snapshot = model.snapshot(at: max(library.metadataReferenceDate, Date.now)) {
                     if let error = model.error {
                         Text("Showing previously loaded details. \(error.localizedDescription)")
                             .accessibilityIdentifier("details.cached")
@@ -67,7 +68,9 @@ struct MediaDetailView: View {
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("media.details")
-        .task(id: refreshID) { await model.load() }
+        .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
+        .onChange(of: library.metadataInvalidation) { _, _ in model.invalidateProviderMetadata() }
+        .task(id: refreshID) { await model.load(store: library, force: refreshID > 0) }
         .onChange(of: model.isLoading) { _, loading in
             if loading { AccessibilityNotification.Announcement("Loading details").post() }
         }
