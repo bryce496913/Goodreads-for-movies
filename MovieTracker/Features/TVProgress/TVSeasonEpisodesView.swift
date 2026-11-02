@@ -16,17 +16,21 @@ struct TVSeasonEpisodesView: View {
             if model.usesTestData { Text("UI test data").font(.caption) }
             if let cached = season {
                 Section {
+                    let receipt = MetadataAvailability.receipt(cached.refreshedAt, at: library.metadataReferenceDate)
+                    let availability: MetadataAvailability = !cached.listingLoaded && MetadataPolicy.isUsable(cached.refreshedAt, at: library.metadataReferenceDate) ? .unavailable : receipt
+                    Text(availability.message).font(.footnote).accessibilityIdentifier("tv.availability")
                     ProgressDescription(summary: library.seasonProgress(cached), series: false)
                     if let saved = cached.refreshedAt {
                         Text("Episode metadata saved " + saved.formatted(date: .abbreviated, time: .shortened)).font(.footnote)
                     }
                     if model.isLoading { ProgressView("Updating episodes…") }
-                    if let error = model.errorMessage { Text("Showing saved episodes. " + error).accessibilityIdentifier("tv.cached") }
+                    if let error = model.errorMessage { Text("Episode update unavailable. Saved watched flags are kept. " + error).accessibilityIdentifier("tv.cached") }
                     Button("Mark Aired Episodes Watched") { batchWatched = true }
                         .disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchWatched")
                     Button("Mark Season Unwatched") { batchWatched = false }
                         .disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchUnwatched")
-                    if !model.isLoading { Button("Refresh Episodes") { refresh += 1 }.accessibilityIdentifier("tv.refreshEpisodes") }
+                    if model.isUsingSavedSeason { Text("Saved episodes are available on this device without a connection.").font(.footnote) }
+                    if model.canRefresh && !model.isLoading { Button("Refresh Episodes") { refresh += 1 }.accessibilityIdentifier("tv.refreshEpisodes") }
                 }
                 if library.episodes(for: cached).isEmpty && !model.isLoading {
                     Text("No saved episodes available for this season.")
@@ -54,7 +58,9 @@ struct TVSeasonEpisodesView: View {
                 }
             } else {
                 Text("No saved season metadata is available.")
+                if model.isLoading { ProgressView("Loading episodes…") }
                 if let error = model.errorMessage { Text(error) }
+                if model.canRefresh && !model.isLoading { Button("Retry Episodes") { refresh += 1 }.accessibilityIdentifier("tv.refreshEpisodes") }
             }
         }
         .navigationTitle(number == 0 ? "Specials" : "Season \(number)")

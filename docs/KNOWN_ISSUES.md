@@ -33,3 +33,5 @@ Pass 015 adds mocked authentication/HTTP/retry hardening, but authenticated live
 No user database was reset, migrated in this Linux runtime, seeded, or deleted. Existing schema declarations are unchanged in this pass. No GitHub Xcode CI, archive upload or PR merge was performed.
 
 - Pass 016 removes redundant success-path reloads and repeated read scans, but integrity audit, metadata purge and index rebuilding remain main-actor costs. All large-library benchmarks and new concurrency regressions await native execution; see [performance report](PERFORMANCE_CONCURRENCY.md). No measured speedup is claimed.
+
+- Pass 017 supports saved text and personal edits without mandatory provider calls, but artwork remains process-memory-only under the project policy. Offline tests and disk-container reopen regressions are authored but unrun; see [offline matrix and remaining limits](OFFLINE_RELIABILITY.md).
