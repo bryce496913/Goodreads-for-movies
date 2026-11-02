@@ -26,12 +26,14 @@ final class MediaDetailModel {
     private(set) var castUnavailable = false
     private(set) var artworkUnavailable = false
 
+    private var configurationError: MetadataError
     private var service: (any MediaMetadataService)?
     private let cache: MediaDetailCache
     private var generation = UUID()
 
     init(destination: MediaDestination, service: (any MediaMetadataService)?,
-         cache: MediaDetailCache, usesTestData: Bool = false, clock: @escaping @Sendable () -> Date = { .now }) {
+         cache: MediaDetailCache, usesTestData: Bool = false, configurationError: MetadataError = .missingCredential, clock: @escaping @Sendable () -> Date = { .now }) {
+        self.configurationError = configurationError
         self.clock = clock
         self.destination = destination
         self.service = service
@@ -58,7 +60,7 @@ final class MediaDetailModel {
                 try store.maintainMetadata()
                 guard MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
             }
-            guard let service else { throw MetadataError.missingCredential }
+            guard let service else { throw configurationError }
             let media: MediaSearchResult
             let reuse = MetadataPolicy.isTMDB(destination.id) && !force && storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && !MetadataPolicy.refreshEligible($0.media.metadataRetrievedAt, at: clock()) } == true
             if reuse, let cached = storedSnapshot {
@@ -113,7 +115,7 @@ final class MediaDetailModel {
                 wasCancelled = true
             } else {
                 self.error = (error as? MetadataError) ?? .transport
-                if let providerError = error as? MetadataError, providerError != .missingCredential, providerError != .retentionBlocked {
+                if let providerError = error as? MetadataError, !providerError.isConfigurationFailure {
                     try? store?.metadataRefreshFailed(destination.id, error: providerError)
                 }
             }
@@ -129,10 +131,11 @@ final class MediaDetailModel {
         guard MetadataPolicy.isTMDB(destination.id) else { return }
         generation = UUID(); storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
         cache.clear(); isLoading = false; isLoadingExtras = false
-        service = try? SearchLaunchConfiguration.makeService()
+        let resolved = SearchLaunchConfiguration.resolveService()
+        service = resolved.service; configurationError = resolved.error
     }
 
-    func tvProgressModel(for show: TVShow) -> TVProgressModel { TVProgressModel(show: show, service: service, usesTestData: usesTestData) }
+    func tvProgressModel(for show: TVShow) -> TVProgressModel { TVProgressModel(show: show, service: service, usesTestData: usesTestData, configurationError: configurationError) }
 
     private static func hasArtwork(_ media: MediaSearchResult) -> Bool {
         switch media {

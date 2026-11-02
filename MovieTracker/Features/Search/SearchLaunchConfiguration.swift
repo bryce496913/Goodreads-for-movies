@@ -8,7 +8,17 @@ enum SearchLaunchConfiguration {
         #else
         let testing = false
         #endif
-        return SearchModel(service: try? makeService(), usesTestData: testing)
+        let resolved = resolveService()
+        return SearchModel(service: resolved.service, usesTestData: testing, configurationError: resolved.error)
+    }
+
+    static func resolveService() -> (service: (any MediaMetadataService)?, error: MetadataError) {
+        do { return (try makeService(), .missingCredential) }
+        catch { return (nil, (error as? MetadataError) ?? .credentialUnavailable) }
+    }
+    static func reconfigure(_ model: SearchModel) {
+        let resolved = resolveService()
+        model.replaceService(resolved.service, configurationError: resolved.error)
     }
 
     static func credentialStorage() -> any MetadataCredentialStorage {

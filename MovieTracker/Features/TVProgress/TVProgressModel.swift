@@ -8,10 +8,12 @@ final class TVProgressModel {
     private(set) var isLoading = false
     private(set) var errorMessage: String?
     let usesTestData: Bool
+    private let configurationError: MetadataError
     private let service: (any MediaMetadataService)?
     private var generation = UUID()
 
-    init(show: TVShow, service: (any MediaMetadataService)?, usesTestData: Bool = false) {
+    init(show: TVShow, service: (any MediaMetadataService)?, usesTestData: Bool = false, configurationError: MetadataError = .missingCredential) {
+        self.configurationError = configurationError
         self.show = show; self.service = service; self.usesTestData = usesTestData
     }
     func expireMetadata(at now: Date) {
@@ -19,7 +21,7 @@ final class TVProgressModel {
            case .tvShow(let placeholder) = MetadataPolicy.placeholderMedia(show.id) { show = placeholder }
     }
     func seasonModel(_ cached: StoredTVSeason) -> TVProgressModel {
-        TVProgressModel(show: cached.savedShow ?? show, service: service, usesTestData: usesTestData)
+        TVProgressModel(show: cached.savedShow ?? show, service: service, usesTestData: usesTestData, configurationError: configurationError)
     }
     func loadCatalog(show candidate: TVShow, store: LibraryStore, snapshotIsFresh: Bool = true, forceRefresh: Bool = false) async {
         generation = UUID(); let token = generation
@@ -29,7 +31,7 @@ final class TVProgressModel {
         do {
             var updated = candidate
             if forceRefresh {
-                guard let service else { throw MetadataError.missingCredential }
+                guard let service else { throw configurationError }
                 guard store.mayRefreshMetadata(candidate.id, force: true), MetadataRuntimeGate.blockingReason == nil else { throw MetadataError.retentionBlocked }
                 updated = try await service.tvShowDetails(id: candidate.id)
             } else if !snapshotIsFresh && !store.seasons(for: candidate.id).isEmpty {
@@ -56,7 +58,7 @@ final class TVProgressModel {
         isLoading = true; errorMessage = nil
         defer { if generation == token { isLoading = false } }
         do {
-            guard let service else { throw MetadataError.missingCredential }
+            guard let service else { throw configurationError }
             guard !MetadataPolicy.isTMDB(show.id) || (MetadataRuntimeGate.blockingReason == nil && store.mayRefreshMetadata(show.id, scope: "season:\(number)", force: force)) else { throw MetadataError.retentionBlocked }
             if !force, let cached = store.seasons(for: show.id).first(where: { $0.number == number }),
                cached.coverageKnown && !MetadataPolicy.refreshEligible(cached.refreshedAt, at: store.metadataClock()) { return }
@@ -69,7 +71,7 @@ final class TVProgressModel {
         } catch {
             guard generation == token, !Task.isCancelled, !(error is CancellationError) else { return }
             errorMessage = error.localizedDescription
-            if let failure = error as? MetadataError, failure != .missingCredential, failure != .retentionBlocked {
+            if let failure = error as? MetadataError, !failure.isConfigurationFailure {
                 try? store.metadataRefreshFailed(show.id, scope: "season:\(number)", error: failure)
             }
         }

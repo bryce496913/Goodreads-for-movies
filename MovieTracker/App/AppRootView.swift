@@ -37,7 +37,7 @@ struct AppRootView: View {
                     if (try? SearchLaunchConfiguration.credentialStorage().read()) == nil {
                         try? library.clearProviderMetadata(); searchModel.clearProviderSession()
                     } else { library.metadataInvalidation += 1 }
-                    searchModel.replaceService(try? SearchLaunchConfiguration.makeService())
+                    SearchLaunchConfiguration.reconfigure(searchModel)
                 })
                     .modifier(SavedMediaNavigation(detailModel: { searchModel.detailModel(for: $0, savedMedia: $1) }))
             }

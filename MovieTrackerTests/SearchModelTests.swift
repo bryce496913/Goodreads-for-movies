@@ -231,6 +231,50 @@ final class SearchModelTests: XCTestCase {
     }
 
     @MainActor
+    func testConfigurationFailureIsPreservedWithoutSendingRequests() async {
+        let model = SearchModel(service: nil, configurationError: .invalidCredentialFormat, debounce: {})
+        model.query = "movie"
+        await model.waitForSearch()
+        XCTAssertEqual(model.phase, .failed(.invalidCredentialFormat))
+        model.replaceService(nil, configurationError: .credentialUnavailable)
+        await model.waitForSearch()
+        XCTAssertEqual(model.phase, .failed(.credentialUnavailable))
+    }
+
+    @MainActor
+    func testFilterChangeCancelsObsoletePaginationAndCannotAppendOldMedia() async {
+        let service = ControlledSearchService(), model = SearchModel(service: nil, debounce: {})
+        model.replaceService(service); model.query = "title"
+        await service.waitForCalls(1)
+        await service.succeed(0, items: [.movie(Movie(id: "one", title: "Movie"))], totalPages: 2)
+        await model.waitForSearch(); model.loadMore()
+        await service.waitForCalls(2)
+        let obsolete = model.pageTask
+        model.filter = .tvShows
+        await service.waitForCalls(3)
+        await service.succeed(2, items: [.tvShow(TVShow(id: "one", title: "TV"))])
+        await model.waitForSearch()
+        await service.succeed(1, items: [.movie(Movie(id: "old", title: "Old page"))], totalPages: 2)
+        await obsolete?.value
+        XCTAssertEqual(model.items.map(\.mediaType), ["TV Show"])
+        XCTAssertNil(model.pageError); XCTAssertFalse(model.isLoadingMore)
+    }
+
+    @MainActor
+    func testInvalidPageMetadataCannotAppendOrAdvancePagination() async {
+        let service = ControlledSearchService(), model = SearchModel(service: nil, debounce: {})
+        model.replaceService(service); model.query = "title"
+        await service.waitForCalls(1)
+        await service.succeed(0, items: [.movie(Movie(id: "one", title: "First"))], totalPages: 2)
+        await model.waitForSearch(); model.loadMore()
+        await service.waitForCalls(2)
+        await service.respond(1, page: MetadataPage(items: [.movie(Movie(id: "bad", title: "Wrong page"))], page: 1, totalPages: 2, totalResults: 2))
+        await model.waitForPage()
+        XCTAssertEqual(model.items.map(\.title), ["First"])
+        XCTAssertEqual(model.nextPage, 2); XCTAssertEqual(model.pageError, .invalidPayload)
+    }
+
+    @MainActor
     func testNormalizedEquivalentQueryDoesNotRefetch() async {
         let service = ControlledSearchService()
         let model = SearchModel(service: service, debounce: {})
@@ -301,6 +345,7 @@ private actor ControlledSearchService: MediaMetadataService {
             items: items, page: calls[index].page, totalPages: totalPages, totalResults: items.count
         ))
     }
+    func respond(_ index: Int, page: MetadataPage<MediaSearchResult>) { pending.removeValue(forKey: index)?.resume(returning: page) }
     func cancel(_ index: Int) { pending.removeValue(forKey: index)?.resume(throwing: CancellationError()) }
     func fail(_ index: Int, error: MetadataError) { pending.removeValue(forKey: index)?.resume(throwing: error) }
     func movieDetails(id: MediaID) async throws -> Movie { throw MetadataError.invalidIdentifier }

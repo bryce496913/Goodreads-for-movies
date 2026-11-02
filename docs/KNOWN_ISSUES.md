@@ -17,6 +17,8 @@ Release classification: **NOT READY — BLOCKERS REMAIN**. Severity describes re
 | BETA-009 / P2 | Edit content on two installations or reinstall/change App ID: no cloud sync/export/restore flow exists. | Local-only limitation. Preserve backups and app identity; never suggest reinstall as data repair. Keychain tokens are device-only and may outlive uninstall, so use explicit Remove Credential when deauthorizing a device. |
 | BETA-010 / P2 | Large libraries/season lists: store commits reload collections on main actor, Library sorts/projections and season JSON/progress can repeat on redraw; image decoding also occurs locally. | Profile using the representative datasets. Dashboard heavy aggregation is off actor, but no latency/frame-rate/memory claims are supported. Optimize measured stalls before accepting performance. |
 
+Pass 015 adds mocked authentication/HTTP/retry hardening, but authenticated live Search/details/season checks remain unexecuted because no authorized credential is configured. Current client-held credentials are not a confidential production-secret solution. See [TMDB_NETWORKING.md](TMDB_NETWORKING.md).
+
 ## Repaired in pass 012
 
 | Finding / prior impact | Repair / regression coverage |

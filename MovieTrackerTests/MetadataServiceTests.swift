@@ -101,10 +101,10 @@ final class MetadataServiceTests: XCTestCase {
     }
 
     @MainActor
-    func testHTTPFailuresDoNotRetry() async throws {
+    func testSingleAttemptPolicyMapsHTTPFailures() async throws {
         let cases: [(Int, MetadataError)] = [
-            (401, .unauthorized), (403, .unauthorized), (429, .rateLimited(retryAfter: "60")),
-            (503, .server(status: 503)), (404, .http(status: 404)), (302, .http(status: 302))
+            (401, .unauthorized), (403, .forbidden), (429, .rateLimited(retryAfter: "60")),
+            (503, .server(status: 503)), (404, .notFound), (302, .http(status: 302))
         ]
         for (status, error) in cases {
             let stub = StubMetadataTransport([.success(response("{}", status: status, retryAfter: "60"))])
@@ -118,8 +118,8 @@ final class MetadataServiceTests: XCTestCase {
     @MainActor
     func testNetworkAndEmptyResponseErrors() async throws {
         for (code, expected) in [(URLError.timedOut, MetadataError.timedOut),
-                                  (.notConnectedToInternet, .offline), (.networkConnectionLost, .offline),
-                                  (.cannotConnectToHost, .transport)] {
+                                  (.notConnectedToInternet, .offline), (.networkConnectionLost, .connectionLost),
+                                  (.cannotConnectToHost, .connectionFailed)] {
             let service = try makeService(StubMetadataTransport([.failure(URLError(code))]))
             await assertError(expected) { _ = try await service.searchMovies(query: "a") }
         }
@@ -323,7 +323,7 @@ final class MetadataServiceTests: XCTestCase {
     }
 
     private func makeService(_ transport: any MetadataTransport) throws -> TMDBMetadataService {
-        TMDBMetadataService(configuration: try TMDBConfiguration(readAccessToken: "local-test-credential"), transport: transport)
+        TMDBMetadataService(configuration: try TMDBConfiguration(readAccessToken: "local-test-credential"), transport: transport, retryPolicy: .none)
     }
 
     @MainActor

@@ -6,11 +6,7 @@ enum MetadataPolicy {
     static let refreshInterval: TimeInterval = 30 * 86_400
     static let retryInterval: TimeInterval = 15 * 60
     static func retryDelay(_ header: String?, at now: Date) -> TimeInterval {
-        if let seconds = header.flatMap(TimeInterval.init), seconds.isFinite, seconds >= 0 { return max(retryInterval, seconds) }
-        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = .gmt
-        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
-        if let date = header.flatMap({ formatter.date(from: $0) }) { return max(retryInterval, date.timeIntervalSince(now)) }
-        return retryInterval
+        max(retryInterval, MetadataRetryPolicy.retryAfterSeconds(header, at: now) ?? retryInterval)
     }
     static func isTMDB(_ id: MediaID) -> Bool { id.value.hasPrefix("tmdb:") }
     static func isUsable(_ date: Date?, at now: Date) -> Bool {

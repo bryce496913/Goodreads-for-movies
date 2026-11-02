@@ -30,16 +30,24 @@ protocol MediaMetadataService: Sendable {
 
 enum MetadataError: Error, Equatable, Sendable {
     case missingCredential
+    case invalidCredentialFormat
+    case credentialUnavailable
     case retentionBlocked
     case metadataExpired
     case invalidQuery
     case invalidPage
     case invalidIdentifier
     case unauthorized
+    case forbidden
+    case notFound
     case rateLimited(retryAfter: String?)
     case server(status: Int)
     case http(status: Int)
     case offline
+    case connectionLost
+    case connectionFailed
+    case dnsFailure
+    case secureTransport
     case timedOut
     case transport
     case invalidResponse
@@ -47,11 +55,25 @@ enum MetadataError: Error, Equatable, Sendable {
     case invalidPayload
 }
 
+extension MetadataError {
+    var isConfigurationFailure: Bool {
+        switch self { case .missingCredential, .invalidCredentialFormat, .credentialUnavailable, .retentionBlocked: true; default: false }
+    }
+}
+
 extension MetadataError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .metadataExpired: "Provider metadata expired. Your personal records remain available; retry online to retrieve current metadata."
         case .retentionBlocked: "Provider metadata is paused because a retained safety archive needs review. Your personal library remains available."
+        case .credentialUnavailable: "The device credential store is unavailable. Unlock the device and check Profile Settings."
+        case .invalidCredentialFormat: "Enter the raw TMDB API Read Access Token without a Bearer prefix or internal whitespace."
+        case .forbidden: "The metadata provider refused access to this resource. Check the account’s permissions."
+        case .notFound: "The requested metadata is no longer available from the provider. Your personal records are unchanged."
+        case .connectionLost: "The connection was interrupted. Try again when it is stable."
+        case .connectionFailed: "A connection to the metadata provider could not be established."
+        case .dnsFailure: "The metadata provider’s address could not be resolved. Check your connection and try again."
+        case .secureTransport: "A secure connection to the metadata provider could not be verified."
         case .missingCredential: "Add an authorized TMDB read access token in Profile Settings to retrieve new metadata."
         case .invalidQuery: "Enter a nonempty search query."
         case .invalidPage: "The requested results page is out of range."

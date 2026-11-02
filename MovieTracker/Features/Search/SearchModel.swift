@@ -19,6 +19,7 @@ final class SearchModel {
 
     private struct Key: Equatable { let query: String; let filter: SearchFilter }
     @ObservationIgnored private let detailCache = MediaDetailCache()
+    private var configurationError: MetadataError
     private let clock: @Sendable () -> Date
     private var service: (any MediaMetadataService)?
     private let debounce: @Sendable () async throws -> Void
@@ -29,11 +30,12 @@ final class SearchModel {
     @ObservationIgnored private(set) var artworkTask: Task<Void, Never>?
 
     init(
-        service: (any MediaMetadataService)?, usesTestData: Bool = false, clock: @escaping @Sendable () -> Date = { .now },
+        service: (any MediaMetadataService)?, usesTestData: Bool = false, configurationError: MetadataError = .missingCredential, clock: @escaping @Sendable () -> Date = { .now },
         debounce: @escaping @Sendable () async throws -> Void = {
             try await Task.sleep(for: .milliseconds(300))
         }
     ) {
+        self.configurationError = configurationError
         self.clock = clock
         self.service = service
         self.usesTestData = usesTestData
@@ -50,21 +52,22 @@ final class SearchModel {
     func expireProviderMemory(at now: Date) async { await service?.expireMetadataMemory(at: now) }
     func clearProviderSession() { detailCache.clear(); items = []; imageResolver = nil }
 
-    func replaceService(_ service: (any MediaMetadataService)?) {
+    func replaceService(_ service: (any MediaMetadataService)?, configurationError: MetadataError = .missingCredential) {
+        self.configurationError = configurationError
         self.service = service
         artworkTask?.cancel(); artworkTask = nil; imageResolver = nil; artworkUnavailable = false
         start(Key(query: Self.normalizedQuery(query), filter: filter), debounced: false)
     }
 
     func tvProgressModel(for show: TVShow) -> TVProgressModel {
-        TVProgressModel(show: show, service: service, usesTestData: usesTestData)
+        TVProgressModel(show: show, service: service, usesTestData: usesTestData, configurationError: configurationError)
     }
 
     func detailModel(for destination: MediaDestination, savedMedia: MediaSearchResult? = nil) -> MediaDetailModel {
         if detailCache.snapshot(for: destination.id) == nil, let savedMedia, SearchItem(savedMedia).id == destination.id {
             detailCache.save(.init(media: savedMedia), for: destination.id)
         }
-        return MediaDetailModel(destination: destination, service: service, cache: detailCache, usesTestData: usesTestData)
+        return MediaDetailModel(destination: destination, service: service, cache: detailCache, usesTestData: usesTestData, configurationError: configurationError)
     }
 
     static func normalizedQuery(_ query: String) -> String {
@@ -146,7 +149,7 @@ final class SearchModel {
     }
 
     private func fetch(_ key: Key, page: Int) async throws -> MetadataPage<MediaSearchResult> {
-        guard let service else { throw MetadataRuntimeGate.blockingReason == nil ? MetadataError.missingCredential : .retentionBlocked }
+        guard let service else { throw MetadataRuntimeGate.blockingReason == nil ? configurationError : .retentionBlocked }
         let response: MetadataPage<MediaSearchResult>
         switch key.filter {
         case .all:
@@ -160,7 +163,11 @@ final class SearchModel {
             response = MetadataPage(items: value.items.map { .tvShow($0) }, page: value.page,
                                     totalPages: value.totalPages, totalResults: value.totalResults)
         }
-        guard response.page == page else { throw MetadataError.invalidPayload }
+        guard response.page == page, response.totalPages >= 0, response.totalPages <= 500,
+              response.totalResults >= response.items.count,
+              (response.totalPages == 0 ? page == 1 && response.items.isEmpty && response.totalResults == 0 : page <= response.totalPages) else {
+            throw MetadataError.invalidPayload
+        }
         guard response.items.allSatisfy({ MetadataPolicy.mayDisplay($0, at: clock()) }) else { throw MetadataError.metadataExpired }
         return response
     }

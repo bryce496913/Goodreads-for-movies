@@ -80,10 +80,12 @@ extension LibraryStore {
     }
     private static func failureCategory(_ error: MetadataError) -> String {
         switch error {
-        case .offline: "offline"
+        case .offline, .connectionLost, .connectionFailed, .dnsFailure: "offline"
         case .unauthorized: "unauthorized"
+        case .forbidden: "forbidden"
+        case .notFound: "notFound"
         case .rateLimited: "rateLimited"
-        case .missingCredential: "configuration"
+        case .missingCredential, .invalidCredentialFormat, .credentialUnavailable: "configuration"
         case .timedOut: "timedOut"
         default: "providerFailure"
         }
