@@ -78,13 +78,15 @@ Feature views stay together. SearchModel owns observable search state on the mai
 
 Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written reviews and repeat viewings have separate entities; the old review column remains readable for safe legacy import. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
 
+SwiftData now uses a frozen VersionedSchema and an explicit additive migration plan, with pre-open safety backups and schema recognition. Historical adoption remains unverified until the disk fixtures and real store copies execute; see [migration support and failure recovery](docs/DATA_MIGRATIONS.md).
+
 SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. LibraryStore looks up the exact typed/provider-qualified media identity before inserting or updating; existing duplicate rows are reported rather than destructively merged. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
 
 ## Validation and current limits
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (196 methods total, all require local macOS/Xcode execution):
+Included tests (218 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 21 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -98,6 +100,7 @@ Included tests (196 methods total, all require local macOS/Xcode execution):
 - 14 Library organization/store tests (including 5,000-item data) and 5 organization UI tests.
 - 24 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 4 dashboard UI tests.
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
+- 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
