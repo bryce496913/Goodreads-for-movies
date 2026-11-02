@@ -6,6 +6,7 @@ import SwiftData
 @Observable
 final class LibraryStore {
     private(set) var revision = 0
+    private(set) var libraryRevision = 0
     private(set) var metadataStates: [StoredMetadataState] = []
     var metadataWarning: String?
     var metadataPolicyEnabled = false
@@ -20,6 +21,17 @@ final class LibraryStore {
     private(set) var loadError: LibraryStoreError?
     private(set) var integrityIssueCount = 0
     @ObservationIgnored private var acceptedIntegrityIssues = Set<StoreIntegrityIssue>()
+    @ObservationIgnored var entriesByMedia: [MediaID: [StoredLibraryEntry]] = [:]
+    @ObservationIgnored var reviewsByMedia: [MediaID: [StoredPersonalReview]] = [:]
+    @ObservationIgnored var eventsByMedia: [MediaID: [StoredViewingEvent]] = [:]
+    @ObservationIgnored var reviewedEvents = Set<UUID>()
+    @ObservationIgnored var seasonsBySeries: [MediaID: [StoredTVSeason]] = [:]
+    @ObservationIgnored var progressBySeason: [MediaID: [Int: [StoredEpisodeProgress]]] = [:]
+    @ObservationIgnored var seasonSummaryCache: [UUID: (Date, EpisodeProgressSummary)] = [:]
+    @ObservationIgnored var seriesSummaryCache: [MediaID: (Date, EpisodeProgressSummary)] = [:]
+    @ObservationIgnored var seasonEpisodeCache: [UUID: [TVEpisode]] = [:]
+    @ObservationIgnored var watchedEpisodeIDs = Set<EpisodeID>()
+    @ObservationIgnored var progressByEpisode: [EpisodeID: [StoredEpisodeProgress]] = [:]
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
 
@@ -61,12 +73,14 @@ final class LibraryStore {
                                                                  seasons: seasons, progress: progress, metadata: states)
             integrityIssueCount = acceptedIntegrityIssues.count
             loadError = acceptedIntegrityIssues.isEmpty ? nil : .integrityViolation
-            revision += 1
+            rebuildIndexes()
+            libraryRevision += 1; revision += 1
         } catch { loadError = .readFailed }
     }
 
     func entry(for id: MediaID) -> StoredLibraryEntry? {
-        entries.first { $0.mediaKind == id.kind.rawValue && $0.mediaValue == id.value }
+        _ = revision // Observation dependency for callers using non-observable indexes.
+        return entriesByMedia[id]?.first
     }
 
     func setStatus(_ status: LibraryStatus?, media: MediaSearchResult, posterURL: URL? = nil) throws {
@@ -102,9 +116,7 @@ final class LibraryStore {
             }
             context.delete(record)
             if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
-            try validatePendingIntegrity()
-            try saveContext(context)
-            reload()
+            try savePendingChanges()
         } catch {
             context.rollback() // Dedicated context: never roll back another feature's pending work.
             reload()
@@ -147,9 +159,7 @@ final class LibraryStore {
             record.snapshotData = data
             record.updatedAt = .now
             if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
-            try validatePendingIntegrity()
-            try saveContext(context)
-            reload()
+            try savePendingChanges()
         } catch {
             context.rollback()
             reload()
@@ -162,9 +172,7 @@ final class LibraryStore {
             try operation(context)
             if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
             guard context.hasChanges else { return }
-            try validatePendingIntegrity()
-            try saveContext(context)
-            reload()
+            try savePendingChanges()
         } catch {
             context.rollback()
             reload()
@@ -174,10 +182,91 @@ final class LibraryStore {
         }
     }
 
-    private func validatePendingIntegrity() throws {
-        let pending = try StoreIntegrityReport.read(context)
+    /// Only this store writes its dedicated context. Reconcile pending inserts/deletes with the
+    /// already loaded rows, audit before saving, and publish only after the explicit save succeeds.
+    /// An explicit reload remains the boundary for changes made by another context/import.
+    private func savePendingChanges() throws {
+        let changes = context.changedModelsArray + context.insertedModelsArray + context.deletedModelsArray
+        let inserted = context.insertedModelsArray
+        let deleted = Set(context.deletedModelsArray.map(\.persistentModelID))
+        func reconcile<T: PersistentModel>(_ rows: [T]) -> [T] {
+            let kept = rows.filter { !deleted.contains($0.persistentModelID) }
+            let known = Set(kept.map(\.persistentModelID))
+            return kept + inserted.compactMap { $0 as? T }.filter {
+                !deleted.contains($0.persistentModelID) && !known.contains($0.persistentModelID)
+            }
+        }
+        let nextEntries = reconcile(entries), nextReviews = reconcile(personalReviews)
+        let nextEvents = reconcile(viewingEvents), nextSeasons = reconcile(tvSeasons)
+        let nextProgress = reconcile(episodeProgress), nextMetadata = reconcile(metadataStates)
+        let pending = StoreIntegrityReport.audit(entries: nextEntries, reviews: nextReviews, events: nextEvents,
+                                                 seasons: nextSeasons, progress: nextProgress, metadata: nextMetadata)
         guard pending.isSubset(of: acceptedIntegrityIssues) else { throw LibraryStoreError.integrityViolation }
+        try saveContext(context)
+        if changes.contains(where: { $0 is StoredLibraryEntry }) {
+            entries = nextEntries.sorted {
+                if $0.updatedAt != $1.updatedAt { return $0.updatedAt > $1.updatedAt }
+                if $0.mediaKind != $1.mediaKind { return $0.mediaKind < $1.mediaKind }
+                if $0.mediaValue != $1.mediaValue { return $0.mediaValue < $1.mediaValue }
+                return $0.id.uuidString < $1.id.uuidString
+            }
+            libraryRevision += 1
+        }
+        if changes.contains(where: { $0 is StoredPersonalReview }) {
+            personalReviews = nextReviews.sorted {
+                $0.editedAt != $1.editedAt ? $0.editedAt > $1.editedAt : $0.id.uuidString < $1.id.uuidString
+            }
+        }
+        if changes.contains(where: { $0 is StoredViewingEvent }) {
+            viewingEvents = nextEvents.sorted {
+                if $0.sortDate != $1.sortDate { return $0.sortDate > $1.sortDate }
+                if $0.recordedAt != $1.recordedAt { return $0.recordedAt > $1.recordedAt }
+                return $0.id.uuidString < $1.id.uuidString
+            }
+        }
+        if changes.contains(where: { $0 is StoredTVSeason }) {
+            tvSeasons = nextSeasons.sorted {
+                $0.seriesValue != $1.seriesValue ? $0.seriesValue < $1.seriesValue : $0.number < $1.number
+            }
+        }
+        if changes.contains(where: { $0 is StoredEpisodeProgress }) { episodeProgress = nextProgress }
+        if changes.contains(where: { $0 is StoredMetadataState }) { metadataStates = nextMetadata }
+        acceptedIntegrityIssues = pending; integrityIssueCount = pending.count
+        loadError = pending.isEmpty ? nil : .integrityViolation
+        rebuildIndexes(changes: changes); revision += 1
     }
+
+    private func rebuildIndexes(changes: [any PersistentModel]? = nil) {
+        func affected<T: PersistentModel>(_ type: T.Type) -> Bool {
+            changes?.contains(where: { $0 is T }) ?? true
+        }
+        if affected(StoredLibraryEntry.self) {
+            entriesByMedia = Dictionary(grouping: entries.filter { $0.mediaID != nil }, by: { $0.mediaID! })
+        }
+        if affected(StoredPersonalReview.self) {
+            reviewsByMedia = Dictionary(grouping: personalReviews.filter { $0.mediaID != nil }, by: { $0.mediaID! })
+            reviewedEvents = Set(personalReviews.compactMap(\.viewingEventID))
+        }
+        if affected(StoredViewingEvent.self) {
+            eventsByMedia = Dictionary(grouping: viewingEvents.filter { $0.mediaID != nil }, by: { $0.mediaID! })
+        }
+        if affected(StoredTVSeason.self) {
+            seasonsBySeries = Dictionary(grouping: tvSeasons, by: \.seriesID)
+        }
+        if affected(StoredEpisodeProgress.self) {
+            progressByEpisode = Dictionary(grouping: episodeProgress, by: \.episodeID)
+            watchedEpisodeIDs = Set(episodeProgress.filter(\.isWatched).map(\.episodeID))
+            progressBySeason = Dictionary(grouping: episodeProgress, by: { $0.episodeID.seriesID }).mapValues {
+                Dictionary(grouping: $0, by: \.seasonNumber)
+            }
+        }
+        if affected(StoredEpisodeProgress.self) || affected(StoredTVSeason.self) {
+            seasonEpisodeCache.removeAll(keepingCapacity: true)
+            seasonSummaryCache.removeAll(keepingCapacity: true); seriesSummaryCache.removeAll(keepingCapacity: true)
+        }
+    }
+
+    func hasReview(for eventID: UUID) -> Bool { _ = revision; return reviewedEvents.contains(eventID) }
 
     func diaryLibraryEntry(for id: MediaID) throws -> StoredLibraryEntry? { try uniqueRecord(for: id) }
 

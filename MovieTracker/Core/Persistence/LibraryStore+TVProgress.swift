@@ -4,7 +4,7 @@ import SwiftData
 extension LibraryStore {
     func seasons(for series: MediaID) -> [StoredTVSeason] {
         guard series.kind == .tvShow else { return [] }
-        return tvSeasons.filter { $0.seriesValue == series.value }
+        _ = revision; return seasonsBySeries[series] ?? []
     }
 
     func savedTVShow(for id: MediaID) -> TVShow? {
@@ -13,34 +13,52 @@ extension LibraryStore {
     }
 
     func episodes(for season: StoredTVSeason) -> [TVEpisode] {
+        _ = revision
+        if let cached = seasonEpisodeCache[season.id] { return cached }
         var seen = Set<EpisodeID>()
         var values = season.episodes.filter { seen.insert($0.id).inserted }
-        for record in episodeProgress where record.seriesValue == season.seriesValue && record.seasonNumber == season.number {
+        for record in progressBySeason[season.seriesID]?[season.number] ?? [] {
             if let episode = record.savedEpisode, seen.insert(episode.id).inserted { values.append(episode) }
         }
-        return values.filter { $0.id.seriesID == season.seriesID && $0.seasonNumber == season.number }.sorted {
+        let result = values.filter { $0.id.seriesID == season.seriesID && $0.seasonNumber == season.number }.sorted {
             if $0.number != $1.number { return $0.number < $1.number }
             return $0.id.providerValue < $1.id.providerValue
         }
+        seasonEpisodeCache[season.id] = result
+        return result
     }
 
-    func isWatched(_ id: EpisodeID) -> Bool { episodeProgress.first { $0.episodeID == id }?.isWatched == true }
+    func isWatched(_ id: EpisodeID) -> Bool { _ = revision; return progressByEpisode[id]?.first?.isWatched == true }
 
     func seasonProgress(_ season: StoredTVSeason, now: Date = .now) -> EpisodeProgressSummary {
+        _ = revision
+        let day = progressDay(now)
+        if let cached = seasonSummaryCache[season.id], cached.0 == day { return cached.1 }
         let values = episodes(for: season)
-        let watched = Set(episodeProgress.filter(\.isWatched).map(\.episodeID))
-        return .calculate(episodes: values, watchedIDs: watched,
+        let watched = watchedEpisodeIDs
+        let result = EpisodeProgressSummary.calculate(episodes: values, watchedIDs: watched,
                           coverageKnown: season.coverageKnown && values.count == season.episodes.count, now: now)
+        seasonSummaryCache[season.id] = (day, result); return result
     }
 
     func seriesProgress(_ series: MediaID, now: Date = .now) -> EpisodeProgressSummary {
+        _ = revision
+        let day = progressDay(now)
+        if let cached = seriesSummaryCache[series], cached.0 == day { return cached.1 }
         let regular = seasons(for: series).filter { $0.number > 0 }
         let expected = regular.compactMap(\.expectedRegularSeasonCount).max()
-        let coverage = !regular.isEmpty && expected == regular.count && regular.allSatisfy {
-            $0.coverageKnown && episodes(for: $0).count == $0.episodes.count
+        let values = regular.map { episodes(for: $0) }
+        let coverage = !regular.isEmpty && expected == regular.count && zip(regular, values).allSatisfy { season, episodes in
+            season.coverageKnown && episodes.count == season.episodes.count
         }
-        return .calculate(episodes: regular.flatMap { episodes(for: $0) },
-                          watchedIDs: Set(episodeProgress.filter(\.isWatched).map(\.episodeID)), coverageKnown: coverage, now: now)
+        let result = EpisodeProgressSummary.calculate(episodes: values.flatMap { $0 },
+                          watchedIDs: watchedEpisodeIDs, coverageKnown: coverage, now: now)
+        seriesSummaryCache[series] = (day, result); return result
+    }
+
+    private func progressDay(_ now: Date) -> Date {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .gmt
+        return calendar.startOfDay(for: now)
     }
 
     func cacheSeasonCatalog(show: TVShow) throws {
@@ -140,7 +158,12 @@ extension LibraryStore {
     private func updateProgress(_ watched: Bool, episode: TVEpisode, context: ModelContext, now: Date, existingMatches: [StoredEpisodeProgress]? = nil) throws {
         let matches: [StoredEpisodeProgress]
         if let existingMatches { matches = existingMatches }
-        else { matches = try progressRows(episode.id.seriesID, context: context).filter { $0.episodeValue == episode.id.providerValue } }
+        else {
+            let series = episode.id.seriesID.value, value = episode.id.providerValue
+            var descriptor = FetchDescriptor<StoredEpisodeProgress>(predicate: #Predicate { $0.seriesValue == series && $0.episodeValue == value })
+            descriptor.fetchLimit = 2
+            matches = try context.fetch(descriptor)
+        }
         guard matches.count < 2 else { throw LibraryStoreError.duplicateRecords }
         if let record = matches.first {
             if record.isWatched != watched { record.isWatched = watched; record.watchedAt = watched ? now : nil }

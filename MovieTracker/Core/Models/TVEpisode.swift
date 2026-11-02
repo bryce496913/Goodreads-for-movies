@@ -47,11 +47,16 @@ struct EpisodeProgressSummary: Equatable, Sendable {
         var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .gmt
         let today = calendar.startOfDay(for: now)
         var seen = Set<EpisodeID>()
-        let unique = episodes.filter { seen.insert($0.id).inserted }
-        let eligible = unique.filter { $0.airDate.map { $0 <= today } == true }
-        return Self(watched: eligible.filter { watchedIDs.contains($0.id) }.count,
-                    totalWatched: unique.filter { watchedIDs.contains($0.id) }.count, eligible: eligible.count,
-                    future: unique.filter { $0.airDate.map { $0 > today } == true }.count,
-                    unknownAirDate: unique.filter { $0.airDate == nil }.count, coverageKnown: coverageKnown)
+        var watched = 0, totalWatched = 0, eligible = 0, future = 0, unknown = 0
+        for episode in episodes where seen.insert(episode.id).inserted {
+            let marked = watchedIDs.contains(episode.id)
+            if marked { totalWatched += 1 }
+            if let date = episode.airDate {
+                if date <= today { eligible += 1; if marked { watched += 1 } }
+                else { future += 1 }
+            } else { unknown += 1 }
+        }
+        return Self(watched: watched, totalWatched: totalWatched, eligible: eligible,
+                    future: future, unknownAirDate: unknown, coverageKnown: coverageKnown)
     }
 }

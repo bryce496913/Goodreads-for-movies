@@ -7,9 +7,11 @@ final class LibraryOrganizationTests: XCTestCase {
     func testMovieAndTVFiltersOnFiveThousandRecords() async throws {
         let model = try makeModel()
         model.options.media = .movies
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 2_500)
         XCTAssertTrue(model.visible.allSatisfy { $0.mediaID?.kind == .movie })
         model.options.media = .tvShows
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 2_500)
         XCTAssertTrue(model.visible.allSatisfy { $0.mediaID?.kind == .tvShow })
     }
@@ -18,13 +20,16 @@ final class LibraryOrganizationTests: XCTestCase {
     func testStatusFilterAndCombinedFavoritesQueryUseAND() async throws {
         let model = try makeModel()
         model.options.status = .watching
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 834) // Multiples of six in 0..<5000.
         model.options.media = .tvShows
         model.options.favoritesOnly = true
         model.query = "  CAFE  "
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 60) // Multiples of 84.
         XCTAssertTrue(model.visible.allSatisfy { $0.rawStatus == "watching" && $0.isFavorite })
         model.options.media = .movies
+        await model.waitForUpdates()
         XCTAssertTrue(model.visible.isEmpty)
     }
 
@@ -37,6 +42,7 @@ final class LibraryOrganizationTests: XCTestCase {
             item(3, title: "Other", favorite: false)
         ])
         model.options.favoritesOnly = true
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 2)
         XCTAssertEqual(Set(model.visible.map(\.rawStatus)), ["watched", "none"])
     }
@@ -47,10 +53,12 @@ final class LibraryOrganizationTests: XCTestCase {
         let model = LibraryOrganizationModel()
         model.replaceItems(dataset)
         model.options.sort = .title
+        await model.waitForUpdates()
         let first = model.visible.map(\.id)
         let keys = model.visible.map(\.normalizedTitle)
         XCTAssertEqual(keys, keys.sorted())
         model.replaceItems(Array(dataset.reversed()))
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.id), first)
     }
 
@@ -59,6 +67,7 @@ final class LibraryOrganizationTests: XCTestCase {
         let model = LibraryOrganizationModel()
         model.replaceItems([item(1, title: "Unknown", year: nil), item(2, title: "Older", year: 1990), item(3, title: "Newer", year: 2024)])
         model.options.sort = .year
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.title), ["Newer", "Older", "Unknown"])
         XCTAssertNil(model.visible.last?.year)
     }
@@ -72,6 +81,7 @@ final class LibraryOrganizationTests: XCTestCase {
             item(4, title: "Five", rating: .rated(try PersonalRating(halfStarUnits: 10)))
         ])
         model.options.sort = .rating
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.title), ["Five", "Half", "Unrated", "Invalid"])
     }
 
@@ -88,11 +98,14 @@ final class LibraryOrganizationTests: XCTestCase {
         try container.mainContext.save()
         let model = LibraryOrganizationModel()
         model.replaceItems([LibraryItem(entry: first), LibraryItem(entry: second)])
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.title), ["Newer", "Older"])
         let same = [item(3, title: "Same"), item(1, title: "Same"), item(2, title: "Same")]
         model.replaceItems(same)
+        await model.waitForUpdates()
         let order = model.visible.map(\.id)
         model.replaceItems(Array(same.reversed()))
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.id), order)
     }
 
@@ -100,34 +113,44 @@ final class LibraryOrganizationTests: XCTestCase {
     func testDiacriticCaseWhitespaceSearchAndClear() async throws {
         let model = try makeModel()
         model.query = "  CAFÉ \n"
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 1_250)
         let ids = model.visible.map(\.id)
         model.query = "cafe"
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.id), ids)
         model.query = "not in the saved titles"
+        await model.waitForUpdates()
         XCTAssertTrue(model.visible.isEmpty)
         XCTAssertEqual(model.emptyState.title, "No saved titles match")
         model.query = ""
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 5_000)
     }
 
     @MainActor
     func testEmptyStatesAndResetFiltersPreserveSort() async throws {
         let model = LibraryOrganizationModel()
+        await model.waitForUpdates()
         XCTAssertEqual(model.emptyState.title, "Your library is empty")
         model.replaceItems([item(1, title: "Only title", status: "none")])
         model.options.status = .watchlist
+        await model.waitForUpdates()
         XCTAssertEqual(model.emptyState.title, "Your watchlist is empty")
         model.options.status = .watching
+        await model.waitForUpdates()
         XCTAssertEqual(model.emptyState.title, "No watching series")
         model.options.status = .watched
+        await model.waitForUpdates()
         XCTAssertEqual(model.emptyState.title, "No watched titles")
         model.options.status = .all
         model.options.favoritesOnly = true
+        await model.waitForUpdates()
         XCTAssertEqual(model.emptyState.title, "No favorites yet")
         model.options.sort = .rating
         model.query = "missing"
         model.resetFilters()
+        await model.waitForUpdates()
         XCTAssertFalse(model.hasFilters)
         XCTAssertEqual(model.options.sort, .rating)
         XCTAssertEqual(model.visible.count, 1)
@@ -143,9 +166,11 @@ final class LibraryOrganizationTests: XCTestCase {
         let store = LibraryStore(container: container)
         let model = LibraryOrganizationModel()
         model.replaceEntries(store.entries, revision: store.revision)
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.first?.rating.value?.halfStarUnits, 9)
         let revision = store.revision
         model.options.sort = .rating; model.query = "resume"; model.options.favoritesOnly = true
+        await model.waitForUpdates()
         XCTAssertTrue(model.visible.isEmpty)
         XCTAssertNil(record.ratingHalfStarUnits)
         XCTAssertEqual(record.rating, 4.5)
@@ -164,16 +189,20 @@ final class LibraryOrganizationTests: XCTestCase {
         let model = LibraryOrganizationModel()
         model.replaceEntries(store.entries, revision: store.revision)
         model.options.status = .watchlist
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 1)
         try store.setStatus(.watched, media: media)
         model.replaceEntries(store.entries, revision: store.revision)
+        await model.waitForUpdates()
         XCTAssertTrue(model.visible.isEmpty)
         model.options.status = .all; model.options.favoritesOnly = true
         try store.setFavorite(true, for: SearchItem(media).id)
         model.replaceEntries(store.entries, revision: store.revision)
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.count, 1)
         try store.setFavorite(false, for: SearchItem(media).id)
         model.replaceEntries(store.entries, revision: store.revision)
+        await model.waitForUpdates()
         XCTAssertTrue(model.visible.isEmpty)
     }
 
@@ -201,12 +230,16 @@ final class LibraryOrganizationTests: XCTestCase {
     func testEqualRatingsAndYearsRemainStableAcrossReorderedSource() async throws {
         let model = try makeModel()
         model.options.sort = .rating
+        await model.waitForUpdates()
         let ratingOrder = model.visible.map(\.id)
         model.replaceItems(Array(try data().reversed()))
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.id), ratingOrder)
         model.options.sort = .year
+        await model.waitForUpdates()
         let yearOrder = model.visible.map(\.id)
         model.replaceItems(try data())
+        await model.waitForUpdates()
         XCTAssertEqual(model.visible.map(\.id), yearOrder)
     }
 

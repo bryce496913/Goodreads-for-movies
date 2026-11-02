@@ -50,17 +50,18 @@ extension LibraryStore {
         guard MetadataPolicy.isTMDB(id), let fetched = media.metadataRetrievedAt,
               MetadataPolicy.isUsable(fetched, at: metadataClock()) else { return }
         let item = SearchItem(media), data = try JSONEncoder().encode(media)
+        let kind = id.kind.rawValue, value = id.value
         try writeTransaction { context in
             let state = try uniqueMetadataState(id, scope: "title", in: context)
             state.lastSuccessfulFetch = fetched; state.lastAttempt = metadataClock(); state.lastFailure = nil; state.retryAfter = nil
-            for row in try context.fetch(FetchDescriptor<StoredLibraryEntry>()) where row.mediaID == id {
+            for row in try context.fetch(FetchDescriptor<StoredLibraryEntry>(predicate: #Predicate { $0.mediaKind == kind && $0.mediaValue == value })) {
                 row.savedTitle = item.title; row.savedYear = item.year; row.savedPosterReference = item.posterReference
                 row.savedPosterURL = posterURL?.absoluteString; row.snapshotData = data
             }
-            for row in try context.fetch(FetchDescriptor<StoredPersonalReview>()) where row.mediaID == id {
+            for row in try context.fetch(FetchDescriptor<StoredPersonalReview>(predicate: #Predicate { $0.mediaKind == kind && $0.mediaValue == value })) {
                 row.savedTitle = item.title; row.snapshotData = data
             }
-            for row in try context.fetch(FetchDescriptor<StoredViewingEvent>()) where row.mediaID == id {
+            for row in try context.fetch(FetchDescriptor<StoredViewingEvent>(predicate: #Predicate { $0.mediaKind == kind && $0.mediaValue == value })) {
                 row.savedTitle = item.title; row.snapshotData = data
             }
         }
@@ -73,7 +74,12 @@ extension LibraryStore {
         }
     }
     private func uniqueMetadataState(_ id: MediaID, scope: String, in context: ModelContext) throws -> StoredMetadataState {
-        let matches = try context.fetch(FetchDescriptor<StoredMetadataState>()).filter { $0.mediaID == id && $0.scope == scope }
+        let kind = id.kind.rawValue, value = id.value
+        var descriptor = FetchDescriptor<StoredMetadataState>(predicate: #Predicate {
+            $0.mediaKind == kind && $0.mediaValue == value && $0.scope == scope
+        })
+        descriptor.fetchLimit = 2
+        let matches = try context.fetch(descriptor)
         guard matches.count < 2 else { throw LibraryStoreError.duplicateRecords }
         if let row = matches.first { return row }
         let row = StoredMetadataState(id: id, scope: scope); context.insert(row); return row

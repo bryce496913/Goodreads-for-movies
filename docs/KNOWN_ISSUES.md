@@ -31,3 +31,5 @@ Pass 015 adds mocked authentication/HTTP/retry hardening, but authenticated live
 | P2 obsolete UI navigation test: it scrolled a ScrollView after Profile changed to List and expected removed placeholder Settings text. | Scrolls the actual app content and checks the real credential status screen. |
 
 No user database was reset, migrated in this Linux runtime, seeded, or deleted. Existing schema declarations are unchanged in this pass. No GitHub Xcode CI, archive upload or PR merge was performed.
+
+- Pass 016 removes redundant success-path reloads and repeated read scans, but integrity audit, metadata purge and index rebuilding remain main-actor costs. All large-library benchmarks and new concurrency regressions await native execution; see [performance report](PERFORMANCE_CONCURRENCY.md). No measured speedup is claimed.
