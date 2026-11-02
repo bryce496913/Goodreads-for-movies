@@ -51,6 +51,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Private written reviews and a local viewing diary with optional watched dates, repeat watches, offline archives, explicit associations and independent deletion. See [review lifecycle, diary semantics and migration](docs/reviews-viewing-history.md).
 - TV season/episode tracking with direct watched toggles, saved offline lists, confirmed season actions, and conservative aired-episode progress. See [TV progress rules and validation](docs/tv-episode-progress.md).
 - Organized Library with local media/status/favorite filters, case/diacritic-insensitive title search, stable sorts, quick favorite actions and distinct empty states. See [Library rules, screenshots and performance](docs/library-organization.md).
+- Manual personal-only JSON export and confirmed non-destructive restore from Settings; see [format, conflict rules, privacy and validation](docs/DATA_BACKUP_AND_RESTORE.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
 ## Architecture and decisions
@@ -86,7 +87,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (304 methods total, all require local macOS/Xcode execution):
+Included tests (338 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -102,6 +103,7 @@ Included tests (304 methods total, all require local macOS/Xcode execution):
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
+- 34 backup/restore and validation methods, all unrun; see [backup and restore](docs/DATA_BACKUP_AND_RESTORE.md).
 - 19 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
 - 28 performance/concurrency methods (13 regressions and 15 benchmarks), all unrun; see [findings, isolation and reproducible harness](docs/PERFORMANCE_CONCURRENCY.md).
 - 15 HTTP/authentication/retry hardening tests; see [TMDB networking, credential exposure and live-check status](docs/TMDB_NETWORKING.md).

@@ -17,6 +17,13 @@ extension LibraryStore {
         return best
     }
 
+    /// Imported personal-only records must route to local actions even for legacy/unknown namespaces.
+    func offlineMedia(for id: MediaID) -> MediaSearchResult? {
+        if let media = cachedMedia(for: id) { return media }
+        guard entry(for: id) != nil || !events(for: id).isEmpty || !reviews(for: id).isEmpty || !seasons(for: id).isEmpty else { return nil }
+        return MetadataPolicy.placeholderMedia(id)
+    }
+
     /// A late response or an edit from an older screen cannot downgrade a newer successful snapshot.
     func preferredMetadata(_ incoming: MediaSearchResult) -> MediaSearchResult {
         let id = SearchItem(incoming).id

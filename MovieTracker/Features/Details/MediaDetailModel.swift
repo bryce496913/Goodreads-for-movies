@@ -22,9 +22,11 @@ final class MediaDetailModel {
     private(set) var cachedPosterURL: URL?
     var canRefresh: Bool { service != nil && MetadataRuntimeGate.blockingReason == nil }
     var availability: MetadataAvailability {
-        .resolve(media: storedSnapshot?.media, lastRetrieved: lastRetrieved ?? storedSnapshot?.media.metadataRetrievedAt, at: clock())
+        .resolve(media: hasSavedMetadata ? storedSnapshot?.media : nil, lastRetrieved: lastRetrieved ?? storedSnapshot?.media.metadataRetrievedAt, at: clock())
     }
-    var hasSavedMetadata: Bool { storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) } == true }
+    var hasSavedMetadata: Bool {
+        storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && SearchItem($0.media).title != MetadataPolicy.placeholder(destination.id) } == true
+    }
     private(set) var hasCurrentMetadata = false
     private(set) var isLoading = false
     private(set) var isLoadingExtras = false
