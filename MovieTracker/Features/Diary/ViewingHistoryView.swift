@@ -29,7 +29,7 @@ struct ViewingHistoryView: View {
                                 Text(id.kind == .movie ? "Movie" : "TV Show").font(.subheadline)
                                 Text(event.dateLabel).font(.subheadline)
                                 PersonalRatingSummary(entry: library.entry(for: id))
-                                if library.personalReviews.contains(where: { $0.viewingEventID == event.id }) {
+                                if library.hasReview(for: event.id) {
                                     Label("Review for this viewing", systemImage: "text.bubble")
                                 } else if !library.reviews(for: id).isEmpty || library.entry(for: id)?.review?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
                                     Label("Title review available", systemImage: "text.bubble")

@@ -16,7 +16,7 @@ enum LibrarySort: String, CaseIterable, Identifiable, Sendable {
     case recentlyAdded = "Recently Added", title = "Title A–Z", year = "Release Year", rating = "Personal Rating"
     var id: Self { self }
 }
-struct LibraryOptions: Equatable {
+struct LibraryOptions: Equatable, Sendable {
     var media: LibraryMediaFilter = .all
     var status: LibraryStatusFilter = .all
     var favoritesOnly = false
@@ -58,21 +58,51 @@ struct LibraryItem: Identifiable, Equatable, Sendable {
     }
     @MainActor
     init(entry: StoredLibraryEntry) {
-        id = entry.id; mediaID = entry.mediaID
-        let saved = entry.displayTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        title = saved.isEmpty ? "Saved title — metadata unavailable" : saved
-        normalizedTitle = LibraryText.normalize(title)
-        year = entry.savedYear.flatMap { $0 > 0 ? $0 : nil }
-        posterURL = entry.thumbnailURL
-        rawStatus = entry.status; isFavorite = entry.isFavorite; addedAt = entry.addedAt
-        do { rating = try entry.validatedRating().map { .rated($0) } ?? .unrated }
-        catch { rating = .invalid }
+        self = LibraryItemInput(entry: entry).item()
     }
     init(id: UUID, mediaID: MediaID?, title: String, year: Int?, rawStatus: String, isFavorite: Bool,
          addedAt: Date, rating: LibraryItemRating, posterURL: URL? = nil) {
         self.id = id; self.mediaID = mediaID; self.title = title; normalizedTitle = LibraryText.normalize(title)
         self.year = year; self.rawStatus = rawStatus; self.isFavorite = isFavorite
         self.addedAt = addedAt; self.rating = rating; self.posterURL = posterURL
+    }
+}
+
+/// Capture on the context actor; normalize text and validate ratings on the worker.
+struct LibraryItemInput: Sendable {
+    let id: UUID
+    let mediaID: MediaID?
+    let title: String?
+    let mediaData: Data?
+    let year: Int?
+    let posterURL: URL?
+    let status: String
+    let favorite: Bool
+    let addedAt: Date
+    let ratingUnits: Int?
+    let legacyRating: Double?
+
+    @MainActor init(entry: StoredLibraryEntry) {
+        id = entry.id; mediaID = entry.mediaID; title = entry.savedTitle; mediaData = entry.snapshotData
+        year = entry.savedYear; posterURL = entry.thumbnailURL; status = entry.status
+        favorite = entry.isFavorite; addedAt = entry.addedAt
+        ratingUnits = entry.ratingHalfStarUnits; legacyRating = entry.rating
+    }
+    func item() -> LibraryItem {
+        let decoded = title?.isEmpty == false ? nil : mediaData.flatMap { try? JSONDecoder().decode(MediaSearchResult.self, from: $0) }
+        let fallback = decoded.flatMap { SearchItem($0).id == mediaID ? SearchItem($0).title : nil }
+            ?? mediaID.map(MetadataPolicy.placeholder) ?? "Saved title — metadata unavailable"
+        let saved = title?.isEmpty == false ? title ?? fallback : fallback
+        let trimmed = saved.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rating: LibraryItemRating
+        do {
+            let value = try ratingUnits.map { try PersonalRating(halfStarUnits: $0) }
+                ?? legacyRating.flatMap { try PersonalRating.fromLegacyStars($0) }
+            rating = value.map { .rated($0) } ?? .unrated
+        } catch { rating = .invalid }
+        return LibraryItem(id: id, mediaID: mediaID, title: trimmed.isEmpty ? "Saved title — metadata unavailable" : trimmed,
+            year: year.flatMap { $0 > 0 ? $0 : nil }, rawStatus: status, isFavorite: favorite,
+            addedAt: addedAt, rating: rating, posterURL: posterURL)
     }
 }
 
@@ -91,12 +121,11 @@ struct LibraryEmptyState: Equatable {
 @MainActor
 @Observable
 final class LibraryOrganizationModel {
-    var query = "" { didSet { if LibraryText.normalize(query) != LibraryText.normalize(oldValue) { filter() } } }
+    var query = "" { didSet { if LibraryText.normalize(query) != LibraryText.normalize(oldValue) { schedule() } } }
     var options = LibraryOptions() {
         didSet {
             guard options != oldValue else { return }
-            if options.sort != oldValue.sort { sortSource() }
-            filter()
+            schedule()
         }
     }
     private(set) var sourceReady = false
@@ -104,6 +133,12 @@ final class LibraryOrganizationModel {
     private(set) var totalCount = 0
     @ObservationIgnored private var source: [LibraryItem] = []
     @ObservationIgnored private var sorted: [LibraryItem] = []
+    @ObservationIgnored private var sortedBy: LibrarySort?
+    @ObservationIgnored private var pendingInput: [LibraryItemInput]?
+    @ObservationIgnored private var generation = UUID()
+    @ObservationIgnored private var work: Task<Void, Never>?
+    @ObservationIgnored private var worker: Task<LibraryProjection.Result, Error>?
+    private(set) var isUpdating = false
     @ObservationIgnored private var revision: Int?
 
     var hasFilters: Bool {
@@ -131,48 +166,56 @@ final class LibraryOrganizationModel {
     func replaceEntries(_ entries: [StoredLibraryEntry], revision: Int) {
         guard self.revision != revision else { return }
         self.revision = revision
-        replaceItems(entries.map { LibraryItem(entry: $0) })
+        pendingInput = entries.map { LibraryItemInput(entry: $0) }
+        sortedBy = nil
+        totalCount = entries.count
+        schedule()
     }
     /// Pure snapshots also let tests exercise thousands of records without network or repeated SQL writes.
     func replaceItems(_ items: [LibraryItem]) {
-        source = items; totalCount = items.count; sourceReady = true
-        sortSource(); filter()
+        pendingInput = nil; source = items; totalCount = items.count; sortedBy = nil
+        schedule()
     }
     func resetFilters() {
         query = ""
         options = LibraryOptions(sort: options.sort)
     }
-    private func filter() {
-        let needle = LibraryText.normalize(query)
-        visible = sorted.filter { item in
-            (options.media == .all || (options.media == .movies && item.mediaID?.kind == .movie)
-                || (options.media == .tvShows && item.mediaID?.kind == .tvShow))
-                && (options.status.storedValue == nil || item.rawStatus == options.status.storedValue)
-                && (!options.favoritesOnly || item.isFavorite)
-                && (needle.isEmpty || item.normalizedTitle.contains(needle))
+    /// Await the newest scheduled work, including replacements that arrive while suspended.
+    func waitForUpdates() async {
+        while let current = work {
+            let token = generation
+            await current.value
+            if token == generation { return }
         }
     }
-    private func sortSource() {
-        sorted = source.sorted { lhs, rhs in
-            switch options.sort {
-            case .recentlyAdded:
-                if lhs.addedAt != rhs.addedAt { return lhs.addedAt > rhs.addedAt }
-            case .title: break
-            case .year:
-                if lhs.year != rhs.year {
-                    if let left = lhs.year, let right = rhs.year { return left > right }
-                    return lhs.year != nil
-                }
-            case .rating:
-                if lhs.rating.rank != rhs.rating.rank { return lhs.rating.rank < rhs.rating.rank }
-                if lhs.rating.value?.halfStarUnits != rhs.rating.value?.halfStarUnits {
-                    return (lhs.rating.value?.halfStarUnits ?? 0) > (rhs.rating.value?.halfStarUnits ?? 0)
-                }
-            }
-            if lhs.normalizedTitle != rhs.normalizedTitle { return lhs.normalizedTitle < rhs.normalizedTitle }
-            if lhs.mediaID?.kind.rawValue != rhs.mediaID?.kind.rawValue { return (lhs.mediaID?.kind.rawValue ?? "~") < (rhs.mediaID?.kind.rawValue ?? "~") }
-            if lhs.mediaID?.value != rhs.mediaID?.value { return (lhs.mediaID?.value ?? "~") < (rhs.mediaID?.value ?? "~") }
-            return lhs.id.uuidString < rhs.id.uuidString
+    func cancelUpdates() {
+        worker?.cancel(); work?.cancel(); generation = UUID()
+        worker = nil; work = nil; isUpdating = false; revision = nil
+    }
+    private func schedule() {
+        worker?.cancel(); work?.cancel()
+        generation = UUID(); let token = generation
+        let input = pendingInput, source = source, ordered = sortedBy == options.sort ? sorted : nil
+        let query = query, options = options
+        isUpdating = true
+        let worker = Task.detached(priority: .userInitiated) {
+            let values: [LibraryItem]
+            if let input {
+                values = try input.map { try Task.checkCancellation(); return $0.item() }
+            } else { values = source }
+            return try LibraryProjection.project(source: values, sorted: ordered, query: query, options: options)
+        }
+        self.worker = worker
+        work = Task { [weak self] in
+            do {
+                let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
+                try Task.checkCancellation()
+                guard let self, self.generation == token else { return }
+                self.source = result.source; self.sorted = result.sorted; self.visible = result.visible
+                self.sortedBy = options.sort; self.pendingInput = nil; self.sourceReady = true
+            } catch { /* Replacement/cancellation retains the previous consistent projection. */ }
+            guard let self, self.generation == token else { return }
+            self.isUpdating = false; self.worker = nil; self.work = nil
         }
     }
 }

@@ -38,10 +38,13 @@ enum DashboardAggregator {
             titles[id] ?? DashboardTitle(id: id, title: fallback, year: nil, posterURL: nil, rating: nil)
         }
         var seenEvents = Set<UUID>()
-        let diary = input.viewings.filter { seenEvents.insert($0.id).inserted }.compactMap { event -> DashboardDiaryItem? in
+        let diary = try input.viewings.filter {
+            try Task.checkCancellation(); return seenEvents.insert($0.id).inserted
+        }.compactMap { event -> DashboardDiaryItem? in
             guard let id = event.mediaID else { return nil }
             return DashboardDiaryItem(id: event.id, title: title(id, fallback: event.title), watchedDate: event.watchedDate, recordedAt: event.recordedAt)
         }.sorted { lhs, rhs in
+            try Task.checkCancellation()
             if lhs.sortDate != rhs.sortDate { return lhs.sortDate > rhs.sortDate }
             if lhs.recordedAt != rhs.recordedAt { return lhs.recordedAt > rhs.recordedAt }
             return lhs.id.uuidString < rhs.id.uuidString
@@ -51,7 +54,10 @@ enum DashboardAggregator {
             watchedMovies.insert(event.title.id)
         }
         var seenReviewIDs = Set<UUID>()
-        let reviews = input.reviews.filter { seenReviewIDs.insert($0.id).inserted && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let reviews = try input.reviews.filter {
+            try Task.checkCancellation()
+            return seenReviewIDs.insert($0.id).inserted && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
         var progress: [EpisodeID: DashboardInput.Progress] = [:]
         for value in input.progress where value.episodeID.seriesID.kind == .tvShow {
             try Task.checkCancellation()
@@ -66,6 +72,7 @@ enum DashboardAggregator {
         let seriesIDs = Set(watched.map { $0.episodeID.seriesID }.filter { $0.kind == .tvShow })
         var cached: [MediaID: [Int: DashboardInput.Season]] = [:]
         for row in input.seasons {
+            try Task.checkCancellation()
             if let old = cached[row.seriesID]?[row.number] {
                 if (old.refreshedAt ?? .distantPast) > (row.refreshedAt ?? .distantPast)
                     || (old.refreshedAt == row.refreshedAt && old.id.uuidString < row.id.uuidString) { continue }
@@ -81,6 +88,7 @@ enum DashboardAggregator {
             var episodes: [EpisodeID: TVEpisode] = [:]
             var complete = !regular.isEmpty && regular.compactMap(\.expectedRegularSeasons).max() == regular.count
             for season in regular {
+                try Task.checkCancellation()
                 let values = decode([TVEpisode].self, season.episodesData) ?? []
                 let listed = Set(decode([EpisodeID].self, season.listedIDsData) ?? [])
                 complete = complete && season.listed && season.loaded && season.expectedEpisodes == values.count
@@ -90,6 +98,7 @@ enum DashboardAggregator {
                 for episode in valid { episodes[episode.id] = episode }
             }
             for row in progressBySeries[id, default: []] where row.season > 0 {
+                try Task.checkCancellation()
                 if let episode = decode(TVEpisode.self, row.episodeData), episodes[row.episodeID] == nil {
                     complete = false; episodes[row.episodeID] = episode
                 }
@@ -130,7 +139,10 @@ enum DashboardAggregator {
             guard let rating = item.rating else { return nil }
             return DashboardActivity(id: "rating:\(mediaKey(id))", title: item, label: "Personal rating updated: \(rating.label)", date: date, watchedDate: nil)
         }
-        activity.sort { $0.date != $1.date ? $0.date > $1.date : $0.id < $1.id }
+        try activity.sort {
+            try Task.checkCancellation()
+            return $0.date != $1.date ? $0.date > $1.date : $0.id < $1.id
+        }
         let watchlist = canonical.filter { $0.value.status == "watchlist" }.sorted {
             $0.value.addedAt != $1.value.addedAt ? $0.value.addedAt > $1.value.addedAt : mediaKey($0.key) < mediaKey($1.key)
         }.compactMap { titles[$0.key] }

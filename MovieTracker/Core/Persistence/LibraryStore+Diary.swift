@@ -3,11 +3,11 @@ import SwiftData
 
 extension LibraryStore {
     func reviews(for id: MediaID) -> [StoredPersonalReview] {
-        personalReviews.filter { $0.mediaKind == id.kind.rawValue && $0.mediaValue == id.value }
+        _ = revision; return reviewsByMedia[id] ?? []
     }
 
     func events(for id: MediaID) -> [StoredViewingEvent] {
-        viewingEvents.filter { $0.mediaKind == id.kind.rawValue && $0.mediaValue == id.value }
+        _ = revision; return eventsByMedia[id] ?? []
     }
 
     func saveReview(id: UUID, media: MediaSearchResult, text: String, eventID: UUID? = nil,

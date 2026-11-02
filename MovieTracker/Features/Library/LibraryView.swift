@@ -50,6 +50,7 @@ struct LibraryView: View {
                     .accessibilityElement(children: .contain)
                     .accessibilityIdentifier(organization.totalCount == 0 ? "library.empty" : "library.noMatches")
                 }
+                if organization.sourceReady && organization.isUpdating { ProgressView("Updating saved titles…") }
                 ForEach(organization.visible) { item in
                     if let id = item.mediaID {
                         NavigationLink(value: MediaDestination(id: id, title: item.title, year: item.year)) { LibraryRow(item: item) }
@@ -93,7 +94,7 @@ struct LibraryView: View {
         .searchable(text: $organization.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search saved titles")
         .autocorrectionDisabled()
         .scrollDismissesKeyboard(.interactively)
-        .onChange(of: library.revision, initial: true) { _, revision in organization.replaceEntries(library.entries, revision: revision) }
+        .onChange(of: library.libraryRevision, initial: true) { _, revision in organization.replaceEntries(library.entries, revision: revision) }
         .modifier(SavedMediaNavigation(detailModel: detailModel))
         .alert("Favorite could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }

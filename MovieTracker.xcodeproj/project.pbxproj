@@ -279,6 +279,10 @@
 			isa = PBXBuildFile;
 			fileRef = 90CC0F67109E50256BD53E47;
 		};
+		6986C3A6B121DA6B6A2C538E = {
+			isa = PBXBuildFile;
+			fileRef = F454912C80808329E03C1198;
+		};
 		60C214BDE5FF0A6099AC769D = {
 			isa = PBXBuildFile;
 			fileRef = 67AA1A37E36AC7FF97E7D8E9;
@@ -367,6 +371,14 @@
 			isa = PBXBuildFile;
 			fileRef = FE6E088F851898863FD05BF1;
 		};
+		4AC7DC49DE81A34AF8983FA9 = {
+			isa = PBXBuildFile;
+			fileRef = 149C168B7E30739290EB0A36;
+		};
+		7BC62611A52B30ED70727C93 = {
+			isa = PBXBuildFile;
+			fileRef = C396B60D725F47EB3FA2BF1F;
+		};
 		16E2C122E377BDCBAC557F05 = {
 			isa = PBXBuildFile;
 			fileRef = 1BA18E2BC3DAE944A2E61032;
@@ -402,6 +414,10 @@
 		CEFBEF59132121E7D833C3B1 = {
 			isa = PBXBuildFile;
 			fileRef = C4386E0EA40DF302178F50D0;
+		};
+		ED7C6F2517C4550E15D867D8 = {
+			isa = PBXBuildFile;
+			fileRef = C3AF170ED521659262214CCD;
 		};
 		277885EEBA314EFBB048231D = {
 			isa = PBXBuildFile;
@@ -895,6 +911,12 @@
 			path = MovieTracker/Features/Library/LibraryOrganizationUITestData.swift;
 			sourceTree = "<group>";
 		};
+		F454912C80808329E03C1198 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Library/LibraryProjection.swift;
+			sourceTree = "<group>";
+		};
 		67AA1A37E36AC7FF97E7D8E9 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1027,6 +1049,18 @@
 			path = MovieTrackerTests/DomainModelTests.swift;
 			sourceTree = "<group>";
 		};
+		149C168B7E30739290EB0A36 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/LargeLibraryBenchmarks.swift;
+			sourceTree = "<group>";
+		};
+		C396B60D725F47EB3FA2BF1F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/LargeLibraryFixtures.swift;
+			sourceTree = "<group>";
+		};
 		1BA18E2BC3DAE944A2E61032 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1079,6 +1113,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/NetworkingHardeningTests.swift;
+			sourceTree = "<group>";
+		};
+		C3AF170ED521659262214CCD = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/PerformanceConcurrencyTests.swift;
 			sourceTree = "<group>";
 		};
 		C237FF4E8F31348C51F4B8E4 = {
@@ -1418,6 +1458,7 @@
 			children = (
 				3BFEDFA3B076C0A84DAF9F97,
 				90CC0F67109E50256BD53E47,
+				F454912C80808329E03C1198,
 				67AA1A37E36AC7FF97E7D8E9,
 				B67CFE6DB8950A212F9DE4E6,
 			);
@@ -1501,6 +1542,8 @@
 				67C92802A337B56B1068A32A,
 				8F5260C0DE69F579396C6EF9,
 				FE6E088F851898863FD05BF1,
+				149C168B7E30739290EB0A36,
+				C396B60D725F47EB3FA2BF1F,
 				1BA18E2BC3DAE944A2E61032,
 				4D0805D769B811DC5B6C33C6,
 				4E20A76B7C7EF088D1E99D85,
@@ -1510,6 +1553,7 @@
 				B81324B268526137D62C7010,
 				B5EDEE67D13F2D163FA02984,
 				C4386E0EA40DF302178F50D0,
+				C3AF170ED521659262214CCD,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
 				09530DA063AD6D28353BDC84,
@@ -1759,6 +1803,7 @@
 				D580E63C8F081C23DB1B11AF,
 				1083C646F9F84CF9391BEAD0,
 				8DD3CC53FC53E93670A6536E,
+				6986C3A6B121DA6B6A2C538E,
 				60C214BDE5FF0A6099AC769D,
 				BEEB6356C33E9E2723EC9313,
 				3C15921072A9890D2879C02B,
@@ -1786,6 +1831,8 @@
 				970FF44C69872C1D47679B9C,
 				014155E1E914C3835674D5AD,
 				4088C92A526ECE2C585B245C,
+				4AC7DC49DE81A34AF8983FA9,
+				7BC62611A52B30ED70727C93,
 				16E2C122E377BDCBAC557F05,
 				BBD8BCE6CAC6B93D27B9AD66,
 				9A427486F88A2575B38F4CB4,
@@ -1795,6 +1842,7 @@
 				4EE69157CD9BD7BF9C1B0FA4,
 				739FCE6E60221D6A773C58E0,
 				CEFBEF59132121E7D833C3B1,
+				ED7C6F2517C4550E15D867D8,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
 				FF9338EDCB5DA8CEBFC645FC,
