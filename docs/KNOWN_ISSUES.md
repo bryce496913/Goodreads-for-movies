@@ -35,3 +35,5 @@ No user database was reset, migrated in this Linux runtime, seeded, or deleted. 
 - Pass 016 removes redundant success-path reloads and repeated read scans, but integrity audit, metadata purge and index rebuilding remain main-actor costs. All large-library benchmarks and new concurrency regressions await native execution; see [performance report](PERFORMANCE_CONCURRENCY.md). No measured speedup is claimed.
 
 - Pass 017 supports saved text and personal edits without mandatory provider calls, but artwork remains process-memory-only under the project policy. Offline tests and disk-container reopen regressions are authored but unrun; see [offline matrix and remaining limits](OFFLINE_RELIABILITY.md).
+
+- Pass 018 adds manual personal-only JSON export and Keep Existing Data merge. Native document pickers, disk save-failure regressions and maximum-size responsiveness are unverified. Backups are plaintext and not automatic; invalid existing ratings/integrity errors block preparation. See [backup and restore](DATA_BACKUP_AND_RESTORE.md).

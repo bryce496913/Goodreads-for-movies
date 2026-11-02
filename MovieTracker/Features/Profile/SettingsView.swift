@@ -36,6 +36,10 @@ struct SettingsView: View {
                     Link("TMDB API account and authorization", destination: url)
                 }
             }
+            Section("Your Personal Data") {
+                NavigationLink("Export or Restore Personal Data") { DataBackupView() }
+                    .accessibilityIdentifier("settings.backup")
+            }
             Section {
                 NavigationLink("About & Credits") { CreditsView() }
             }

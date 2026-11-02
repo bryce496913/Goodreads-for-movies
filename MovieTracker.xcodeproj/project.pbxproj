@@ -15,6 +15,18 @@
 			isa = PBXBuildFile;
 			fileRef = F84547F3BA1994F8D6C6DC1B;
 		};
+		19D87398271D490BB1FFF669 = {
+			isa = PBXBuildFile;
+			fileRef = FA6FC20E158B5DF4F4EE4F45;
+		};
+		6FA153F172858C062C61C673 = {
+			isa = PBXBuildFile;
+			fileRef = 91C5FB9FFCA55908443EEDDF;
+		};
+		5417519388543A6909AD0E2C = {
+			isa = PBXBuildFile;
+			fileRef = 99D736A9C67027B3D7C0993F;
+		};
 		9F55FA3A1C344FC90E3044F6 = {
 			isa = PBXBuildFile;
 			fileRef = 8198F1A2BB31726F0AA04B37;
@@ -131,6 +143,10 @@
 			isa = PBXBuildFile;
 			fileRef = 3B7295E7958E9122FDFD38A5;
 		};
+		C59D7121AA7D98057ECF0A62 = {
+			isa = PBXBuildFile;
+			fileRef = 8211DB803450DEF815748086;
+		};
 		14DE5BB9DE6BCE1D951EFE9A = {
 			isa = PBXBuildFile;
 			fileRef = CF34283A9BA78A010318CCB3;
@@ -210,6 +226,14 @@
 		C1A686EC476EDE99E4B7ADBD = {
 			isa = PBXBuildFile;
 			fileRef = 2FDF6C6B8053394B4C9C39FA;
+		};
+		425DF5B2B64A83C947A655C1 = {
+			isa = PBXBuildFile;
+			fileRef = 75A230D2BEA83458F2CBE762;
+		};
+		850578158B206C9D56E09F6D = {
+			isa = PBXBuildFile;
+			fileRef = 85AD51E221571CC9DCBB4BB5;
 		};
 		C09717A0E9BA7B9EA04B5F07 = {
 			isa = PBXBuildFile;
@@ -362,6 +386,18 @@
 		B14A8354BF18ECEBADE93920 = {
 			isa = PBXBuildFile;
 			fileRef = A688816C9E4B5F701372B798;
+		};
+		1DBF3772328D9CFB7219D937 = {
+			isa = PBXBuildFile;
+			fileRef = 2095A3AFAA5444365BC69C62;
+		};
+		7421B1203D0F845148290444 = {
+			isa = PBXBuildFile;
+			fileRef = E5E9323C643DB202B1F790FE;
+		};
+		F63F49002CB0E67810B2929C = {
+			isa = PBXBuildFile;
+			fileRef = F6E6D37213ED86E8BB5EDE37;
 		};
 		CBFD94AB6BBCB94A7B6FC7B6 = {
 			isa = PBXBuildFile;
@@ -533,6 +569,24 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/App/MovieTrackerApp.swift;
+			sourceTree = "<group>";
+		};
+		FA6FC20E158B5DF4F4EE4F45 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Backup/BackupCodec.swift;
+			sourceTree = "<group>";
+		};
+		91C5FB9FFCA55908443EEDDF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Backup/BackupMergePlan.swift;
+			sourceTree = "<group>";
+		};
+		99D736A9C67027B3D7C0993F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Backup/PersonalBackup.swift;
 			sourceTree = "<group>";
 		};
 		8198F1A2BB31726F0AA04B37 = {
@@ -727,6 +781,12 @@
 			path = MovieTracker/Core/Persistence/Schema/LibrarySchemaV2.swift;
 			sourceTree = "<group>";
 		};
+		8211DB803450DEF815748086 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "MovieTracker/Core/Persistence/LibraryStore+Backup.swift";
+			sourceTree = "<group>";
+		};
 		CF34283A9BA78A010318CCB3 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -827,6 +887,18 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Statistics/DashboardSnapshot.swift;
+			sourceTree = "<group>";
+		};
+		75A230D2BEA83458F2CBE762 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Backup/DataBackupModel.swift;
+			sourceTree = "<group>";
+		};
+		85AD51E221571CC9DCBB4BB5 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Backup/DataBackupView.swift;
 			sourceTree = "<group>";
 		};
 		3F7E7071547C363D8BAB2496 = {
@@ -1055,6 +1127,24 @@
 			isa = PBXFileReference;
 			lastKnownFileType = text.xml;
 			path = MovieTracker/Resources/PrivacyInfo.xcprivacy;
+			sourceTree = "<group>";
+		};
+		2095A3AFAA5444365BC69C62 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/BackupFixtures.swift;
+			sourceTree = "<group>";
+		};
+		E5E9323C643DB202B1F790FE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/BackupRestoreTests.swift;
+			sourceTree = "<group>";
+		};
+		F6E6D37213ED86E8BB5EDE37 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/BackupValidationTests.swift;
 			sourceTree = "<group>";
 		};
 		B07A2ED1EF22E3815AE8E542 = {
@@ -1348,6 +1438,16 @@
 			name = App;
 			sourceTree = "<group>";
 		};
+		CCE0FD66997CDC650B209FB8 = {
+			isa = PBXGroup;
+			children = (
+				FA6FC20E158B5DF4F4EE4F45,
+				91C5FB9FFCA55908443EEDDF,
+				99D736A9C67027B3D7C0993F,
+			);
+			name = Backup;
+			sourceTree = "<group>";
+		};
 		1BE0A2BB23963F95BFAF1753 = {
 			isa = PBXGroup;
 			children = (
@@ -1419,6 +1519,7 @@
 			isa = PBXGroup;
 			children = (
 				7F8C791FA6FFD5614FE3D286,
+				8211DB803450DEF815748086,
 				CF34283A9BA78A010318CCB3,
 				76398C8BB7A7C3A1A4027E51,
 				9201AE973F8AA060934F342B,
@@ -1450,6 +1551,7 @@
 		AF01C864361E44C5FA944BBA = {
 			isa = PBXGroup;
 			children = (
+				CCE0FD66997CDC650B209FB8,
 				1BE0A2BB23963F95BFAF1753,
 				17009E4B38938A29BDEA3CC7,
 				8CBF84A6563D8DA3006E2E51,
@@ -1458,6 +1560,15 @@
 				F3D23D09BD07B4049BA46DBC,
 			);
 			name = Core;
+			sourceTree = "<group>";
+		};
+		8AB109B0089C9F484E1B226E = {
+			isa = PBXGroup;
+			children = (
+				75A230D2BEA83458F2CBE762,
+				85AD51E221571CC9DCBB4BB5,
+			);
+			name = Backup;
 			sourceTree = "<group>";
 		};
 		DF67FB600777F187588C0FD8 = {
@@ -1555,6 +1666,7 @@
 		F333DCD82CCEBB8ABB2E654B = {
 			isa = PBXGroup;
 			children = (
+				8AB109B0089C9F484E1B226E,
 				DF67FB600777F187588C0FD8,
 				B5A04877AF369CB350B5325F,
 				43E57F04E05BFA5F698308C3,
@@ -1590,6 +1702,9 @@
 		F6D116F0CCEECD0D9255B23D = {
 			isa = PBXGroup;
 			children = (
+				2095A3AFAA5444365BC69C62,
+				E5E9323C643DB202B1F790FE,
+				F6E6D37213ED86E8BB5EDE37,
 				B07A2ED1EF22E3815AE8E542,
 				38EE8DCBC200AA77D0EBCD0C,
 				67C92802A337B56B1068A32A,
@@ -1792,6 +1907,9 @@
 			files = (
 				0B3004A6F686F691AA1B9D21,
 				9EAB236E57E9CD1101302F53,
+				19D87398271D490BB1FFF669,
+				6FA153F172858C062C61C673,
+				5417519388543A6909AD0E2C,
 				9F55FA3A1C344FC90E3044F6,
 				124452D4A5B10C8C718314BB,
 				B1279452866D0FC6E5887659,
@@ -1821,6 +1939,7 @@
 				0DC9F0BB3A4453491EF38251,
 				BB656F8EC2E06ADBE6A56929,
 				5A6E38530EDE1289DCC726DD,
+				C59D7121AA7D98057ECF0A62,
 				14DE5BB9DE6BCE1D951EFE9A,
 				CE99EC925A129FF27C3AE3E0,
 				B8D046F9DAAA507063A5CE9E,
@@ -1841,6 +1960,8 @@
 				D96CADF40D1161F0A1F70AFF,
 				2ADD13B8DC4770FC54071C71,
 				C1A686EC476EDE99E4B7ADBD,
+				425DF5B2B64A83C947A655C1,
+				850578158B206C9D56E09F6D,
 				C09717A0E9BA7B9EA04B5F07,
 				DEAEDF287E18018FD8AC04EA,
 				DE5A1F80F47CC69C187327A4,
@@ -1884,6 +2005,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1DBF3772328D9CFB7219D937,
+				7421B1203D0F845148290444,
+				F63F49002CB0E67810B2929C,
 				CBFD94AB6BBCB94A7B6FC7B6,
 				9C66DC5B7F284D452762FE74,
 				970FF44C69872C1D47679B9C,
