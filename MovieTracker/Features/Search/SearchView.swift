@@ -2,17 +2,13 @@ import SwiftUI
 
 struct SearchView: View {
     @Bindable var model: SearchModel
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
         List {
             Section {
-                Picker("Media type", selection: $model.filter) {
-                    ForEach(SearchFilter.allCases) { filter in
-                        Text(filter.rawValue).tag(filter)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("search.filters")
+                if textSize.isAccessibilitySize { mediaPicker.pickerStyle(.menu) }
+                else { mediaPicker.pickerStyle(.segmented) }
             }
             if model.usesTestData {
                 Text("UI test data").font(.caption).accessibilityIdentifier("search.testData")
@@ -71,6 +67,12 @@ struct SearchView: View {
         .autocorrectionDisabled()
         .scrollDismissesKeyboard(.interactively)
         .navigationDestination(for: MediaDestination.self) { MediaDetailView(model: model.detailModel(for: $0)) }
+    }
+
+    private var mediaPicker: some View {
+        Picker("Media type", selection: $model.filter) {
+            ForEach(SearchFilter.allCases) { filter in Text(filter.rawValue).tag(filter) }
+        }.accessibilityIdentifier("search.filters")
     }
 
     @ViewBuilder

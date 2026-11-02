@@ -1,0 +1,7 @@
+// Copy to Config/Local.xcconfig; never commit the local file.
+// Match any installed build whose data you must preserve. A new App ID has a different sandbox.
+APP_BUNDLE_IDENTIFIER = com.yourcompany.MovieTracker
+DEVELOPMENT_TEAM = YOUR_TEAM_ID
+// Increase for every upload; confirm the latest App Store Connect build first.
+CURRENT_PROJECT_VERSION = 12
+// Do not put provider tokens, certificates or passwords in xcconfig/Info.plist/build settings.

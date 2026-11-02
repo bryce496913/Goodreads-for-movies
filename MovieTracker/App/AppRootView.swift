@@ -31,7 +31,7 @@ struct AppRootView: View {
             }
                 .tabItem { Label("Library", systemImage: "books.vertical") }.tag(RootTab.library)
             NavigationStack {
-                ProfileView(dashboard: dashboard)
+                ProfileView(dashboard: dashboard, configurationChanged: { searchModel.replaceService(try? SearchLaunchConfiguration.makeService()) })
                     .modifier(SavedMediaNavigation(detailModel: { searchModel.detailModel(for: $0, savedMedia: $1) }))
             }
                 .tabItem { Label("Profile", systemImage: "person") }.tag(RootTab.profile)

@@ -76,13 +76,13 @@ final class NavigationTests: XCTestCase {
     private func openSettings(in app: XCUIApplication) {
         let settings = app.buttons["profile.settings"]
         // Scroll until the control is reachable, rather than assuming a particular screen height.
-        for _ in 0..<8 {
+        for _ in 0..<40 {
             if settings.isHittable { break }
-            app.scrollViews.firstMatch.swipeUp()
+            app.swipeUp()
         }
         XCTAssertTrue(settings.isHittable)
         settings.tap()
         assertScreen("Settings", in: app)
-        XCTAssertTrue(app.staticTexts["Settings coming soon"].exists)
+        XCTAssertTrue(app.staticTexts["settings.credentialStatus"].exists)
     }
 }

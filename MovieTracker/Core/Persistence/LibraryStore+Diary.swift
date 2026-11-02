@@ -15,7 +15,7 @@ extension LibraryStore {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw DiaryError.emptyReview }
         guard now.timeIntervalSinceReferenceDate.isFinite else { throw DiaryError.invalidDate }
         let identity = SearchItem(media).id
-        try writeDiary { context in
+        try writeTransaction { context in
             let existing = try diaryReview(id, in: context)
             if let existing, existing.mediaID != identity { throw DiaryError.identityMismatch }
             if let eventID {
@@ -42,13 +42,13 @@ extension LibraryStore {
     }
 
     func deleteReview(_ id: UUID) throws {
-        try writeDiary { context in
+        try writeTransaction { context in
             if let review = try diaryReview(id, in: context) { context.delete(review) }
         }
     }
 
     func deleteLegacyReview(for id: MediaID) throws {
-        try writeDiary { _ in
+        try writeTransaction { _ in
             // Ensure the caller acts on the same uniquely resolved title, never a sibling media type.
             if let record = try diaryLibraryEntry(for: id) { record.review = nil }
         }
@@ -61,7 +61,7 @@ extension LibraryStore {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .gmt
         let date = watchedDate.map { calendar.startOfDay(for: $0) }
-        try writeDiary { context in
+        try writeTransaction { context in
             let existing = try diaryEvent(id, in: context)
             if let existing, existing.mediaID != identity { throw DiaryError.identityMismatch }
             _ = try ensureLibraryEntry(media: media)
@@ -77,7 +77,7 @@ extension LibraryStore {
     }
 
     func deleteViewingEvent(_ id: UUID) throws {
-        try writeDiary { context in
+        try writeTransaction { context in
             guard let event = try diaryEvent(id, in: context) else { return }
             // Detach, never cascade-delete a written review when a watch is removed.
             let deletedEventID: UUID? = id

@@ -19,13 +19,13 @@ final class SearchModel {
 
     private struct Key: Equatable { let query: String; let filter: SearchFilter }
     @ObservationIgnored private let detailCache = MediaDetailCache()
-    private let service: (any MediaMetadataService)?
+    private var service: (any MediaMetadataService)?
     private let debounce: @Sendable () async throws -> Void
     private var currentKey: Key?
     private var generation = UUID()
     @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
     @ObservationIgnored private(set) var pageTask: Task<Void, Never>?
-    @ObservationIgnored private var artworkTask: Task<Void, Never>?
+    @ObservationIgnored private(set) var artworkTask: Task<Void, Never>?
 
     init(
         service: (any MediaMetadataService)?, usesTestData: Bool = false,
@@ -36,6 +36,12 @@ final class SearchModel {
         self.service = service
         self.usesTestData = usesTestData
         self.debounce = debounce
+    }
+
+    func replaceService(_ service: (any MediaMetadataService)?) {
+        self.service = service
+        artworkTask?.cancel(); artworkTask = nil; imageResolver = nil; artworkUnavailable = false
+        start(Key(query: Self.normalizedQuery(query), filter: filter), debounced: false)
     }
 
     func tvProgressModel(for show: TVShow) -> TVProgressModel {
@@ -164,7 +170,7 @@ final class SearchModel {
                 try Task.checkCancellation()
                 self?.imageResolver = resolver
             } catch {
-                if !(error is CancellationError) { self?.artworkUnavailable = true }
+                if !Task.isCancelled && !(error is CancellationError) { self?.artworkUnavailable = true }
             }
         }
     }
