@@ -135,6 +135,30 @@
 			isa = PBXBuildFile;
 			fileRef = EC12F6D12AEC90E0043E5BA7;
 		};
+		D96CADF40D1161F0A1F70AFF = {
+			isa = PBXBuildFile;
+			fileRef = CB0C0CF3FB0B644777451690;
+		};
+		2ADD13B8DC4770FC54071C71 = {
+			isa = PBXBuildFile;
+			fileRef = 72CF6F10E765B629283F21F9;
+		};
+		C1A686EC476EDE99E4B7ADBD = {
+			isa = PBXBuildFile;
+			fileRef = 2FDF6C6B8053394B4C9C39FA;
+		};
+		C09717A0E9BA7B9EA04B5F07 = {
+			isa = PBXBuildFile;
+			fileRef = 3F7E7071547C363D8BAB2496;
+		};
+		DEAEDF287E18018FD8AC04EA = {
+			isa = PBXBuildFile;
+			fileRef = 0ACFBA194F3D3492D48CE6E6;
+		};
+		DE5A1F80F47CC69C187327A4 = {
+			isa = PBXBuildFile;
+			fileRef = 7A802F7A4AD90C61132DC248;
+		};
 		36861BD169FAEAB06C855BF5 = {
 			isa = PBXBuildFile;
 			fileRef = 0E646D2CB06C40E48A41E41E;
@@ -259,6 +283,10 @@
 			isa = PBXBuildFile;
 			fileRef = 80FEAB2F0021D89A64C5F75B;
 		};
+		CBFD94AB6BBCB94A7B6FC7B6 = {
+			isa = PBXBuildFile;
+			fileRef = B07A2ED1EF22E3815AE8E542;
+		};
 		014155E1E914C3835674D5AD = {
 			isa = PBXBuildFile;
 			fileRef = 8F5260C0DE69F579396C6EF9;
@@ -302,6 +330,10 @@
 		896490EAAD1DA4FCDB5F7799 = {
 			isa = PBXBuildFile;
 			fileRef = 9D51F8C9A9D2C542DC312FF1;
+		};
+		7519C2ACDAF13BC3032EC416 = {
+			isa = PBXBuildFile;
+			fileRef = 18C8C4848DA878170E46132D;
 		};
 		8D5E59F35785D2405EE5FE33 = {
 			isa = PBXBuildFile;
@@ -547,6 +579,42 @@
 			path = MovieTracker/Core/Persistence/StoredViewingEvent.swift;
 			sourceTree = "<group>";
 		};
+		CB0C0CF3FB0B644777451690 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Statistics/DashboardAggregator.swift;
+			sourceTree = "<group>";
+		};
+		72CF6F10E765B629283F21F9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Statistics/DashboardInput.swift;
+			sourceTree = "<group>";
+		};
+		2FDF6C6B8053394B4C9C39FA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Statistics/DashboardSnapshot.swift;
+			sourceTree = "<group>";
+		};
+		3F7E7071547C363D8BAB2496 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Dashboard/DashboardModel.swift;
+			sourceTree = "<group>";
+		};
+		0ACFBA194F3D3492D48CE6E6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Dashboard/DashboardUITestImport.swift;
+			sourceTree = "<group>";
+		};
+		7A802F7A4AD90C61132DC248 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Dashboard/DashboardViews.swift;
+			sourceTree = "<group>";
+		};
 		0E646D2CB06C40E48A41E41E = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -733,6 +801,12 @@
 			path = MovieTracker/Resources/Assets.xcassets;
 			sourceTree = "<group>";
 		};
+		B07A2ED1EF22E3815AE8E542 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/DashboardTests.swift;
+			sourceTree = "<group>";
+		};
 		8F5260C0DE69F579396C6EF9 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -797,6 +871,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		18C8C4848DA878170E46132D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/DashboardUITests.swift;
 			sourceTree = "<group>";
 		};
 		78FEB42D669400CF297FA2B2 = {
@@ -980,6 +1060,16 @@
 			name = Persistence;
 			sourceTree = "<group>";
 		};
+		F3D23D09BD07B4049BA46DBC = {
+			isa = PBXGroup;
+			children = (
+				CB0C0CF3FB0B644777451690,
+				72CF6F10E765B629283F21F9,
+				2FDF6C6B8053394B4C9C39FA,
+			);
+			name = Statistics;
+			sourceTree = "<group>";
+		};
 		AF01C864361E44C5FA944BBA = {
 			isa = PBXGroup;
 			children = (
@@ -987,8 +1077,19 @@
 				8CBF84A6563D8DA3006E2E51,
 				EA8DC95A7EA5D3949A03C6AB,
 				55BE8A23BA13127BBD0A5894,
+				F3D23D09BD07B4049BA46DBC,
 			);
 			name = Core;
+			sourceTree = "<group>";
+		};
+		DF67FB600777F187588C0FD8 = {
+			isa = PBXGroup;
+			children = (
+				3F7E7071547C363D8BAB2496,
+				0ACFBA194F3D3492D48CE6E6,
+				7A802F7A4AD90C61132DC248,
+			);
+			name = Dashboard;
 			sourceTree = "<group>";
 		};
 		B5A04877AF369CB350B5325F = {
@@ -1073,6 +1174,7 @@
 		F333DCD82CCEBB8ABB2E654B = {
 			isa = PBXGroup;
 			children = (
+				DF67FB600777F187588C0FD8,
 				B5A04877AF369CB350B5325F,
 				43E57F04E05BFA5F698308C3,
 				46484D41B012B07CE4EE1EAD,
@@ -1106,6 +1208,7 @@
 		F6D116F0CCEECD0D9255B23D = {
 			isa = PBXGroup;
 			children = (
+				B07A2ED1EF22E3815AE8E542,
 				8F5260C0DE69F579396C6EF9,
 				FE6E088F851898863FD05BF1,
 				1BA18E2BC3DAE944A2E61032,
@@ -1124,6 +1227,7 @@
 		CAB420EAEAFE405BAC92A70A = {
 			isa = PBXGroup;
 			children = (
+				18C8C4848DA878170E46132D,
 				78FEB42D669400CF297FA2B2,
 				EA6819FA204CDE02F3C88014,
 				B5B925089E8A469E28996E41,
@@ -1320,6 +1424,12 @@
 				9271EEB2A4FD895FCF54EE64,
 				3957B05BE383450E628EB55D,
 				FF5FC52DF53BF945C993213C,
+				D96CADF40D1161F0A1F70AFF,
+				2ADD13B8DC4770FC54071C71,
+				C1A686EC476EDE99E4B7ADBD,
+				C09717A0E9BA7B9EA04B5F07,
+				DEAEDF287E18018FD8AC04EA,
+				DE5A1F80F47CC69C187327A4,
 				36861BD169FAEAB06C855BF5,
 				A6A8677A35FC4580B813E27D,
 				9DB92C1EF55E9730B8B29979,
@@ -1357,6 +1467,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CBFD94AB6BBCB94A7B6FC7B6,
 				014155E1E914C3835674D5AD,
 				4088C92A526ECE2C585B245C,
 				16E2C122E377BDCBAC557F05,
@@ -1375,6 +1486,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7519C2ACDAF13BC3032EC416,
 				8D5E59F35785D2405EE5FE33,
 				A2191715CBDCC79FB6A10445,
 				0650B6B6EFABD33659C9A18E,

@@ -28,7 +28,7 @@ struct LibraryRow: View {
 }
 
 /// Read the existing OS response cache only. Local Library filtering never starts image requests.
-private struct LibraryCachedPoster: View {
+struct LibraryCachedPoster: View {
     let url: URL?
     @State private var image: UIImage?
     var body: some View {

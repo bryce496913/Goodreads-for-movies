@@ -38,6 +38,10 @@ final class SearchModel {
         self.debounce = debounce
     }
 
+    func tvProgressModel(for show: TVShow) -> TVProgressModel {
+        TVProgressModel(show: show, service: service, usesTestData: usesTestData)
+    }
+
     func detailModel(for destination: MediaDestination, savedMedia: MediaSearchResult? = nil) -> MediaDetailModel {
         if detailCache.snapshot(for: destination.id) == nil, let savedMedia, SearchItem(savedMedia).id == destination.id {
             detailCache.save(.init(media: savedMedia), for: destination.id)

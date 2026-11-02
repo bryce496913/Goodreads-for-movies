@@ -34,8 +34,8 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 ## Implemented
 
 - Home, Search, Library, and Profile tabs, each owning its own `NavigationStack`.
-- Welcome, upcoming activity/recommendation empty states, library category placeholders with no fake saved content.
-- Profile/statistics empty states and a navigable reserved Settings screen.
+- Personal Home dashboard and anonymous local Profile with saved Continue Watching, dated viewing history, Watchlist shortcuts, timestamped activity, and clearly defined statistics. See [dashboard semantics, migration, fixtures and validation](docs/home-profile-dashboard.md).
+- Welcoming empty states with a route to Search, accurate zero counts, unavailable unrated average, and a navigable reserved Settings screen.
 - Reusable semantic surfaces, spacing, section headings, and empty-state cards.
 - Movie, TV show, typed media identity, viewing status, and user library domain values.
 - A SwiftData container and stored library entry with explicit domain conversion, ready for future tracking features.
@@ -57,6 +57,7 @@ MovieTracker/
   Core/
     Models/            Foundation-only domain values
     Persistence/       SwiftData storage and container creation
+    Statistics/        Immutable local dashboard projections and deterministic aggregation
     Networking/        Metadata interfaces, TMDB DTO mapping and URLSession transport
     DesignSystem/      Shared visual primitives
   Features/
@@ -79,7 +80,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (159 methods total, all require local macOS/Xcode execution):
+Included tests (187 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 21 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -91,6 +92,7 @@ Included tests (159 methods total, all require local macOS/Xcode execution):
 - 17 review/diary store and 4 review/diary UI tests.
 - 18 TV progress store/calculation/model tests and 4 TV progress UI tests.
 - 14 Library organization/store tests (including 5,000-item data) and 5 organization UI tests.
+- 24 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 4 dashboard UI tests.
 
 See [library persistence](docs/library-persistence.md), [details](docs/media-details.md), and [personal ratings](docs/personal-ratings.md) for local commands, migration limits, fixture isolation and screenshot instructions.
 
@@ -107,6 +109,6 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 
 ## Planned features
 
-Future passes may add viewing statistics and later social discovery/recommendations; Library organization/sorting is implemented locally. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. Episode progress is separate from series-level status and diary events. There is no account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
+Home and Profile now aggregate real local viewing data; later passes may consider separately scoped discovery features. Library organization/sorting is implemented locally. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. Episode progress is separate from series-level status and diary events. There is no account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
 
 Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating/review/diary migration and relaunch before choosing the next separately scoped feature. Live-provider, simulator and migration validation remain pending.

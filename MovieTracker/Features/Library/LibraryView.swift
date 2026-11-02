@@ -7,7 +7,7 @@ struct LibraryView: View {
     let openSearch: () -> Void
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(LibraryStore.self) private var library
-    @State private var organization = LibraryOrganizationModel()
+    @Bindable var organization: LibraryOrganizationModel
     @State private var presentedSection: LibrarySection?
     @State private var errorMessage: String?
 
@@ -93,12 +93,7 @@ struct LibraryView: View {
         .autocorrectionDisabled()
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: library.revision, initial: true) { _, revision in organization.replaceEntries(library.entries, revision: revision) }
-        .navigationDestination(for: MediaDestination.self) { destination in
-            let media = library.entry(for: destination.id)?.offlineMedia
-                ?? library.events(for: destination.id).first?.savedMedia ?? library.reviews(for: destination.id).first?.savedMedia
-                ?? library.savedTVShow(for: destination.id).map { .tvShow($0) }
-            MediaDetailView(model: detailModel(destination, media))
-        }
+        .modifier(SavedMediaNavigation(detailModel: detailModel))
         .alert("Favorite could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: { Text(errorMessage ?? "Try again.") }
