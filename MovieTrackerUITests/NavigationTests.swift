@@ -68,7 +68,7 @@ final class NavigationTests: XCTestCase {
         _ title: String, in app: XCUIApplication,
         file: StaticString = #filePath, line: UInt = #line
     ) {
-        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 10), file: file, line: line)
+        XCTAssertTrue(app.navigationBars[title == "Home" ? "Your screen" : title].waitForExistence(timeout: 10), file: file, line: line)
         XCTAssertEqual(app.navigationBars.count, 1, "Expected one navigation bar", file: file, line: line)
     }
 

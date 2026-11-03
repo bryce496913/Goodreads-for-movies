@@ -85,7 +85,7 @@ final class LibraryOrganizationUITests: XCTestCase {
         app.buttons["Remove Favorite"].tap()
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "library.noMatches").firstMatch.waitForExistence(timeout: 5))
         app.terminate(); app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Library"].tap()
         search("cafe", in: app)
         let reloaded = app.switches["library.favoritesFilter"]
@@ -99,7 +99,7 @@ final class LibraryOrganizationUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "--ui-testing-library-organization", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Library"].tap()
         XCTAssertTrue(app.navigationBars["Library"].waitForExistence(timeout: 5))
         return app

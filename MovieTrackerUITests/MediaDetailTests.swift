@@ -118,7 +118,7 @@ final class MediaDetailUITests: XCTestCase {
                                     "-AppleInterfaceStyle", "Dark"]
         }
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Search"].tap()
         let field = app.searchFields["Movies and TV shows"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))

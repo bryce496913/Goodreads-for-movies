@@ -93,7 +93,7 @@ final class TVProgressUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         return app
     }
 
@@ -122,7 +122,7 @@ final class TVProgressUITests: XCTestCase {
 
     @MainActor
     private func openSavedSeason(in app: XCUIApplication) {
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Library"].tap()
         let row = app.buttons["library.row.tvShow.fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))

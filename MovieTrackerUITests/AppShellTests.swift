@@ -177,7 +177,7 @@ final class AppShellUITests: XCTestCase {
     }
     @MainActor private func select(_ title: String, in app: XCUIApplication) { app.tabBars.buttons[title].tap() }
     @MainActor private func assertScreen(_ title: String, in app: XCUIApplication) {
-        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5), "Missing screen: " + title)
+        XCTAssertTrue(app.navigationBars[title == "Home" ? "Your screen" : title].waitForExistence(timeout: 5), "Missing screen: " + title)
     }
     @MainActor private func back(from: String, to: String, in app: XCUIApplication) {
         app.navigationBars[from].buttons.element(boundBy: 0).tap(); assertScreen(to, in: app)

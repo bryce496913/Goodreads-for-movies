@@ -54,7 +54,7 @@ final class RatingUITests: XCTestCase {
         select("5.0 stars", in: app)
         app.terminate()
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Library"].tap()
         let row = app.buttons["library.row.movie.fixture:1"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -70,7 +70,7 @@ final class RatingUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extraArguments
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Search"].tap()
         let field = app.searchFields["Movies and TV shows"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))

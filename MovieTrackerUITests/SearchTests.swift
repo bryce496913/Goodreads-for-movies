@@ -94,7 +94,7 @@ final class SearchTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search"]
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Search"].tap()
         XCTAssertTrue(app.staticTexts["UI test data"].waitForExistence(timeout: 5))
         return app
