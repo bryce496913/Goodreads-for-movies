@@ -6,6 +6,7 @@ struct LibraryDetailActions: View {
     @Environment(LibraryStore.self) private var library
     @State private var errorMessage: String?
     @State private var confirmRemoval = false
+    @Environment(\.dynamicTypeSize) private var textSize
 
     private var item: SearchItem { SearchItem(media) }
     private var entry: StoredLibraryEntry? { library.entry(for: item.id) }
@@ -15,28 +16,39 @@ struct LibraryDetailActions: View {
             if let error = library.loadError { Text(error.localizedDescription).foregroundStyle(.secondary) }
             Text(entry?.statusLabel ?? "Not in your library")
                 .accessibilityIdentifier("library.currentStatus")
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading),
+                                     count: textSize >= .xxxLarge ? 1 : 2),
+                      alignment: .leading, spacing: AppStyle.Spacing.small) {
+                Button(entry?.status == "watchlist" ? "Remove from Watchlist" : "Add to Watchlist",
+                       systemImage: entry?.status == "watchlist" ? "bookmark.fill" : "bookmark") {
+                    perform { try library.setStatus(entry?.status == "watchlist" ? nil : .watchlist, media: media, posterURL: posterURL) }
+                }.accessibilityValue(entry?.status == "watchlist" ? "Selected" : "Not selected")
+                    .accessibilityIdentifier("library.watchlistAction")
+                if item.id.kind == .tvShow {
+                    Button("Mark Watching", systemImage: entry?.status == "watching" ? "play.circle.fill" : "play.circle") {
+                        perform { try library.setStatus(.watching, media: media, posterURL: posterURL) }
+                    }.accessibilityValue(entry?.status == "watching" ? "Selected" : "Not selected")
+                        .accessibilityIdentifier("library.watchingAction")
+                }
+                Button("Mark Watched", systemImage: entry?.status == "watched" ? "checkmark.circle.fill" : "checkmark.circle") {
+                    perform { try library.setStatus(.watched, media: media, posterURL: posterURL) }
+                }.accessibilityValue(entry?.status == "watched" ? "Selected" : "Not selected")
+                    .accessibilityIdentifier("library.watchedAction")
+                if entry != nil && entry?.status != "none" {
+                    Button("Clear Viewing Status", systemImage: "minus.circle") {
+                        perform { try library.setStatus(nil, media: media, posterURL: posterURL) }
+                    }.accessibilityIdentifier("library.clearStatus")
+                }
+                Button(entry?.isFavorite == true ? "Remove Favorite" : "Add Favorite",
+                       systemImage: entry?.isFavorite == true ? "heart.fill" : "heart") {
+                    perform { try library.setFavorite(entry?.isFavorite != true, media: media, posterURL: posterURL) }
+                }.accessibilityValue(entry?.isFavorite == true ? "Selected" : "Not selected")
+                    .accessibilityIdentifier("library.favoriteAction")
+            }
+            .buttonStyle(AppActionStyle())
             PersonalRatingControl(current: { try library.entry(for: item.id)?.validatedRating() }, save: {
                 try library.setPersonalRating($0, media: media, posterURL: posterURL)
             })
-            Button(entry?.status == "watchlist" ? "Remove from Watchlist" : "Add to Watchlist") {
-                perform { try library.setStatus(entry?.status == "watchlist" ? nil : .watchlist, media: media, posterURL: posterURL) }
-            }.accessibilityIdentifier("library.watchlistAction")
-            if item.id.kind == .tvShow {
-                Button("Mark Watching") {
-                    perform { try library.setStatus(.watching, media: media, posterURL: posterURL) }
-                }.accessibilityIdentifier("library.watchingAction")
-            }
-            Button("Mark Watched") {
-                perform { try library.setStatus(.watched, media: media, posterURL: posterURL) }
-            }.accessibilityIdentifier("library.watchedAction")
-            if entry != nil && entry?.status != "none" {
-                Button("Clear Viewing Status") {
-                    perform { try library.setStatus(nil, media: media, posterURL: posterURL) }
-                }.accessibilityIdentifier("library.clearStatus")
-            }
-            Button(entry?.isFavorite == true ? "Remove Favorite" : "Add Favorite") {
-                perform { try library.setFavorite(entry?.isFavorite != true, media: media, posterURL: posterURL) }
-            }.accessibilityIdentifier("library.favoriteAction")
             if entry != nil {
                 Button("Remove from Library", role: .destructive) { confirmRemoval = true }
                     .accessibilityIdentifier("library.removeAction")

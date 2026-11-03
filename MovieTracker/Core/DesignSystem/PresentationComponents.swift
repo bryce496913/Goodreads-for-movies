@@ -24,10 +24,14 @@ struct PageHeader: View {
 /// Presentation only; callers retain either their network image or cache-only image implementation.
 struct PosterFrame<Content: View>: View {
     private let content: Content
-    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    private let width: CGFloat
+    init(width: CGFloat = AppStyle.Layout.rowPosterWidth, @ViewBuilder content: () -> Content) {
+        self.width = width
+        self.content = content()
+    }
     var body: some View {
         content
-            .frame(width: AppStyle.Layout.rowPosterWidth, height: AppStyle.Layout.rowPosterHeight)
+            .frame(width: width, height: width * 1.5)
             .background(AppStyle.Colors.raisedSurface)
             .clipShape(RoundedRectangle(cornerRadius: AppStyle.Radius.poster))
             .overlay { RoundedRectangle(cornerRadius: AppStyle.Radius.poster).strokeBorder(AppStyle.Colors.divider, lineWidth: 1) }
