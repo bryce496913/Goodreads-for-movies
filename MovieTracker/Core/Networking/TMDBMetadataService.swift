@@ -100,7 +100,7 @@ actor TMDBMetadataService: MediaMetadataService {
         return season
     }
 
-    func expireMetadataMemory(at now: Date) {
+    func expireMetadataMemory(at now: Date) async {
         if let until = cooldownUntil, until <= now { cooldownUntil = nil; cooldownError = nil }
         if let fetched = configurationFetchedAt, !MetadataPolicy.isUsable(fetched, at: now) {
             configurationRequest = nil; configurationFetchedAt = nil
@@ -110,7 +110,7 @@ actor TMDBMetadataService: MediaMetadataService {
     func imageResolver() async throws -> MetadataImageResolver {
         try await authorization()
         try Task.checkCancellation()
-        expireMetadataMemory(at: clock())
+        await expireMetadataMemory(at: clock())
         let flight: (id: UUID, task: Task<(TMDBImageConfiguration, Date), Error>)
         if let configurationRequest {
             flight = configurationRequest
