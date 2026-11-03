@@ -72,11 +72,14 @@ struct TVSeasonsSection: View {
 struct ProgressDescription: View {
     let summary: EpisodeProgressSummary
     let series: Bool
+    var compact = false
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text("Episodes marked watched: \(summary.totalWatched)")
-                .font(AppStyle.Typography.mediaTitle)
-            Text("\(summary.watched) watched of \(summary.eligible) known aired episodes")
+            if !compact {
+                Text("Episodes marked watched: \(summary.totalWatched)")
+                    .font(AppStyle.Typography.mediaTitle)
+            }
+            Text("\(summary.watched) watched of \(summary.eligible) known aired \(series ? "regular " : "")episodes")
                 .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
             if let percentage = summary.percentage {
                 Text("\(percentage)% of known aired episodes").font(.subheadline)
@@ -94,8 +97,8 @@ struct ProgressDescription: View {
                 Text("Up to date with known aired episodes; series completion is not implied.")
                     .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
             }
-            if summary.future > 0 { Text("\(summary.future) future episodes excluded").font(.footnote) }
-            if summary.unknownAirDate > 0 { Text("\(summary.unknownAirDate) unknown air dates excluded").font(.footnote) }
+            if !compact && summary.future > 0 { Text("\(summary.future) future episodes excluded").font(.footnote) }
+            if !compact && summary.unknownAirDate > 0 { Text("\(summary.unknownAirDate) unknown air dates excluded").font(.footnote) }
         }
         .fixedSize(horizontal: false, vertical: true)
         .tint(AppStyle.Colors.accent)

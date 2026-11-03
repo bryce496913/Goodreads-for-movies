@@ -17,53 +17,60 @@ struct HomeView: View {
                         Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("home.findTitles")
                     }.accessibilityIdentifier("home.empty")
                 }
-                Section("Continue Watching") {
-                    if snapshot.continueWatching.isEmpty { Text("No unfinished series with saved episode progress.") }
-                    ForEach(snapshot.continueWatching) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            NavigationLink(value: item.title.destination) { DashboardTitleRow(title: item.title) }
-                            Text("\(item.progress.watched) of \(item.progress.eligible) known aired regular episodes watched")
-                            if let percent = item.progress.percentage { ProgressView(value: Double(percent), total: 100).accessibilityLabel("Aired episode progress") }
-                            else { Text("A reliable aired-episode percentage is unavailable.").font(.footnote) }
-                            if let next = item.next {
-                                NavigationLink {
-                                    TVSeasonEpisodesView(number: next.seasonNumber, model: progressModel(item.show))
-                                } label: { Text("Next: Season \(next.seasonNumber), Episode \(next.number) — \(next.title)") }
-                                .accessibilityIdentifier("home.nextEpisode")
-                            } else {
-                                Text("Next episode unavailable from saved metadata.")
-                                if let last = item.lastMarked {
-                                    Text(last.number == 0 ? "Watched episode reference: " + last.id.providerValue : "Last marked watched: Season \(last.seasonNumber), Episode \(last.number)").font(.footnote)
+                if snapshot.hasPersonalData {
+                    Section("Continue Watching") {
+                        if snapshot.continueWatching.isEmpty { Text("No unfinished series with saved episode progress.") }
+                        ForEach(snapshot.continueWatching) { item in
+                            VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+                                NavigationLink(value: item.title.destination) { DashboardTitleRow(title: item.title) }
+                                ProgressDescription(summary: item.progress, series: true, compact: true)
+                                if let next = item.next {
+                                    NavigationLink {
+                                        TVSeasonEpisodesView(number: next.seasonNumber, model: progressModel(item.show))
+                                    } label: {
+                                        Label("Next: Season \(next.seasonNumber), Episode \(next.number) — \(next.title)", systemImage: "play.circle")
+                                            .font(AppStyle.Typography.mediaTitle)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                            .frame(minHeight: AppStyle.Layout.minimumTarget, alignment: .leading)
+                                    }
+                                    .accessibilityIdentifier("home.nextEpisode")
+                                } else {
+                                    Text("Next episode unavailable from saved metadata.")
+                                    if let last = item.lastMarked {
+                                        Text(last.number == 0 ? "Watched episode reference: " + last.id.providerValue : "Last marked watched: Season \(last.seasonNumber), Episode \(last.number)").font(.footnote)
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                Section("Recently Watched") {
-                    if snapshot.recentlyWatched.isEmpty { Text("No dated watches recorded yet. Undated watches remain in Viewing History.") }
-                    ForEach(snapshot.recentlyWatched) { item in
-                        NavigationLink(value: item.title.destination) { DashboardDiaryRow(item: item) }
-                    }
-                    NavigationLink("Viewing History") { ViewingHistoryView() }.accessibilityIdentifier("home.history")
-                }
-                Section("From Your Watchlist") {
-                    if snapshot.watchlist.isEmpty { Text("Your Watchlist is empty. Save titles from Search to plan your next watch.") }
-                    ForEach(snapshot.watchlist) { item in
-                        NavigationLink(value: item.destination) { DashboardTitleRow(title: item) }
-                    }
-                    Button("Open Library", action: openLibrary).accessibilityIdentifier("home.openLibrary")
-                }
-                Section("Recent Personal Activity") {
-                    if snapshot.activity.isEmpty { Text("No recorded activity yet. Older ratings without a known rating timestamp are not dated here.") }
-                    ForEach(snapshot.activity) { item in
-                        NavigationLink(value: item.title.destination) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(item.title.title).font(.headline)
-                                Text(item.label)
-                                Text("Recorded: " + item.date.formatted(date: .abbreviated, time: .shortened)).font(.subheadline)
-                                if let watched = item.watchedDate { Text("Watch date: " + DetailFormatting.date(watched)).font(.subheadline) }
+                    Section("Recent Personal Activity") {
+                        if snapshot.activity.isEmpty { Text("No recorded activity yet. Older ratings without a known rating timestamp are not dated here.") }
+                        ForEach(snapshot.activity) { item in
+                            NavigationLink(value: item.title.destination) {
+                                VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+                                    Text(item.title.title).font(AppStyle.Typography.mediaTitle)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Text(item.label).font(AppStyle.Typography.metadata)
+                                    Text("Recorded: " + item.date.formatted(date: .abbreviated, time: .shortened)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+                                    if let watched = item.watchedDate { Text("Watch date: " + DetailFormatting.date(watched)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
+                                }
                             }
                         }
+                    }
+                    Section("Recently Watched") {
+                        if snapshot.recentlyWatched.isEmpty { Text("No dated watches recorded yet. Undated watches remain in Viewing History.") }
+                        ForEach(snapshot.recentlyWatched) { item in
+                            NavigationLink(value: item.title.destination) { DashboardDiaryRow(item: item) }
+                                .accessibilityIdentifier("home.recentWatch")
+                        }
+                        NavigationLink("Viewing History") { ViewingHistoryView() }.accessibilityIdentifier("home.history")
+                    }
+                    Section("From Your Watchlist") {
+                        if snapshot.watchlist.isEmpty { Text("Your Watchlist is empty. Save titles from Search to plan your next watch.") }
+                        ForEach(snapshot.watchlist) { item in
+                            NavigationLink(value: item.destination) { DashboardTitleRow(title: item) }
+                        }
+                        Button("Open Library", action: openLibrary).buttonStyle(AppActionStyle()).accessibilityIdentifier("home.openLibrary")
                     }
                 }
             } else if !dashboard.isLoading { Text("Your saved summary is not available yet.") }

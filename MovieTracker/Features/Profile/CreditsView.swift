@@ -10,7 +10,7 @@ struct CreditsView: View {
             }
             Section("Metadata Credits") {
                 Image("TMDBLogo").resizable().scaledToFit().frame(maxWidth: 160)
-                    .padding(12).background(.white, in: RoundedRectangle(cornerRadius: 8))
+                    .padding(AppStyle.Spacing.compact).background(.white, in: RoundedRectangle(cornerRadius: AppStyle.Radius.control))
                     .accessibilityLabel("The Movie Database logo").accessibilityIdentifier("credits.tmdbLogo")
                 Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
                     .accessibilityIdentifier("credits.tmdbNotice")

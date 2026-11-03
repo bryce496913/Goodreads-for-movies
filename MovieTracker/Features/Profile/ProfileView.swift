@@ -19,10 +19,10 @@ struct ProfileView: View {
                     metric("Watchlist titles", stats.watchlist, id: "watchlist")
                     metric("Favorite titles", stats.favorites, id: "favorites")
                     metric("Personally rated titles", stats.ratings, id: "ratings")
-                    VStack(alignment: .leading) {
-                        Text("Average personal rating").font(.headline)
-                        Text(stats.averageRating.map { $0.formatted(.number.precision(.fractionLength(1))) + " out of 5 stars" } ?? "Unavailable — no valid personal ratings")
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.average")
+                    DashboardMetricRow(label: "Average personal rating",
+                        value: stats.averageRating.map { $0.formatted(.number.precision(.fractionLength(1))) + " out of 5 stars" }
+                            ?? "Unavailable — no valid personal ratings")
+                        .accessibilityIdentifier("profile.average")
                     metric("Written reviews", stats.reviews, id: "reviews")
                     metric("Recorded viewing events", stats.viewingEvents, id: "events")
                 }
@@ -51,9 +51,7 @@ struct ProfileView: View {
         .accessibilityIdentifier("screen.profile")
     }
     private func metric(_ label: String, _ value: Int, id: String) -> some View {
-        VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
-            Text(label).font(AppStyle.Typography.mediaTitle)
-            Text(value.formatted()).font(.title3.monospacedDigit())
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.stat." + id)
+        DashboardMetricRow(label: label, value: value.formatted())
+            .accessibilityIdentifier("profile.stat." + id)
     }
 }

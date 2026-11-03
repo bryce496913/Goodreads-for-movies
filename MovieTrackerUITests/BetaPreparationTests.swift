@@ -8,6 +8,10 @@ final class BetaPreparationUITests: XCTestCase {
         reveal(app.buttons["profile.settings"], app); app.buttons["profile.settings"].tap()
         let token = app.secureTextFields["settings.token"]
         XCTAssertTrue(token.waitForExistence(timeout: 5))
+        let settingsShot = XCTAttachment(screenshot: app.screenshot())
+        settingsShot.name = "Settings — before entering a credential"
+        settingsShot.lifetime = .keepAlways
+        add(settingsShot)
         token.tap(); token.typeText("nonsecret-ui-fixture")
         let save = app.buttons["settings.saveCredential"]; reveal(save, app); save.tap()
         XCTAssertTrue(app.staticTexts["settings.credentialStatus"].label.contains("saved on this device"))
