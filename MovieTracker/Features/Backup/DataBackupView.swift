@@ -42,7 +42,8 @@ struct DataBackupView: View {
                 Text("Export is manual, not automatic backup. Keep the file outside the app before deleting the app. Restore always shows a preview and keeps existing local records unchanged.")
             }
         }
-        .navigationTitle("Export & Restore")
+        .appFormScreen("Export & Restore")
+        .accessibilityIdentifier("screen.backup")
         .fileExporter(isPresented: $exportPresented, document: model.exportBytes.map { PersonalBackupDocument(bytes: $0) },
                       contentType: .json, defaultFilename: "MovieTracker-Personal-Backup") { model.finishExport($0) }
         .fileImporter(isPresented: $importPresented, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
@@ -73,13 +74,18 @@ struct DataBackupView: View {
                         Section {
                             Button("Confirm Merge — Keep Existing Data") { work = Task { await model.confirmRestore(into: library) } }
                                 .disabled(model.isBusy).accessibilityIdentifier("backup.confirm")
-                            Button("Cancel", role: .cancel) { model.cancelPreview() }.disabled(model.isBusy).accessibilityIdentifier("backup.cancel")
                             if model.isBusy { ProgressView("Saving restore…") }
                         }
                     }
-                    .navigationTitle("Review Restore")
+                    .appListScreen("Review Restore")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel", role: .cancel) { model.cancelPreview() }.disabled(model.isBusy).accessibilityIdentifier("backup.cancel")
+                        }
+                    }
                     .interactiveDismissDisabled(model.isBusy)
                 }
+                .appEditorSheet()
             }
         }
         .alert("Personal Backup", isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })) {

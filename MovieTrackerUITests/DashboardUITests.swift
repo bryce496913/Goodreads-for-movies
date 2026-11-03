@@ -7,7 +7,7 @@ final class DashboardUITests: XCTestCase {
         app.launchArguments = ["--ui-testing-search", "--ui-testing-dashboard"]
         if populated { app.launchEnvironment["DASHBOARD_UI_INPUT"] = try DashboardUIFixture.payload() }
         app.launch()
-        XCTAssertTrue(app.navigationBars["Welcome"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
         return app
     }
     @MainActor func testEmptyHomeRoutesToSearchAndProfileAverageUnavailable() throws {

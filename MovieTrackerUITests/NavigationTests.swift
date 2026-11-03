@@ -10,7 +10,7 @@ final class NavigationTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search"]
         app.launch()
-        assertScreen("Welcome", in: app)
+        assertScreen("Home", in: app)
         for title in ["Home", "Search", "Library", "Profile"] {
             XCTAssertTrue(app.tabBars.buttons[title].isHittable, "Missing tab: \(title)")
         }
@@ -19,13 +19,13 @@ final class NavigationTests: XCTestCase {
         XCTAssertTrue(app.searchFields["Movies and TV shows"].waitForExistence(timeout: 5))
         app.tabBars.buttons["Library"].tap()
         assertScreen("Library", in: app)
-        // Cards combine their title and message for VoiceOver; do not query a hidden child label.
+        // Query the stable empty-state container, independent of its visual presentation.
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "library.empty").firstMatch.exists)
         app.tabBars.buttons["Profile"].tap()
         assertScreen("Profile", in: app)
         openSettings(in: app)
         app.tabBars.buttons["Home"].tap()
-        assertScreen("Welcome", in: app)
+        assertScreen("Home", in: app)
         app.tabBars.buttons["Profile"].tap()
         assertScreen("Settings", in: app)
         app.navigationBars["Settings"].buttons.element(boundBy: 0).tap()
@@ -37,7 +37,7 @@ final class NavigationTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search"]
         app.launch()
-        assertScreen("Welcome", in: app)
+        assertScreen("Home", in: app)
         app.tabBars.buttons["Library"].tap()
         assertScreen("Library", in: app)
         XCUIDevice.shared.press(.home)
@@ -45,7 +45,7 @@ final class NavigationTests: XCTestCase {
         assertScreen("Library", in: app)
         app.terminate()
         app.launch()
-        assertScreen("Welcome", in: app)
+        assertScreen("Home", in: app)
         XCTAssertFalse(app.staticTexts["Library unavailable"].exists)
     }
 
@@ -57,7 +57,7 @@ final class NavigationTests: XCTestCase {
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"
         ]
         app.launch()
-        assertScreen("Welcome", in: app)
+        assertScreen("Home", in: app)
         app.tabBars.buttons["Profile"].tap()
         assertScreen("Profile", in: app)
         openSettings(in: app)

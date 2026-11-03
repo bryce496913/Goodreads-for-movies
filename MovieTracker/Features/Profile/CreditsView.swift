@@ -20,6 +20,7 @@ struct CreditsView: View {
                 Text("This application uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.")
             }
         }
-        .navigationTitle("About & Credits")
+        .appListScreen("About & Credits")
+        .accessibilityIdentifier("screen.credits")
     }
 }

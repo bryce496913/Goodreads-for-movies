@@ -14,8 +14,9 @@ struct PersonalReviewsView: View {
                 Button("Retry Reviews") { library.reload() }
             }
             if library.personalReviews.isEmpty && !library.entries.contains(where: { $0.review?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }) && library.loadError == nil {
-                ContentUnavailableView("No personal reviews", systemImage: "text.bubble",
-                                       description: Text("Write a private review from a movie or TV detail page."))
+                EmptyStateCard(title: "No personal reviews", systemImage: "text.bubble",
+                               message: "Write a private review from a movie or TV detail page.", presentation: .inline)
+                    .accessibilityIdentifier("reviews.empty")
             }
             ForEach(library.personalReviews) { review in
                 VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
@@ -43,8 +44,9 @@ struct PersonalReviewsView: View {
                 }
             }
         }
-        .navigationTitle("Personal Reviews")
-        .sheet(item: $draft) { ReviewEditor(draft: $0) }
+        .appListScreen("Personal Reviews")
+        .accessibilityIdentifier("screen.reviews")
+        .sheet(item: $draft) { ReviewEditor(draft: $0).appEditorSheet() }
         .confirmationDialog("Delete this personal review?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
             Button("Delete Review", role: .destructive) {
                 do { if let deleting { try library.deleteReview(deleting) } }

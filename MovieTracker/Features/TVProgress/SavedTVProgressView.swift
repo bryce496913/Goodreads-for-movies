@@ -17,8 +17,9 @@ struct SavedTVProgressView: View {
                 Button("Retry Saved Progress") { library.reload() }
             }
             if shows.isEmpty && library.loadError == nil {
-                ContentUnavailableView("No saved TV seasons", systemImage: "tv",
-                    description: Text("Open a series in Search and load its season information."))
+                EmptyStateCard(title: "No saved TV seasons", systemImage: "tv",
+                    message: "Open a series in Search and load its season information.", presentation: .inline)
+                    .accessibilityIdentifier("tv.empty")
             }
             ForEach(shows) { show in
                 NavigationLink(value: MediaDestination(id: show.id, title: show.title, year: SearchItem(.tvShow(show)).year)) {
@@ -29,6 +30,7 @@ struct SavedTVProgressView: View {
                 }.accessibilityIdentifier("tv.savedSeries.\(show.id.value)")
             }
         }
-        .navigationTitle("TV Episode Progress")
+        .appListScreen("TV Episode Progress")
+        .accessibilityIdentifier("screen.tvProgress")
     }
 }

@@ -10,7 +10,7 @@ struct PageHeader: View {
                 if let systemImage { Label(title, systemImage: systemImage) }
                 else { Text(title) }
             }
-            .font(AppStyle.Typography.pageTitle)
+            .font(AppStyle.Typography.sectionHeading)
             .foregroundStyle(AppStyle.Colors.primaryText)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)

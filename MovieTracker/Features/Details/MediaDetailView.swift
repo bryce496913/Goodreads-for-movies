@@ -51,8 +51,8 @@ struct MediaDetailView: View {
                     if model.isLoading {
                         AppLoadingState(title: "Loading details…").accessibilityIdentifier("details.loading")
                     } else if let error = model.error {
-                        ContentUnavailableView("Details unavailable", systemImage: "exclamationmark.triangle",
-                                               description: Text(error.localizedDescription))
+                        EmptyStateCard(title: "Details unavailable", systemImage: "exclamationmark.triangle",
+                                       message: error.localizedDescription, presentation: .inline)
                             .accessibilityIdentifier("details.error")
                     } else if model.wasCancelled {
                         Text("Loading was canceled. Try again when you are ready.")
@@ -70,8 +70,8 @@ struct MediaDetailView: View {
             .padding(AppStyle.Layout.contentMargin)
         }
         .background(AppStyle.background)
-        .navigationTitle("Details")
-        .navigationBarTitleDisplayMode(.inline)
+        .appPageTitle("Details")
+        .scrollDismissesKeyboard(.interactively)
         .accessibilityIdentifier("media.details")
         .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
         .onChange(of: library.metadataInvalidation) { _, _ in model.invalidateProviderMetadata() }

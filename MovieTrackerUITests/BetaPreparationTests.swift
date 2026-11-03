@@ -45,7 +45,7 @@ final class BetaPreparationUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch()
-        XCTAssertTrue(app.navigationBars["Welcome"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
         return app
     }
     @MainActor private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {

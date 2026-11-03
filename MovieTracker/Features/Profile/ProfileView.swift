@@ -6,7 +6,8 @@ struct ProfileView: View {
     var body: some View {
         List {
             Section {
-                PageHeader(title: "Your local profile", subtitle: "Your private viewing story on this device. No account is needed.", systemImage: "person.crop.circle")
+                Text("Your private viewing story on this device. No account is needed.")
+                    .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
             }
             DashboardReadState(model: dashboard)
             if let snapshot = dashboard.snapshot {
@@ -31,7 +32,7 @@ struct ProfileView: View {
                     Text("Ratings use valid personal half-star values only. Unrated titles do not lower the average. Reviews count saved review records, including retained legacy reviews.")
                 }.font(.footnote)
                 Section("Recent Viewing Diary") {
-                    if snapshot.recentDiary.isEmpty { Text("No viewing events yet. Record a watch from a title’s detail page.").accessibilityIdentifier("profile.emptyDiary") }
+                    if snapshot.recentDiary.isEmpty { EmptyStateCard(title: "No viewing events yet", systemImage: "calendar", message: "Record a watch from a title’s detail page.", presentation: .inline).accessibilityIdentifier("profile.emptyDiary") }
                     ForEach(snapshot.recentDiary) { item in
                         NavigationLink(value: item.title.destination) { DashboardDiaryRow(item: item) }
                     }
@@ -46,8 +47,8 @@ struct ProfileView: View {
                 .accessibilityIdentifier("profile.settings")
             }
         }
-        .appListBackground()
-        .navigationTitle("Profile")
+        .appListScreen(AppTab.profile.title, isRoot: true)
+        .accessibilityIdentifier("screen.profile")
     }
     private func metric(_ label: String, _ value: Int, id: String) -> some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {

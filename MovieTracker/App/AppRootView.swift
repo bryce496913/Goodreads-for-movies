@@ -1,11 +1,12 @@
 import SwiftData
 import SwiftUI
 
-private enum RootTab: Hashable { case home, search, library, profile }
-
 struct AppRootView: View {
-    @State private var tab: RootTab = .home
+    @State private var tab: AppTab = .home
+    @State private var homePath = NavigationPath()
     @State private var searchPath = NavigationPath()
+    @State private var libraryPath = NavigationPath()
+    @State private var profilePath = NavigationPath()
     @State private var searchModel = SearchLaunchConfiguration.makeModel()
 
     @State private var dashboard = DashboardModel()
@@ -17,20 +18,23 @@ struct AppRootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            NavigationStack {
+            NavigationStack(path: $homePath) {
                 HomeView(dashboard: dashboard, progressModel: { searchModel.tvProgressModel(for: $0) },
-                         openSearch: openSearch, openLibrary: { organization.resetFilters(); tab = .library })
+                         openSearch: openSearch, openLibrary: openLibrary)
                     .modifier(SavedMediaNavigation(detailModel: { searchModel.detailModel(for: $0, savedMedia: $1) }))
             }
-                .tabItem { Label("Home", systemImage: "house") }.tag(RootTab.home)
+                .appTabChrome()
+                .tabItem { Label(AppTab.home.title, systemImage: AppTab.home.symbol) }.tag(AppTab.home)
             NavigationStack(path: $searchPath) { SearchView(model: searchModel) }
-                .tabItem { Label("Search", systemImage: "magnifyingglass") }.tag(RootTab.search)
-            NavigationStack {
+                .appTabChrome()
+                .tabItem { Label(AppTab.search.title, systemImage: AppTab.search.symbol) }.tag(AppTab.search)
+            NavigationStack(path: $libraryPath) {
                 LibraryView(detailModel: { destination, savedMedia in searchModel.detailModel(for: destination, savedMedia: savedMedia) },
-                            openSearch: openSearch, organization: organization)
+                            openSearch: openSearch, organization: organization, openSection: { libraryPath.append($0) })
             }
-                .tabItem { Label("Library", systemImage: "books.vertical") }.tag(RootTab.library)
-            NavigationStack {
+                .appTabChrome()
+                .tabItem { Label(AppTab.library.title, systemImage: AppTab.library.symbol) }.tag(AppTab.library)
+            NavigationStack(path: $profilePath) {
                 ProfileView(dashboard: dashboard, configurationChanged: {
                     MetadataRuntimeGate.credentialEpoch += 1
                     try? library.clearMetadataBackoff()
@@ -41,7 +45,8 @@ struct AppRootView: View {
                 })
                     .modifier(SavedMediaNavigation(detailModel: { searchModel.detailModel(for: $0, savedMedia: $1) }))
             }
-                .tabItem { Label("Profile", systemImage: "person") }.tag(RootTab.profile)
+                .appTabChrome()
+                .tabItem { Label(AppTab.profile.title, systemImage: AppTab.profile.symbol) }.tag(AppTab.profile)
         }
         .tint(AppStyle.Colors.accent)
         .task(id: RefreshKey(revision: library.revision, foreground: foregroundRevision)) {
@@ -65,6 +70,7 @@ struct AppRootView: View {
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { foregroundRevision += 1 } }
     }
+    private func openLibrary() { libraryPath = NavigationPath(); organization.resetFilters(); tab = .library }
     private func openSearch() { searchPath = NavigationPath(); tab = .search }
 }
 

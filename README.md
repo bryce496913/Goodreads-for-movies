@@ -37,7 +37,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 
 ## Implemented
 
-- Home, Search, Library, and Profile tabs, each owning its own `NavigationStack`.
+- Home, Search, Library, and Profile tabs, each owning its own native stack/path, with shared screen layouts, inline empty states and protected editors; see [app-shell audit and regression limits](docs/APP_SHELL.md).
 - Personal Home dashboard and anonymous local Profile with saved Continue Watching, dated viewing history, Watchlist shortcuts, timestamped activity, and clearly defined statistics. See [dashboard semantics, migration, fixtures and validation](docs/home-profile-dashboard.md).
 - Welcoming empty states with a route to Search, accurate zero counts, unavailable unrated average, and provider credential Settings plus About & Credits.
 - Adaptive Paper/Ink surfaces and Ember emphasis, system typography/spacing tokens, and shared artwork, type labels, states and actions; see [design system, audit and accessibility evidence](docs/DESIGN_SYSTEM.md).
@@ -87,7 +87,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (345 methods total, all require local macOS/Xcode execution):
+Included tests (356 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -95,7 +95,7 @@ Included tests (345 methods total, all require local macOS/Xcode execution):
 - 18 SearchModel and 5 Search UI tests.
 - 12 detail model/component and 6 detail UI tests.
 - 3 rating value, 9 rating persistence and 3 rating UI tests.
-- 3 general navigation UI tests.
+- 3 general navigation and 10 app-shell UI tests.
 - 17 review/diary store and 4 review/diary UI tests.
 - 18 TV progress store/calculation/model tests and 4 TV progress UI tests.
 - 14 Library organization/store tests (including 5,000-item data) and 5 organization UI tests.
@@ -103,7 +103,7 @@ Included tests (345 methods total, all require local macOS/Xcode execution):
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
-- 7 design token/contrast/component-layout methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
+- 8 design token/contrast/component-layout and tab-contract methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
 - 34 backup/restore and validation methods, all unrun; see [backup and restore](docs/DATA_BACKUP_AND_RESTORE.md).
 - 19 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
 - 28 performance/concurrency methods (13 regressions and 15 benchmarks), all unrun; see [findings, isolation and reproducible harness](docs/PERFORMANCE_CONCURRENCY.md).
