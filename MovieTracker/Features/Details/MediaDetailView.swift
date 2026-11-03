@@ -18,22 +18,27 @@ struct MediaDetailView: View {
                             .accessibilityIdentifier("details.cached")
                             .accessibilityAddTraits(.updatesFrequently)
                     }
-                    Text(model.availability.message).font(.footnote).accessibilityIdentifier("details.availability")
-                    if let date = model.availability.retrievedAt {
-                        Text("Last retrieved: " + date.formatted(date: .abbreviated, time: .shortened)).font(.footnote)
-                    }
                     DetailArtworkHeader(item: SearchItem(snapshot.media), backdropReference: backdrop(snapshot.media), resolver: snapshot.imageResolver, savedPosterURL: model.cachedPosterURL)
                         .id(refreshID)
-                    LibraryDetailActions(media: snapshot.media,
-                        posterURL: snapshot.imageResolver?.posterURL(reference: SearchItem(snapshot.media).posterReference))
-                    PersonalDiarySection(media: snapshot.media)
                     switch snapshot.media {
                     case .movie(let movie): MovieDetailContent(movie: movie)
                     case .tvShow(let show):
                         TVDetailContent(show: show)
+                    }
+                    LibraryDetailActions(media: snapshot.media,
+                        posterURL: snapshot.imageResolver?.posterURL(reference: SearchItem(snapshot.media).posterReference))
+                    switch snapshot.media {
+                    case .movie(let movie): DetailSynopsis(overview: movie.overview)
+                    case .tvShow(let show):
                         TVSeasonsSection(show: show, catalogIsFresh: model.hasCurrentMetadata, model: model.tvProgressModel(for: show))
+                        DetailSynopsis(overview: show.overview)
                     }
                     DetailCast(members: snapshot.cast, isLoading: model.isLoadingExtras, unavailable: model.castUnavailable)
+                    PersonalDiarySection(media: snapshot.media)
+                    Text(model.availability.message).font(.footnote).accessibilityIdentifier("details.availability")
+                    if let date = model.availability.retrievedAt {
+                        Text("Last retrieved: " + date.formatted(date: .abbreviated, time: .shortened)).font(.footnote)
+                    }
                     if model.artworkUnavailable {
                         Text("Artwork could not be updated. Previously loaded artwork may still be available.")
                             .font(.footnote).foregroundStyle(.secondary)

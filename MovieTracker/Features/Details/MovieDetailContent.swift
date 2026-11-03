@@ -8,6 +8,5 @@ struct MovieDetailContent: View {
             DetailFact(label: "Runtime", value: DetailFormatting.runtime(movie.runtimeMinutes))
         ])
         DetailGenres(genres: movie.genres)
-        DetailSynopsis(overview: movie.overview)
     }
 }

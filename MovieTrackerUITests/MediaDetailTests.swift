@@ -39,7 +39,7 @@ final class MediaDetailUITests: XCTestCase {
     func testMissingMetadataAndArtworkFallbacks() {
         let app = launchDetails(kind: "movie", mode: "missing")
         XCTAssertTrue(app.staticTexts["details.title"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.images["details.backdrop.placeholder"].exists)
+        XCTAssertFalse(app.images["details.backdrop.placeholder"].exists, "Missing backdrops must not reserve an empty hero")
         XCTAssertTrue(app.images["details.poster.placeholder"].exists)
         let synopsis = app.staticTexts["details.synopsis"]
         reveal(synopsis, in: app)
@@ -87,6 +87,26 @@ final class MediaDetailUITests: XCTestCase {
         reveal(footer, in: app)
         XCTAssertTrue(footer.isHittable)
         screenshot("Details — large text dark fixture", app: app)
+    }
+
+    @MainActor
+    func testPersonalActionsKeepIndependentSelectedStates() {
+        let app = launchDetails(kind: "tvShow")
+        let watching = app.buttons["library.watchingAction"]
+        reveal(watching, in: app)
+        watching.tap()
+        XCTAssertEqual(watching.value as? String, "Selected")
+        let favorite = app.buttons["library.favoriteAction"]
+        reveal(favorite, in: app)
+        favorite.tap()
+        XCTAssertEqual(favorite.value as? String, "Selected")
+        XCTAssertEqual(watching.value as? String, "Selected")
+        let watched = app.buttons["library.watchedAction"]
+        reveal(watched, in: app)
+        watched.tap()
+        XCTAssertEqual(watched.value as? String, "Selected")
+        XCTAssertEqual(watching.value as? String, "Not selected")
+        XCTAssertEqual(favorite.value as? String, "Selected")
     }
 
     @MainActor

@@ -38,8 +38,9 @@ struct DetailArtworkHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
-            DetailArtwork(title: item.title, kind: "Backdrop",
-                          url: resolver?.backdropURL(reference: backdropReference, size: .detail), aspectRatio: 16 / 9)
+            if let url = resolver?.backdropURL(reference: backdropReference, size: .detail) {
+                DetailArtwork(title: item.title, kind: "Backdrop", url: url, aspectRatio: 16 / 9)
+            }
             if dynamicType.isAccessibilitySize {
                 poster.frame(maxWidth: 160)
                 title

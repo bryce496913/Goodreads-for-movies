@@ -87,13 +87,13 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (356 methods total, all require local macOS/Xcode execution):
+Included tests (357 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
 - 9 library store and 3 library UI tests.
 - 18 SearchModel and 5 Search UI tests.
-- 12 detail model/component and 6 detail UI tests.
+- 12 detail model/component and 7 detail UI tests.
 - 3 rating value, 9 rating persistence and 3 rating UI tests.
 - 3 general navigation and 10 app-shell UI tests.
 - 17 review/diary store and 4 review/diary UI tests.
@@ -127,3 +127,5 @@ Entering a Search query triggers metadata requests with approved local TMDB conf
 Home and Profile now aggregate real local viewing data; later passes may consider separately scoped discovery features. Library organization/sorting is implemented locally. Search, detail pages, local watchlist/status/favorites and personal ratings are implemented. The metadata adapter, Search UI and movie/TV detail pages are implemented, including real-provider credits support; live access remains unverified here. Private reviews and a viewing diary are implemented locally. Episode progress is separate from series-level status and diary events. There is no account system, social publishing, cloud sync, notifications, monetization, or AI functionality.
 
 Recommended next step: run the complete suite and capture Search screenshots locally, verify current provider terms/attribution and authorized live access, then validate library/rating/review/diary migration and relaunch before choosing the next separately scoped feature. Live-provider, simulator and migration validation remain pending. Installed builds can configure their own authorized token in Profile → Settings using the device Keychain; no token is bundled. Release ignores the optional Debug Run-scheme credential. `scripts/validate-v05.sh <SIMULATOR_UUID>` performs local Debug/Release builds and the full test suite; it has not run successfully on this Linux worker.
+
+Search and detail presentation rules and local regression steps: [Search and media experience](docs/SEARCH_MEDIA_EXPERIENCE.md).
