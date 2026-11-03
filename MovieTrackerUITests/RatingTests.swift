@@ -8,6 +8,7 @@ final class RatingUITests: XCTestCase {
         let app = openDetails()
         select("4.5 stars", in: app)
         XCTAssertEqual(app.staticTexts["rating.value"].label, "4.5 stars")
+        XCTAssertTrue(app.staticTexts["rating.saved"].exists)
         XCTAssertEqual(app.staticTexts["library.currentStatus"].label, "No viewing status")
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "Personal rating — fixture 4.5 stars"

@@ -47,7 +47,7 @@ struct TVSeasonsSection: View {
                 .accessibilityIdentifier("tv.season.\(season.number)")
             }
             if model.canRefresh && !model.isLoading {
-                Button("Refresh Seasons") { refresh += 1 }.accessibilityIdentifier("tv.refreshSeasons")
+                Button("Refresh Seasons") { refresh += 1 }.buttonStyle(AppActionStyle()).accessibilityIdentifier("tv.refreshSeasons")
             }
         }
         .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
@@ -73,9 +73,11 @@ struct ProgressDescription: View {
     let summary: EpisodeProgressSummary
     let series: Bool
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Episodes marked watched: \(summary.totalWatched)").font(.subheadline)
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+            Text("Episodes marked watched: \(summary.totalWatched)")
+                .font(AppStyle.Typography.mediaTitle)
             Text("\(summary.watched) watched of \(summary.eligible) known aired episodes")
+                .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
             if let percentage = summary.percentage {
                 Text("\(percentage)% of known aired episodes").font(.subheadline)
                 ProgressView(value: Double(summary.watched), total: Double(summary.eligible))
@@ -85,10 +87,18 @@ struct ProgressDescription: View {
                     .font(.footnote)
             }
             if summary.isUpToDate {
-                Label(series ? "All known aired regular episodes watched" : "All known aired episodes watched", systemImage: "checkmark.circle")
+                Label(series ? "All known aired regular episodes watched" : "All known aired episodes watched", systemImage: "checkmark.circle.fill")
+                    .font(AppStyle.Typography.metadata)
+            }
+            if series && summary.isUpToDate {
+                Text("Up to date with known aired episodes; series completion is not implied.")
+                    .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
             }
             if summary.future > 0 { Text("\(summary.future) future episodes excluded").font(.footnote) }
             if summary.unknownAirDate > 0 { Text("\(summary.unknownAirDate) unknown air dates excluded").font(.footnote) }
         }
+        .fixedSize(horizontal: false, vertical: true)
+        .tint(AppStyle.Colors.accent)
+        .accessibilityIdentifier("tv.progressSummary")
     }
 }

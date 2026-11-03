@@ -28,18 +28,27 @@ struct ReviewEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Text(SearchItem(draft.media).title).font(.headline)
-                Text("Private review, stored only on this device.").font(.subheadline)
-                TextEditor(text: $text).font(.body).frame(minHeight: 240).focused($editingText)
-                    .accessibilityLabel("Your private review").accessibilityIdentifier("review.editor")
-                Picker("Associated viewing", selection: $eventID) {
-                    Text("No associated viewing").tag(nil as UUID?)
-                    ForEach(library.events(for: SearchItem(draft.media).id)) { event in
-                        Text(event.dateLabel).tag(Optional(event.id))
-                    }
+                Section {
+                    Text(SearchItem(draft.media).title).font(AppStyle.Typography.mediaTitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Private review, stored only on this device.")
+                        .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
                 }
-                if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text("Enter review text before saving.").font(.footnote).foregroundStyle(.secondary)
+                Section("Your review") {
+                    TextEditor(text: $text).font(AppStyle.Typography.body)
+                        .frame(minHeight: 280).focused($editingText)
+                        .accessibilityLabel("Your private review").accessibilityIdentifier("review.editor")
+                }
+                Section("Viewing association") {
+                    Picker("Associated viewing", selection: $eventID) {
+                        Text("No associated viewing").tag(nil as UUID?)
+                        ForEach(library.events(for: SearchItem(draft.media).id)) { event in
+                            Text(event.dateLabel).tag(Optional(event.id))
+                        }
+                    }
+                    if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text("Enter review text before saving.").font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
             }
             .appFormScreen("Personal Review")

@@ -15,14 +15,26 @@ struct LibraryRow: View {
         .padding(.vertical, AppStyle.Spacing.small)
         .accessibilityElement(children: .combine)
     }
+    private var statusSymbol: String {
+        switch item.rawStatus {
+        case "watchlist": "bookmark"
+        case "watching": "play.circle"
+        case "watched": "checkmark.circle"
+        default: "minus.circle"
+        }
+    }
     private var details: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
             Text(item.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
-            MediaTypeLabel(title: item.mediaLabel)
-            if let year = item.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
-            Text(item.statusLabel).font(AppStyle.Typography.metadata)
-            Text(item.rating.label).font(AppStyle.Typography.metadata)
-            if item.isFavorite { Label("Favorite", systemImage: "heart.fill").font(AppStyle.Typography.metadata) }
+            Text([item.mediaLabel, item.year.map(String.init)].compactMap { $0 }.joined(separator: " · "))
+                .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            Label(item.statusLabel, systemImage: statusSymbol)
+                .font(AppStyle.Typography.metadata)
+            PersonalRatingDisplay(rating: item.rating.value, label: item.rating.label)
+            if item.isFavorite {
+                Label("Favorite", systemImage: "heart.fill")
+                    .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
+            }
         }
     }
 }

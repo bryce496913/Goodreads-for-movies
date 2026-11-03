@@ -16,6 +16,9 @@ final class LibraryOrganizationUITests: XCTestCase {
         XCTAssertFalse(app.buttons["library.row.tvShow.fixture:library:1"].exists)
         XCTAssertTrue(movie.label.contains("Café Society"))
         XCTAssertTrue(movie.label.contains("Favorite"))
+        XCTAssertTrue(movie.label.contains("Watched"))
+        XCTAssertTrue(movie.label.contains("Movie"))
+        XCTAssertTrue(movie.label.contains("4.5 stars"))
         reveal(movie, in: app)
         screenshot("Library — combined filters fixture", app: app)
     }

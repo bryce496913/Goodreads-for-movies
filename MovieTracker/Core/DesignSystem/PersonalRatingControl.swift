@@ -32,7 +32,9 @@ struct PersonalRatingControl: View {
                     .font(AppStyle.Typography.metadata).accessibilityIdentifier("rating.invalid")
             } else {
                 RatingStars(rating: selected)
-                Text(selected?.label ?? "Unrated").accessibilityIdentifier("rating.value")
+                Text(selected?.label ?? "Unrated")
+                    .font(AppStyle.Typography.metadata)
+                    .accessibilityIdentifier("rating.value")
             }
             Picker("Your rating", selection: units) {
                 Text("Unrated").tag(0)
@@ -41,13 +43,14 @@ struct PersonalRatingControl: View {
                 }
             }
             .pickerStyle(.menu)
+            .frame(minHeight: AppStyle.Layout.minimumTarget)
             .accessibilityValue(invalidStoredValue ? "Stored rating unavailable" : selected?.label ?? "Unrated")
             .accessibilityIdentifier("rating.picker")
             Stepper("Adjust personal rating", value: units, in: 0...10)
                 .accessibilityValue(invalidStoredValue ? "Stored rating unavailable" : selected?.label ?? "Unrated")
                 .accessibilityIdentifier("rating.stepper")
             if selected != nil || invalidStoredValue {
-                Button("Clear Personal Rating") { units.wrappedValue = 0 }
+                Button("Clear Personal Rating", systemImage: "star.slash") { units.wrappedValue = 0 }
                     .accessibilityIdentifier("rating.clear")
             }
             if saved { Text("Saved").font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText).accessibilityIdentifier("rating.saved") }
@@ -84,11 +87,28 @@ struct PersonalRatingSummary: View {
     var body: some View {
         Group {
             switch Result(catching: { try entry?.validatedRating() }) {
-            case .success(let rating): Text(rating.map { "Your rating: \($0.label)" } ?? "Unrated")
+            case .success(let rating):
+                PersonalRatingDisplay(rating: rating, label: rating.map { "Your rating: \($0.label)" } ?? "Unrated")
             case .failure: Text("Personal rating unavailable")
             }
         }
         .font(AppStyle.Typography.metadata)
         .accessibilityIdentifier("rating.summary")
+    }
+}
+
+/// One compact, read-only rating treatment shared by Library and diary rows.
+struct PersonalRatingDisplay: View {
+    let rating: PersonalRating?
+    let label: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
+            if let rating { RatingStars(rating: rating) }
+            Text(label).font(AppStyle.Typography.metadata)
+                .foregroundStyle(AppStyle.Colors.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
     }
 }

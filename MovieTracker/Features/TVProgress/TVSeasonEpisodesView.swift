@@ -6,6 +6,7 @@ struct TVSeasonEpisodesView: View {
     @State private var refresh = 0
     @State private var batchWatched: Bool?
     @State private var errorMessage: String?
+    @State private var progressSaved = false
     @Environment(LibraryStore.self) private var library
 
     init(number: Int, model: TVProgressModel) { self.number = number; _model = State(initialValue: model) }
@@ -23,12 +24,17 @@ struct TVSeasonEpisodesView: View {
                     if let saved = cached.refreshedAt {
                         Text("Episode metadata saved " + saved.formatted(date: .abbreviated, time: .shortened)).font(.footnote)
                     }
+                    if progressSaved {
+                        Label("Progress saved", systemImage: "checkmark.circle")
+                            .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
+                            .accessibilityIdentifier("tv.progressSaved")
+                    }
                     if model.isLoading { ProgressView("Updating episodes…") }
                     if let error = model.errorMessage { Text("Episode update unavailable. Saved watched flags are kept. " + error).accessibilityIdentifier("tv.cached") }
                     Button("Mark Aired Episodes Watched") { batchWatched = true }
-                        .disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchWatched")
+                        .buttonStyle(AppActionStyle()).disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchWatched")
                     Button("Mark Season Unwatched") { batchWatched = false }
-                        .disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchUnwatched")
+                        .buttonStyle(AppActionStyle()).disabled(library.episodes(for: cached).isEmpty).accessibilityIdentifier("tv.batchUnwatched")
                     if model.isUsingSavedSeason { Text("Saved episodes are available on this device without a connection.").font(.footnote) }
                     if model.canRefresh && !model.isLoading { Button("Refresh Episodes") { refresh += 1 }.accessibilityIdentifier("tv.refreshEpisodes") }
                 }
@@ -43,8 +49,6 @@ struct TVSeasonEpisodesView: View {
                             Text((library.isFuture(episode) ? "Future air date: " : "Air date: ") + DetailFormatting.date(airDate)).font(.subheadline)
                         } else { Text("Air date unknown; excluded from aired progress.").font(.subheadline) }
                         if let runtime = episode.runtimeMinutes, runtime > 0 { Text("\(runtime) min").font(.subheadline) }
-                        Text(episode.overview.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Synopsis unavailable." : episode.overview)
-                            .font(.body).fixedSize(horizontal: false, vertical: true)
                         if !cached.listedIDs.contains(episode.id) {
                             Text("Previously loaded; not in the latest episode listing.").font(.footnote)
                         }
@@ -54,6 +58,12 @@ struct TVSeasonEpisodesView: View {
                         .disabled(library.isFuture(episode) && !library.isWatched(episode.id))
                         .accessibilityLabel(episode.number == 0 ? "Watched episode reference " + episode.id.providerValue : "Watched: season \(number), episode \(episode.number), \(episode.title)")
                         .accessibilityIdentifier("episode.toggle.\(episode.id.providerValue)")
+                        .frame(minHeight: AppStyle.Layout.minimumTarget)
+                        DisclosureGroup("Episode synopsis") {
+                            Text(episode.overview.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Synopsis unavailable." : episode.overview)
+                                .font(.body).fixedSize(horizontal: false, vertical: true)
+                        }
+                        .font(AppStyle.Typography.metadata)
                     }
                 }
             } else {
@@ -85,6 +95,6 @@ struct TVSeasonEpisodesView: View {
     }
 
     private func perform(_ operation: () throws -> Void) {
-        do { try operation() } catch { errorMessage = error.localizedDescription }
+        do { try operation(); progressSaved = true } catch { progressSaved = false; errorMessage = error.localizedDescription }
     }
 }
