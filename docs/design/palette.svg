@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 690" role="img" aria-labelledby="title desc">
+<title id="title">MovieTracker adaptive color reference</title>
+<desc id="desc">Static light and dark palette swatches, not application screenshots. Each panel shows semantic roles and hexadecimal sRGB values.</desc>
+<rect x="0" width="500" height="690" fill="#EEECE7"/>
+<text x="32" y="48" fill="#1B2027" font-family="system-ui,sans-serif" font-size="26" font-weight="700">Paper / Light</text>
+<text x="32" y="76" fill="#525C68" font-family="system-ui,sans-serif" font-size="14">Provisional semantic palette · pass 019</text>
+<rect x="32" y="106" width="48" height="36" rx="6" fill="#EEECE7" stroke="#C6C7C8"/>
+<text x="96" y="121" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Canvas</text>
+<text x="96" y="141" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#EEECE7</text>
+<rect x="32" y="165" width="48" height="36" rx="6" fill="#F8F7F3" stroke="#C6C7C8"/>
+<text x="96" y="180" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Surface</text>
+<text x="96" y="200" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#F8F7F3</text>
+<rect x="32" y="224" width="48" height="36" rx="6" fill="#E4E2DC" stroke="#C6C7C8"/>
+<text x="96" y="239" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Raised surface</text>
+<text x="96" y="259" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#E4E2DC</text>
+<rect x="32" y="283" width="48" height="36" rx="6" fill="#1B2027" stroke="#C6C7C8"/>
+<text x="96" y="298" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Primary text</text>
+<text x="96" y="318" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#1B2027</text>
+<rect x="32" y="342" width="48" height="36" rx="6" fill="#525C68" stroke="#C6C7C8"/>
+<text x="96" y="357" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Secondary text</text>
+<text x="96" y="377" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#525C68</text>
+<rect x="32" y="401" width="48" height="36" rx="6" fill="#A8422E" stroke="#C6C7C8"/>
+<text x="96" y="416" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Ember accent</text>
+<text x="96" y="436" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#A8422E</text>
+<rect x="32" y="460" width="48" height="36" rx="6" fill="#8F3526" stroke="#C6C7C8"/>
+<text x="96" y="475" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Pressed accent</text>
+<text x="96" y="495" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#8F3526</text>
+<rect x="32" y="519" width="48" height="36" rx="6" fill="#FFFFFF" stroke="#C6C7C8"/>
+<text x="96" y="534" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">On accent</text>
+<text x="96" y="554" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#FFFFFF</text>
+<rect x="32" y="578" width="48" height="36" rx="6" fill="#C6C7C8" stroke="#C6C7C8"/>
+<text x="96" y="593" fill="#1B2027" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Divider</text>
+<text x="96" y="613" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">#C6C7C8</text>
+<text x="32" y="660" fill="#525C68" font-family="system-ui,sans-serif" font-size="13">Reference swatches only · native UI validation pending</text>
+<rect x="500" width="500" height="690" fill="#111419"/>
+<text x="532" y="48" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="26" font-weight="700">Ink / Dark</text>
+<text x="532" y="76" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="14">Provisional semantic palette · pass 019</text>
+<rect x="532" y="106" width="48" height="36" rx="6" fill="#111419" stroke="#414B58"/>
+<text x="596" y="121" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Canvas</text>
+<text x="596" y="141" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#111419</text>
+<rect x="532" y="165" width="48" height="36" rx="6" fill="#1B2027" stroke="#414B58"/>
+<text x="596" y="180" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Surface</text>
+<text x="596" y="200" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#1B2027</text>
+<rect x="532" y="224" width="48" height="36" rx="6" fill="#252B34" stroke="#414B58"/>
+<text x="596" y="239" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Raised surface</text>
+<text x="596" y="259" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#252B34</text>
+<rect x="532" y="283" width="48" height="36" rx="6" fill="#EEECE7" stroke="#414B58"/>
+<text x="596" y="298" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Primary text</text>
+<text x="596" y="318" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#EEECE7</text>
+<rect x="532" y="342" width="48" height="36" rx="6" fill="#A7AEB7" stroke="#414B58"/>
+<text x="596" y="357" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Secondary text</text>
+<text x="596" y="377" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#A7AEB7</text>
+<rect x="532" y="401" width="48" height="36" rx="6" fill="#DA785F" stroke="#414B58"/>
+<text x="596" y="416" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Ember accent</text>
+<text x="596" y="436" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#DA785F</text>
+<rect x="532" y="460" width="48" height="36" rx="6" fill="#EE9479" stroke="#414B58"/>
+<text x="596" y="475" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Pressed accent</text>
+<text x="596" y="495" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#EE9479</text>
+<rect x="532" y="519" width="48" height="36" rx="6" fill="#111419" stroke="#414B58"/>
+<text x="596" y="534" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">On accent</text>
+<text x="596" y="554" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#111419</text>
+<rect x="532" y="578" width="48" height="36" rx="6" fill="#414B58" stroke="#414B58"/>
+<text x="596" y="593" fill="#EEECE7" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Divider</text>
+<text x="596" y="613" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">#414B58</text>
+<text x="532" y="660" fill="#A7AEB7" font-family="system-ui,sans-serif" font-size="13">Reference swatches only · native UI validation pending</text>
+</svg>

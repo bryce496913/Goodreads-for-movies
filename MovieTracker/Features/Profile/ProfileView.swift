@@ -6,8 +6,7 @@ struct ProfileView: View {
     var body: some View {
         List {
             Section {
-                Label("Your local profile", systemImage: "person.crop.circle").font(.title2)
-                Text("Your private viewing story on this device. No account is needed.")
+                PageHeader(title: "Your local profile", subtitle: "Your private viewing story on this device. No account is needed.", systemImage: "person.crop.circle")
             }
             DashboardReadState(model: dashboard)
             if let snapshot = dashboard.snapshot {
@@ -47,11 +46,12 @@ struct ProfileView: View {
                 .accessibilityIdentifier("profile.settings")
             }
         }
+        .appListBackground()
         .navigationTitle("Profile")
     }
     private func metric(_ label: String, _ value: Int, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.headline)
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
+            Text(label).font(AppStyle.Typography.mediaTitle)
             Text(value.formatted()).font(.title3.monospacedDigit())
         }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.stat." + id)
     }

@@ -6,24 +6,21 @@ struct SearchResultRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: AppStyle.Spacing.medium) {
-            EphemeralAsyncImage(url: posterURL) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else {
-                    ZStack {
-                        Rectangle().fill(AppStyle.surface)
-                        Image(systemName: "film").foregroundStyle(.secondary)
+            PosterFrame {
+                EphemeralAsyncImage(url: posterURL) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        ArtworkPlaceholder()
                     }
                 }
             }
-            .frame(width: 56, height: 84)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-                Text(item.title).font(.headline).fixedSize(horizontal: false, vertical: true)
-                Text(item.mediaType).font(.subheadline).foregroundStyle(.secondary)
+                Text(item.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+                MediaTypeLabel(title: item.mediaType)
                 if let year = item.year {
-                    Text(String(year)).font(.subheadline).foregroundStyle(.secondary)
+                    Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
                 }
             }
         }

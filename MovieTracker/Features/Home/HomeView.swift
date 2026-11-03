@@ -12,9 +12,9 @@ struct HomeView: View {
             if let snapshot = dashboard.snapshot {
                 if !snapshot.hasPersonalData {
                     Section {
-                        ContentUnavailableView("Your viewing story starts here", systemImage: "play.rectangle",
-                            description: Text("Find a movie or series, save a title, or record a watch. Your personal activity will appear here."))
-                        Button("Find Movies and TV", action: openSearch).accessibilityIdentifier("home.findTitles")
+                        EmptyStateCard(title: "Your viewing story starts here", systemImage: "play.rectangle",
+                            message: "Find a movie or series, save a title, or record a watch. Your personal activity will appear here.")
+                        Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("home.findTitles")
                     }.accessibilityIdentifier("home.empty")
                 }
                 Section("Continue Watching") {
@@ -68,6 +68,7 @@ struct HomeView: View {
                 }
             } else if !dashboard.isLoading { Text("Your saved summary is not available yet.") }
         }
+        .appListBackground()
         .navigationTitle("Welcome")
         .listStyle(.insetGrouped)
     }

@@ -22,7 +22,7 @@ struct MovieTrackerApp: App {
                         Text(persistenceDiagnostic ?? "Your local library could not be opened. Your saved data has not been reset.")
                     } actions: {
                         Button("Try Again", action: loadPersistence)
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(AppActionStyle(emphasis: .primary))
                     }
                 } else {
                     ProgressView("Opening your library…")

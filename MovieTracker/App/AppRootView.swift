@@ -43,6 +43,7 @@ struct AppRootView: View {
             }
                 .tabItem { Label("Profile", systemImage: "person") }.tag(RootTab.profile)
         }
+        .tint(AppStyle.Colors.accent)
         .task(id: RefreshKey(revision: library.revision, foreground: foregroundRevision)) {
             let now = Date.now
             guard library.loadError == nil, dashboard.needsRefresh(revision: library.revision, now: now) else { return }
