@@ -28,13 +28,14 @@ struct DataBackupView: View {
                 Text("Export your library membership, statuses, favorites, personal ratings, private reviews, viewing diary and episode watched flags. No internet connection is required.")
                 Text("Provider titles, artwork, metadata caches and credentials are excluded. Restored titles may show identifiers until you retrieve metadata with an authorized provider configuration.").font(.footnote)
                 if model.isBusy { ProgressView("Preparing personal data…").accessibilityIdentifier("backup.busy") }
-                Button("Export My Data") {
+                Button("Export My Data", systemImage: "square.and.arrow.up") {
                     work = Task {
                         await model.prepareExport(from: library)
                         if model.exportBytes != nil && !Task.isCancelled { exportPresented = true }
                     }
-                }.disabled(model.isBusy).accessibilityIdentifier("backup.export")
-                Button("Restore from Backup") { importPresented = true }
+                }.buttonStyle(AppActionStyle()).disabled(model.isBusy).accessibilityIdentifier("backup.export")
+                Button("Restore from Backup", systemImage: "square.and.arrow.down") { importPresented = true }
+                    .buttonStyle(AppActionStyle())
                     .disabled(model.isBusy).accessibilityIdentifier("backup.import")
             }
             Section("Your privacy") {

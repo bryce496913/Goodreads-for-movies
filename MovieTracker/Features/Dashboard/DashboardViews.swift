@@ -2,18 +2,38 @@ import SwiftUI
 
 struct DashboardTitleRow: View {
     let title: DashboardTitle
+    @Environment(\.dynamicTypeSize) private var textSize
     var body: some View {
-        HStack(alignment: .top, spacing: AppStyle.Spacing.compact) {
-            LibraryCachedPoster(url: title.posterURL)
-            VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
-                Text(title.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
-                MediaTypeLabel(title: title.id.kind == .movie ? "Movie" : "TV Show")
-                if let year = title.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
-                if let rating = title.rating { Text("Your rating: " + rating.label).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
+        Group {
+            if textSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+                    LibraryCachedPoster(url: title.posterURL)
+                    details
+                }
+            } else {
+                HStack(alignment: .top, spacing: AppStyle.Spacing.compact) {
+                    LibraryCachedPoster(url: title.posterURL)
+                    details
+                }
             }
         }
+        .padding(.vertical, AppStyle.Spacing.xSmall)
         .accessibilityElement(children: .combine)
     }
+    private var details: some View {
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
+            Text(title.title).font(AppStyle.Typography.mediaTitle)
+                .foregroundStyle(AppStyle.Colors.primaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            Text([title.id.kind == .movie ? "Movie" : "TV Show", title.year.map(String.init)]
+                .compactMap { $0 }.joined(separator: " · "))
+                .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            if let rating = title.rating {
+                PersonalRatingDisplay(rating: rating, label: "Your rating: " + rating.label)
+            }
+        }
+    }
+
 }
 
 struct DashboardDiaryRow: View {
@@ -21,8 +41,12 @@ struct DashboardDiaryRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
             DashboardTitleRow(title: item.title)
-            if let date = item.watchedDate { Text("Watched: " + DetailFormatting.date(date)) }
-            else { Text("Watch date unknown • Recorded: " + DetailFormatting.date(item.recordedAt)) }
+            Group {
+                if let date = item.watchedDate { Label("Watched: " + DetailFormatting.date(date), systemImage: "calendar") }
+                else { Label("Watch date unknown • Recorded: " + DetailFormatting.date(item.recordedAt), systemImage: "calendar.badge.clock") }
+            }
+            .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -56,5 +80,39 @@ struct SavedMediaNavigation: ViewModifier {
             let media = library.offlineMedia(for: destination.id)
             MediaDetailView(model: detailModel(destination, media))
         }
+    }
+}
+
+/// Native rows, not metric cards. Long text and accessibility sizes use a vertical layout.
+struct DashboardMetricRow: View {
+    let label: String
+    let value: String
+    @Environment(\.dynamicTypeSize) private var textSize
+    var body: some View {
+        Group {
+            if textSize.isAccessibilitySize { stacked }
+            else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: AppStyle.Spacing.medium) {
+                        Text(label).font(AppStyle.Typography.metadata).fixedSize()
+                        Spacer(minLength: AppStyle.Spacing.small)
+                        Text(value).font(AppStyle.Typography.mediaTitle).monospacedDigit().fixedSize()
+                    }
+                    stacked
+                }
+            }
+        }
+        .foregroundStyle(AppStyle.Colors.primaryText)
+        .frame(minHeight: AppStyle.Layout.minimumTarget, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label + ", " + value)
+    }
+    private var stacked: some View {
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
+            Text(label).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            Text(value).font(AppStyle.Typography.mediaTitle).monospacedDigit()
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

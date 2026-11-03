@@ -117,6 +117,28 @@ final class DesignSystemTests: XCTestCase {
         }
     }
 
+    @MainActor func testDashboardRowsWrapLongMetricsAndTitlesAtAccessibilitySizes() throws {
+        let rating = try PersonalRating(halfStarUnits: 7)
+        let title = DashboardTitle(id: MediaID(kind: .tvShow, value: "fixture:long"),
+            title: String(repeating: "A long saved series title ", count: 5), year: nil, posterURL: nil, rating: rating)
+        let store = LibraryStore(container: try PersistenceController.makeContainer(inMemory: true))
+        for type in [DynamicTypeSize.large, .accessibility5] {
+            for scheme in [ColorScheme.light, .dark] {
+                let content = VStack(alignment: .leading) {
+                    DashboardTitleRow(title: title)
+                    DashboardMetricRow(label: "Series with watched episode progress", value: "1,000")
+                    DashboardMetricRow(label: "Average personal rating", value: "Unavailable — no valid personal ratings")
+                }.environment(store).environment(\.dynamicTypeSize, type).environment(\.colorScheme, scheme)
+                let host = UIHostingController(rootView: content)
+                host.loadViewIfNeeded()
+                let size = host.sizeThatFits(in: CGSize(width: 288, height: 20_000))
+                XCTAssertGreaterThan(size.height, 0)
+                XCTAssertTrue(size.height.isFinite)
+                XCTAssertLessThanOrEqual(size.width, 288.5)
+            }
+        }
+    }
+
     @MainActor private func resolved(_ name: String, style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast = .normal) throws -> UIColor {
         let traits = UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style), UITraitCollection(accessibilityContrast: contrast)])
         return try XCTUnwrap(UIColor(named: name, in: .main, compatibleWith: traits)).resolvedColor(with: traits)

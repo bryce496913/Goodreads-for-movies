@@ -18,14 +18,14 @@ struct SettingsView: View {
                 SecureField("TMDB read access token", text: $token)
                     .textInputAutocapitalization(.never).autocorrectionDisabled().focused($editingToken)
                     .accessibilityIdentifier("settings.token")
-                Button("Save Provider Credential") {
+                Button("Save Provider Credential", systemImage: "key") {
                     perform {
                         let value = try TMDBConfiguration(readAccessToken: token)
                         try credentials.save(value.readAccessToken)
                         token = ""; editingToken = false; configured = true
                         configurationChanged()
                     }
-                }.disabled(token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }.buttonStyle(AppActionStyle()).disabled(token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("settings.saveCredential")
                 if configured {
                     Button("Remove Provider Credential", role: .destructive) { confirmRemoval = true }
@@ -37,8 +37,10 @@ struct SettingsView: View {
                 }
             }
             Section("Your Personal Data") {
-                NavigationLink("Export or Restore Personal Data") { DataBackupView() }
-                    .accessibilityIdentifier("settings.backup")
+                NavigationLink { DataBackupView() } label: {
+                    Label("Export or Restore Personal Data", systemImage: "externaldrive")
+                }
+                .accessibilityIdentifier("settings.backup")
             }
             Section {
                 NavigationLink("About & Credits") { CreditsView() }

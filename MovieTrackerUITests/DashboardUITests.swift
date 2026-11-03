@@ -2,9 +2,9 @@ import XCTest
 
 /// All dataset values are owned by the test target; app import is DEBUG + isolated in-memory only.
 final class DashboardUITests: XCTestCase {
-    @MainActor private func launch(populated: Bool) throws -> XCUIApplication {
+    @MainActor private func launch(populated: Bool, extra: [String] = []) throws -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing-search", "--ui-testing-dashboard"]
+        app.launchArguments = ["--ui-testing-search", "--ui-testing-dashboard"] + extra
         if populated { app.launchEnvironment["DASHBOARD_UI_INPUT"] = try DashboardUIFixture.payload() }
         app.launch()
         XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
@@ -13,6 +13,7 @@ final class DashboardUITests: XCTestCase {
     @MainActor func testEmptyHomeRoutesToSearchAndProfileAverageUnavailable() throws {
         let app = try launch(populated: false)
         XCTAssertTrue(app.buttons["home.findTitles"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["Continue Watching"].exists)
         screenshot(app, "Home-empty")
         app.buttons["home.findTitles"].tap()
         XCTAssertTrue(app.navigationBars["Search"].waitForExistence(timeout: 5))
@@ -62,13 +63,57 @@ final class DashboardUITests: XCTestCase {
         expectation(for: updated, evaluatedWith: metric)
         waitForExpectations(timeout: 5)
     }
+    @MainActor func testHomeRecentWatchesUseWatchDatesAndRetainRepeatEvents() throws {
+        let app = try launch(populated: true)
+        let first = app.buttons.matching(identifier: "home.recentWatch").firstMatch
+        reveal(first, app)
+        XCTAssertTrue(first.exists)
+        XCTAssertTrue(first.label.contains("Watched:"))
+        XCTAssertFalse(first.label.contains("Recorded:"))
+        XCTAssertTrue(first.label.contains("2020"))
+        XCTAssertFalse(first.label.contains("2025"))
+        XCTAssertEqual(app.buttons.matching(identifier: "home.recentWatch").count, 2)
+        screenshot(app, "Home-recent-dated-watches")
+    }
+
+    @MainActor func testLargeTextDarkProfileAndSettingsRemainReachable() throws {
+        let app = try launch(populated: true, extra: [
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+            "-AppleInterfaceStyle", "Dark"
+        ])
+        let next = app.buttons["home.nextEpisode"]
+        reveal(next, app)
+        XCTAssertTrue(next.isHittable)
+        screenshot(app, "Home-large-text-dark")
+        app.tabBars.buttons["Profile"].tap()
+        assertMetric(app, "movies", "1")
+        assertMetric(app, "episodes", "1")
+        screenshot(app, "Profile-large-text-dark")
+        let settings = app.buttons["profile.settings"]
+        reveal(settings, app)
+        XCTAssertTrue(settings.isHittable)
+        settings.tap()
+        let backup = app.buttons["settings.backup"]
+        reveal(backup, app)
+        XCTAssertTrue(backup.isHittable)
+        screenshot(app, "Settings-large-text-dark")
+        backup.tap()
+        let export = app.buttons["backup.export"]
+        reveal(export, app)
+        XCTAssertTrue(export.isHittable)
+        let restore = app.buttons["backup.import"]
+        reveal(restore, app)
+        XCTAssertTrue(restore.isHittable)
+    }
+
     @MainActor private func find(_ app: XCUIApplication, _ id: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: id).firstMatch
     }
     @MainActor private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
         for _ in 0..<12 {
             if element.exists && element.isHittable { return }
-            app.swipeUp()
+            if element.exists && element.frame.midY < app.frame.midY { app.swipeDown() }
+            else { app.swipeUp() }
         }
     }
     @MainActor private func assertMetric(_ app: XCUIApplication, _ id: String, _ count: String) {
