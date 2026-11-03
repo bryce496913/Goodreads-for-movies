@@ -14,7 +14,7 @@ struct MediaDetailView: View {
                 if model.usesTestData { Text("UI test data").font(.caption) }
                 if let snapshot = model.snapshot(at: max(library.metadataReferenceDate, Date.now)) {
                     if let error = model.error {
-                        Text((model.hasSavedMetadata ? "Showing saved details. " : "Provider metadata unavailable. ") + error.localizedDescription)
+                        AppErrorMessage(message: (model.hasSavedMetadata ? "Showing saved details. " : "Provider metadata unavailable. ") + error.localizedDescription)
                             .accessibilityIdentifier("details.cached")
                             .accessibilityAddTraits(.updatesFrequently)
                     }
@@ -38,7 +38,7 @@ struct MediaDetailView: View {
                         Text("Artwork could not be updated. Previously loaded artwork may still be available.")
                             .font(.footnote).foregroundStyle(.secondary)
                     }
-                    if model.isLoading { ProgressView("Updating details…") }
+                    if model.isLoading { AppLoadingState(title: "Updating details…") }
                     if !model.usesTestData {
                         Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
                             .font(.footnote).foregroundStyle(.secondary)
@@ -49,7 +49,7 @@ struct MediaDetailView: View {
                         .accessibilityAddTraits(.isHeader)
                     Text(model.destination.id.kind == .movie ? "Movie" : "TV Show").font(.headline)
                     if model.isLoading {
-                        ProgressView("Loading details…").accessibilityIdentifier("details.loading")
+                        AppLoadingState(title: "Loading details…").accessibilityIdentifier("details.loading")
                     } else if let error = model.error {
                         ContentUnavailableView("Details unavailable", systemImage: "exclamationmark.triangle",
                                                description: Text(error.localizedDescription))
@@ -62,12 +62,12 @@ struct MediaDetailView: View {
                     Button(model.error == nil && !model.castUnavailable && !model.artworkUnavailable ? "Refresh Details" : "Retry Details") {
                         refreshID += 1
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AppActionStyle())
                     .accessibilityIdentifier("details.retry")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(AppStyle.Spacing.medium)
+            .padding(AppStyle.Layout.contentMargin)
         }
         .background(AppStyle.background)
         .navigationTitle("Details")

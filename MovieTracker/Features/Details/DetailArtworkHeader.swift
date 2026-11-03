@@ -7,7 +7,7 @@ struct DetailArtwork: View {
     let aspectRatio: CGFloat
 
     var body: some View {
-        Rectangle().fill(AppStyle.surface)
+        Rectangle().fill(AppStyle.Colors.raisedSurface)
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
                 EphemeralAsyncImage(url: url) { phase in
@@ -18,14 +18,14 @@ struct DetailArtwork: View {
                     case .empty where url != nil:
                         ProgressView().accessibilityLabel("Loading \(kind.lowercased()) for \(title)")
                     default:
-                        Image(systemName: "photo")
-                            .font(.title2).foregroundStyle(.secondary)
+                        ArtworkPlaceholder(systemImage: "photo")
+                            .accessibilityElement(children: .ignore)
                             .accessibilityLabel("\(kind) unavailable for \(title)")
                             .accessibilityIdentifier("details.\(kind.lowercased()).placeholder")
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: aspectRatio < 1 ? AppStyle.Radius.poster : AppStyle.Radius.artwork))
     }
 }
 
@@ -59,10 +59,10 @@ struct DetailArtworkHeader: View {
 
     private var title: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text(item.title).font(.title.bold()).fixedSize(horizontal: false, vertical: true)
+            Text(item.title).font(AppStyle.Typography.pageTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader).accessibilityIdentifier("details.title")
-            Text(item.mediaType).font(.headline)
-            if let year = item.year { Text(String(year)).foregroundStyle(.secondary) }
+            MediaTypeLabel(title: item.mediaType)
+            if let year = item.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

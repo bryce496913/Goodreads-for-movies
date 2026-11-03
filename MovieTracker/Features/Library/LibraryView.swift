@@ -41,12 +41,11 @@ struct LibraryView: View {
                     ProgressView("Loading saved titles…")
                 } else if organization.visible.isEmpty && library.loadError == nil {
                     VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
-                        Text(organization.emptyState.title).font(.title2.bold()).accessibilityAddTraits(.isHeader)
-                        Text(organization.emptyState.message)
-                        Button("Find Movies and TV", action: openSearch).accessibilityIdentifier("library.findTitles")
+                        EmptyStateCard(title: organization.emptyState.title, systemImage: "books.vertical", message: organization.emptyState.message)
+                        Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("library.findTitles")
                         if organization.hasFilters { Button("Reset Filters") { organization.resetFilters() } }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AppActionStyle())
                     .accessibilityElement(children: .contain)
                     .accessibilityIdentifier(organization.totalCount == 0 ? "library.empty" : "library.noMatches")
                 }
@@ -73,6 +72,7 @@ struct LibraryView: View {
 
         }
         .listStyle(.insetGrouped)
+        .appListBackground()
         .navigationTitle("Library")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

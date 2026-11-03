@@ -15,26 +15,26 @@ struct SearchView: View {
             }
             switch model.phase {
             case .idle:
-                ContentUnavailableView("Find your next story", systemImage: "magnifyingglass",
-                                       description: Text("Search for movies and TV shows."))
+                EmptyStateCard(title: "Find your next story", systemImage: "magnifyingglass",
+                               message: "Search for movies and TV shows.")
             case .loading:
-                ProgressView("Searching…").accessibilityIdentifier("search.loading")
+                AppLoadingState(title: "Searching…").accessibilityIdentifier("search.loading")
             case .cancelled:
                 Text("Search canceled. Try again when you are ready.")
-                Button("Retry Search") { model.retry() }.accessibilityIdentifier("search.retry")
+                Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retry")
             case .failed(let error):
                 Section {
-                    ContentUnavailableView("Search unavailable", systemImage: "exclamationmark.triangle",
-                                           description: Text(error.localizedDescription))
+                    EmptyStateCard(title: "Search unavailable", systemImage: "exclamationmark.triangle",
+                                   message: error.localizedDescription)
                         .accessibilityIdentifier("search.error")
-                    Button("Retry Search") { model.retry() }.accessibilityIdentifier("search.retry")
+                    Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retry")
                 }
             case .loaded:
                 if model.items.isEmpty {
-                    ContentUnavailableView("No results", systemImage: "magnifyingglass",
-                        description: Text(model.nextPage == nil
+                    EmptyStateCard(title: "No results", systemImage: "magnifyingglass",
+                        message: model.nextPage == nil
                             ? "Try another title or media filter."
-                            : "No matching titles on this page. More pages are available below."))
+                            : "No matching titles on this page. More pages are available below.")
                         .accessibilityIdentifier("search.empty")
                 }
                 ForEach(model.items) { item in
@@ -62,6 +62,7 @@ struct SearchView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .appListBackground()
         .navigationTitle("Search")
         .searchable(text: $model.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Movies and TV shows")
         .autocorrectionDisabled()
@@ -78,10 +79,10 @@ struct SearchView: View {
     @ViewBuilder
     private var pagination: some View {
         if model.isLoadingMore {
-            ProgressView("Loading more…").accessibilityIdentifier("search.loadingMore")
+            AppLoadingState(title: "Loading more…").accessibilityIdentifier("search.loadingMore")
         } else if let error = model.pageError {
-            Text(error.localizedDescription).accessibilityIdentifier("search.pageError")
-            Button("Retry More Results") { model.loadMore() }.accessibilityIdentifier("search.retryMore")
+            AppErrorMessage(message: error.localizedDescription).accessibilityIdentifier("search.pageError")
+            Button("Retry More Results") { model.loadMore() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retryMore")
         } else if model.nextPage != nil {
             Button("Load More") { model.loadMore() }.accessibilityIdentifier("search.loadMore")
         }

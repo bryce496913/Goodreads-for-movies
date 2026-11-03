@@ -40,7 +40,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Home, Search, Library, and Profile tabs, each owning its own `NavigationStack`.
 - Personal Home dashboard and anonymous local Profile with saved Continue Watching, dated viewing history, Watchlist shortcuts, timestamped activity, and clearly defined statistics. See [dashboard semantics, migration, fixtures and validation](docs/home-profile-dashboard.md).
 - Welcoming empty states with a route to Search, accurate zero counts, unavailable unrated average, and provider credential Settings plus About & Credits.
-- Reusable semantic surfaces, spacing, section headings, and empty-state cards.
+- Adaptive Paper/Ink surfaces and Ember emphasis, system typography/spacing tokens, and shared artwork, type labels, states and actions; see [design system, audit and accessibility evidence](docs/DESIGN_SYSTEM.md).
 - Movie, TV show, typed media identity, viewing status, and user library domain values.
 - A SwiftData container and stored library entry with explicit domain conversion, ready for future tracking features.
 - An injectable, async TMDB metadata service for movie/TV/combined search, details, genres, and sized artwork URLs; connected to the Search tab. See [provider evaluation and local setup](docs/metadata-provider.md). Current official requirements, conservative expiry and outstanding licensing decisions are recorded in [metadata policy](docs/METADATA_POLICY.md); authorized live retrieval remains unverified.
@@ -87,7 +87,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (338 methods total, all require local macOS/Xcode execution):
+Included tests (345 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -103,6 +103,7 @@ Included tests (338 methods total, all require local macOS/Xcode execution):
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
+- 7 design token/contrast/component-layout methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
 - 34 backup/restore and validation methods, all unrun; see [backup and restore](docs/DATA_BACKUP_AND_RESTORE.md).
 - 19 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
 - 28 performance/concurrency methods (13 regressions and 15 benchmarks), all unrun; see [findings, isolation and reproducible harness](docs/PERFORMANCE_CONCURRENCY.md).

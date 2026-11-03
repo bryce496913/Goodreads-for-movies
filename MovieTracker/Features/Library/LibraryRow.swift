@@ -17,12 +17,12 @@ struct LibraryRow: View {
     }
     private var details: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text(item.title).font(.headline).fixedSize(horizontal: false, vertical: true)
-            Text(item.mediaLabel).font(.subheadline).foregroundStyle(.secondary)
-            if let year = item.year { Text(String(year)).font(.subheadline).foregroundStyle(.secondary) }
-            Text(item.statusLabel).font(.subheadline)
-            Text(item.rating.label).font(.subheadline)
-            if item.isFavorite { Label("Favorite", systemImage: "heart.fill").font(.subheadline) }
+            Text(item.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+            MediaTypeLabel(title: item.mediaLabel)
+            if let year = item.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
+            Text(item.statusLabel).font(AppStyle.Typography.metadata)
+            Text(item.rating.label).font(AppStyle.Typography.metadata)
+            if item.isFavorite { Label("Favorite", systemImage: "heart.fill").font(AppStyle.Typography.metadata) }
         }
     }
 }
@@ -33,12 +33,10 @@ struct LibraryCachedPoster: View {
     @State private var image: UIImage?
     @Environment(LibraryStore.self) private var library
     var body: some View {
-        Group {
+        PosterFrame {
             if let image { Image(uiImage: image).resizable().scaledToFill() }
-            else { ZStack { Rectangle().fill(AppStyle.surface); Image(systemName: "film").foregroundStyle(.secondary) } }
+            else { ArtworkPlaceholder() }
         }
-        .frame(width: 56, height: 84)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
         .accessibilityHidden(true)
         .task(id: url) {
             image = nil

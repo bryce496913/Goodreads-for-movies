@@ -3,13 +3,13 @@ import SwiftUI
 struct DashboardTitleRow: View {
     let title: DashboardTitle
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: AppStyle.Spacing.compact) {
             LibraryCachedPoster(url: title.posterURL)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title.title).font(.headline).fixedSize(horizontal: false, vertical: true)
-                Text(title.id.kind == .movie ? "Movie" : "TV Show").font(.subheadline)
-                if let year = title.year { Text(String(year)).font(.subheadline) }
-                if let rating = title.rating { Text("Your rating: " + rating.label).font(.subheadline) }
+            VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
+                Text(title.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+                MediaTypeLabel(title: title.id.kind == .movie ? "Movie" : "TV Show")
+                if let year = title.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
+                if let rating = title.rating { Text("Your rating: " + rating.label).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
             }
         }
         .accessibilityElement(children: .combine)
@@ -19,7 +19,7 @@ struct DashboardTitleRow: View {
 struct DashboardDiaryRow: View {
     let item: DashboardDiaryItem
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
             DashboardTitleRow(title: item.title)
             if let date = item.watchedDate { Text("Watched: " + DetailFormatting.date(date)) }
             else { Text("Watch date unknown • Recorded: " + DetailFormatting.date(item.recordedAt)) }
@@ -39,7 +39,7 @@ struct DashboardReadState: View {
                 Button("Retry Saved Data") { library.reload() }
             }
         }
-        if model.isLoading { ProgressView("Updating your viewing summary…") }
+        if model.isLoading { AppLoadingState(title: "Updating your viewing summary…") }
         if let snapshot = model.snapshot,
            snapshot.duplicateTitles + snapshot.invalidRatings + snapshot.unclassifiedTitles > 0 {
             Text("Some saved records need attention: \(snapshot.duplicateTitles) duplicate identities, \(snapshot.invalidRatings) invalid ratings, \(snapshot.unclassifiedTitles) unrecognized titles. Counts exclude invalid values; no records were changed.")

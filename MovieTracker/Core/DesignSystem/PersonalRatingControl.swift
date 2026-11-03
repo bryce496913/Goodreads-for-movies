@@ -26,10 +26,10 @@ struct PersonalRatingControl: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text("Your personal rating").font(.headline).accessibilityAddTraits(.isHeader)
+            Text("Your personal rating").font(AppStyle.Typography.mediaTitle).accessibilityAddTraits(.isHeader)
             if invalidStoredValue {
                 Text("Stored personal rating unavailable. Choose a value to replace it, or clear it.")
-                    .font(.subheadline).accessibilityIdentifier("rating.invalid")
+                    .font(AppStyle.Typography.metadata).accessibilityIdentifier("rating.invalid")
             } else {
                 RatingStars(rating: selected)
                 Text(selected?.label ?? "Unrated").accessibilityIdentifier("rating.value")
@@ -50,7 +50,7 @@ struct PersonalRatingControl: View {
                 Button("Clear Personal Rating") { units.wrappedValue = 0 }
                     .accessibilityIdentifier("rating.clear")
             }
-            if saved { Text("Saved").font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("rating.saved") }
+            if saved { Text("Saved").font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText).accessibilityIdentifier("rating.saved") }
         }
         .alert("Rating could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }
@@ -61,13 +61,13 @@ struct PersonalRatingControl: View {
 struct RatingStars: View {
     let rating: PersonalRating?
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: AppStyle.Spacing.xSmall) {
             ForEach(0..<5) { index in
                 Image(systemName: symbol(index))
             }
         }
-        .font(.body)
-        .foregroundStyle(.tint)
+        .font(AppStyle.Typography.body)
+        .foregroundStyle(AppStyle.Colors.accent)
         .accessibilityHidden(true)
     }
 
@@ -88,7 +88,7 @@ struct PersonalRatingSummary: View {
             case .failure: Text("Personal rating unavailable")
             }
         }
-        .font(.subheadline)
+        .font(AppStyle.Typography.metadata)
         .accessibilityIdentifier("rating.summary")
     }
 }
