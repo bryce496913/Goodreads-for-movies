@@ -17,7 +17,7 @@ A native, local-first iPhone foundation for tracking movies and television toget
 3. Run with **Product → Run** (`⌘R`). App launch requires no account, API key, backend, or network connection. Real Search requires authorized local TMDB configuration and network access; see [provider setup](docs/metadata-provider.md).
 4. Run **Product → Test** (`⌘U`) for domain, persistence, and navigation tests.
 
-For a physical iPhone, select your signing team in Signing & Capabilities. Automatic signing is enabled; no personal team is committed. You may also pass `DEVELOPMENT_TEAM=<YOUR_TEAM_ID>` to `xcodebuild` for a device build. **`com.example.MovieTracker` is a placeholder bundle identifier**: replace it with an owned identifier before distribution/App Store submission (and update test identifiers as appropriate). Shared version/build defaults are in `Config/Beta.xcconfig`; ignored `Config/Local.xcconfig` can supply APP_BUNDLE_IDENTIFIER and DEVELOPMENT_TEAM. The display name is MovieTracker Beta. The project has no approved app icon; this blocks archive readiness. Portrait is the initial supported orientation; system colors and native dynamic text styles support light/dark mode, increased contrast, and Dynamic Type.
+For a physical iPhone, select your signing team in Signing & Capabilities. Automatic signing is enabled; no personal team is committed. You may also pass `DEVELOPMENT_TEAM=<YOUR_TEAM_ID>` to `xcodebuild` for a device build. **`com.example.MovieTracker` is a placeholder bundle identifier**: replace it with an owned identifier before distribution/App Store submission (and update test identifiers as appropriate). Shared version/build defaults are in `Config/Beta.xcconfig`; ignored `Config/Local.xcconfig` can supply APP_BUNDLE_IDENTIFIER and DEVELOPMENT_TEAM. The display name is MovieTracker Beta. The supplied `AppIcon.appiconset` is selected for both Debug and Release. Icon compilation and archive validation still require local Xcode verification. Portrait is the initial supported orientation; system colors and native dynamic text styles support light/dark mode, increased contrast, and Dynamic Type.
 
 Command-line validation on macOS:
 
@@ -119,7 +119,7 @@ Before accepting this foundation, run the suite in Xcode and manually check:
 - Cold launch with networking disabled, empty library on first launch, and successful local-store initialization after relaunch.
 - All tabs and Settings navigation, with no sample content presented as saved data.
 
-Entering a Search query triggers metadata requests with approved local TMDB configuration; poster loading uses ephemeral, cache-disabled requests with bounded memory caching. Other tabs and app startup remain independent of the network. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Final app icon, distribution signing, production branding, and App Store preparation are intentionally deferred.
+Entering a Search query triggers metadata requests with approved local TMDB configuration; poster loading uses ephemeral, cache-disabled requests with bounded memory caching. Other tabs and app startup remain independent of the network. Offline behavior and visual/accessibility quality still need simulator/device confirmation. Distribution signing, production branding, and App Store preparation remain deferred.
 
 ## Planned features
 
