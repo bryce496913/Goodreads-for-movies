@@ -45,6 +45,13 @@ final class DiaryUITests: XCTestCase {
         tap(app.buttons["Viewing History"], in: app)
         XCTAssertTrue(app.navigationBars["Viewing History"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.buttons.matching(identifier: "diary.row").count, 2)
+        let firstViewing = app.buttons.matching(identifier: "diary.row").firstMatch
+        XCTAssertTrue(firstViewing.label.contains("TV Show"))
+        XCTAssertTrue(firstViewing.label.contains("Date recorded"))
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Viewing diary — independent repeat watches"
+        attachment.lifetime = .keepAlways
+        add(attachment)
         tap(app.buttons.matching(identifier: "diary.delete").firstMatch, in: app)
         let confirmation = app.sheets.buttons["Delete Viewing"]
         XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
@@ -65,6 +72,25 @@ final class DiaryUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts.matching(identifier: "review.text").firstMatch.label, "Private text survives relaunch")
         tap(app.buttons.matching(identifier: "review.edit").firstMatch, in: app)
         XCTAssertEqual(app.textViews["review.editor"].value as? String, "Private text survives relaunch")
+    }
+
+    @MainActor
+    func testReviewWhitespaceValidationAndKeyboardDismissal() {
+        let app = openDetails()
+        tap(app.buttons["review.write"], in: app)
+        let editor = app.textViews["review.editor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        editor.tap()
+        editor.typeText("   ")
+        XCTAssertFalse(app.buttons["review.save"].isEnabled)
+        let done = app.buttons["review.keyboardDone"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        done.tap()
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
+        app.buttons["review.cancel"].tap()
+        XCTAssertTrue(app.buttons["Discard Changes"].waitForExistence(timeout: 5))
+        app.buttons["Discard Changes"].tap()
+        XCTAssertFalse(app.textViews["review.editor"].exists)
     }
 
     @MainActor

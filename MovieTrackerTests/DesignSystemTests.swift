@@ -90,6 +90,33 @@ final class DesignSystemTests: XCTestCase {
         }
     }
 
+    @MainActor func testTrackingComponentsFitCompactWidthAcrossProgressStates() throws {
+        let summaries = [
+            EpisodeProgressSummary(watched: 0, totalWatched: 0, eligible: 0, future: 0, unknownAirDate: 0, coverageKnown: false),
+            EpisodeProgressSummary(watched: 0, totalWatched: 0, eligible: 8, future: 0, unknownAirDate: 0, coverageKnown: true),
+            EpisodeProgressSummary(watched: 3, totalWatched: 4, eligible: 8, future: 1, unknownAirDate: 1, coverageKnown: true),
+            EpisodeProgressSummary(watched: 8, totalWatched: 8, eligible: 8, future: 1, unknownAirDate: 0, coverageKnown: true),
+            EpisodeProgressSummary(watched: 3, totalWatched: 3, eligible: 8, future: 0, unknownAirDate: 1, coverageKnown: false)
+        ]
+        let rating = try PersonalRating(halfStarUnits: 9)
+        for summary in summaries {
+            for type in [DynamicTypeSize.large, .accessibility5] {
+                for scheme in [ColorScheme.light, .dark] {
+                    let content = VStack(alignment: .leading) {
+                        ProgressDescription(summary: summary, series: true)
+                        PersonalRatingDisplay(rating: rating, label: "Your rating: 4.5 stars")
+                    }.environment(\.dynamicTypeSize, type).environment(\.colorScheme, scheme)
+                    let host = UIHostingController(rootView: content)
+                    host.loadViewIfNeeded()
+                    let size = host.sizeThatFits(in: CGSize(width: 288, height: 20_000))
+                    XCTAssertGreaterThan(size.height, 0)
+                    XCTAssertTrue(size.height.isFinite)
+                    XCTAssertLessThanOrEqual(size.width, 288.5)
+                }
+            }
+        }
+    }
+
     @MainActor private func resolved(_ name: String, style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast = .normal) throws -> UIColor {
         let traits = UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style), UITraitCollection(accessibilityContrast: contrast)])
         return try XCTUnwrap(UIColor(named: name, in: .main, compatibleWith: traits)).resolvedColor(with: traits)

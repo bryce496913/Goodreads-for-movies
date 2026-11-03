@@ -71,6 +71,24 @@ final class TVProgressUITests: XCTestCase {
     }
 
     @MainActor
+    func testCompactEpisodeSynopsisAndConfirmedSaveFeedback() {
+        let app = openSeason()
+        let toggle = app.switches["episode.toggle.fixture:episode:1:1"]
+        reveal(toggle, in: app)
+        XCTAssertFalse(app.staticTexts["tv.progressSaved"].exists)
+        let synopsis = app.buttons["Episode synopsis"].firstMatch
+        reveal(synopsis, in: app)
+        synopsis.tap()
+        XCTAssertTrue(app.staticTexts["A fictional episode synopsis for deterministic testing."].firstMatch.exists)
+        reveal(toggle, in: app)
+        toggle.tap()
+        XCTAssertEqual(toggle.value as? String, "1")
+        let saved = app.descendants(matching: .any).matching(identifier: "tv.progressSaved").firstMatch
+        reveal(saved, in: app)
+        XCTAssertTrue(saved.exists)
+    }
+
+    @MainActor
     private func launch(extra: [String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra

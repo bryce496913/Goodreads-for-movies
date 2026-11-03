@@ -71,7 +71,7 @@ struct PersonalReviewCard: View {
                 .font(.subheadline).foregroundStyle(.secondary)
             Text(review.text).font(.body).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                 .accessibilityIdentifier("review.text")
-            Button("Edit Review", action: edit).buttonStyle(.bordered).accessibilityIdentifier("review.edit")
+            Button("Edit Review", systemImage: "square.and.pencil", action: edit).buttonStyle(AppActionStyle()).accessibilityIdentifier("review.edit")
                 .accessibilityLabel("Edit review, " + review.dateLabel)
             Button("Delete Review", role: .destructive, action: delete).buttonStyle(.bordered).accessibilityIdentifier("review.delete")
                 .accessibilityLabel("Delete review, " + review.dateLabel)

@@ -5,6 +5,7 @@ struct ViewingHistoryView: View {
     @State private var editing: ViewingEventDraft?
     @State private var pendingDelete: UUID?
     @State private var errorMessage: String?
+    @Environment(\.dynamicTypeSize) private var textSize
 
     var body: some View {
         List {
@@ -25,17 +26,20 @@ struct ViewingHistoryView: View {
                 if let id = event.mediaID {
                     VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
                         NavigationLink(value: MediaDestination(id: id, title: event.savedTitle, year: event.savedMedia.flatMap { SearchItem($0).year })) {
-                            VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-                                Text(event.savedTitle).font(.headline)
-                                Text(id.kind == .movie ? "Movie" : "TV Show").font(.subheadline)
-                                Text(event.dateLabel).font(.subheadline)
-                                PersonalRatingSummary(entry: library.entry(for: id))
-                                if library.hasReview(for: event.id) {
-                                    Label("Review for this viewing", systemImage: "text.bubble")
-                                } else if !library.reviews(for: id).isEmpty || library.entry(for: id)?.review?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                    Label("Title review available", systemImage: "text.bubble")
+                            Group {
+                                if textSize.isAccessibilitySize {
+                                    VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+                                        LibraryCachedPoster(url: library.entry(for: id)?.thumbnailURL)
+                                        diaryDetails(event, id: id)
+                                    }
+                                } else {
+                                    HStack(alignment: .top, spacing: AppStyle.Spacing.medium) {
+                                        LibraryCachedPoster(url: library.entry(for: id)?.thumbnailURL)
+                                        diaryDetails(event, id: id)
+                                    }
                                 }
                             }
+                            .padding(.vertical, AppStyle.Spacing.small)
                         }.accessibilityIdentifier("diary.row")
                         if let media = event.savedMedia {
                             Button("Edit Viewing") { editing = ViewingEventDraft(id: event.id, media: media, watchedDate: event.watchedDate, isNew: false) }
@@ -63,4 +67,21 @@ struct ViewingHistoryView: View {
             Button("OK", role: .cancel) { errorMessage = nil }
         } message: { Text(errorMessage ?? "Try again.") }
     }
+    @ViewBuilder
+    private func diaryDetails(_ event: StoredViewingEvent, id: MediaID) -> some View {
+        VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+            Text(event.savedTitle).font(AppStyle.Typography.mediaTitle)
+            Text(id.kind == .movie ? "Movie" : "TV Show").font(.subheadline)
+            Text(event.dateLabel).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            PersonalRatingSummary(entry: library.entry(for: id))
+            if library.hasReview(for: event.id) {
+                Label("Review for this viewing", systemImage: "text.bubble")
+            } else if !library.reviews(for: id).isEmpty || library.entry(for: id)?.review?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
+                Label("Title review available", systemImage: "text.bubble")
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
 }
