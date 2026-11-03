@@ -28,7 +28,8 @@ struct TVSeasonsSection: View {
             if model.isLoading { ProgressView("Loading seasons…") }
             if let error = model.errorMessage { Text("Season update unavailable. " + error).foregroundStyle(.secondary) }
             if library.seasons(for: show.id).isEmpty && !model.isLoading {
-                Text(model.errorMessage == nil ? "No seasons available." : "No saved seasons are available.")
+                EmptyStateCard(title: "No saved seasons", systemImage: "tv",
+                    message: "Load season metadata when available to browse episodes. Your series status is separate from episode progress.", presentation: .inline)
             }
             ForEach(library.seasons(for: show.id)) { season in
                 NavigationLink(value: TVSeasonDestination(series: show.id, number: season.number)) {
@@ -59,7 +60,10 @@ struct TVSeasonsSection: View {
             if destination.series == show.id, let cached = library.seasons(for: show.id).first(where: { $0.number == destination.number }) {
                 TVSeasonEpisodesView(number: cached.number, model: model.seasonModel(cached))
             } else {
-                ContentUnavailableView("Season unavailable", systemImage: "tv")
+                EmptyStateCard(title: "Season unavailable", systemImage: "tv",
+                    message: "No season metadata is saved here. Return to the series and refresh when available.", presentation: .inline)
+                    .padding(AppStyle.Layout.contentMargin)
+                    .appPageTitle("Season")
             }
         }
     }

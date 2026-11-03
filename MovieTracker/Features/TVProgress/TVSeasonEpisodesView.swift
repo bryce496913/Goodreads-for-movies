@@ -57,14 +57,15 @@ struct TVSeasonEpisodesView: View {
                     }
                 }
             } else {
-                Text("No saved season metadata is available.")
+                EmptyStateCard(title: "No saved season metadata", systemImage: "tv",
+                    message: "Saved watched flags are kept. Retry when metadata is available, or return to the series.", presentation: .inline)
                 if model.isLoading { ProgressView("Loading episodes…") }
                 if let error = model.errorMessage { Text(error) }
                 if model.canRefresh && !model.isLoading { Button("Retry Episodes") { refresh += 1 }.accessibilityIdentifier("tv.refreshEpisodes") }
             }
         }
-        .navigationTitle(number == 0 ? "Specials" : "Season \(number)")
-        .navigationBarTitleDisplayMode(.inline)
+        .appListScreen(number == 0 ? "Specials" : "Season \(number)")
+        .accessibilityIdentifier("screen.season")
         .onChange(of: library.metadataReferenceDate) { _, now in model.expireMetadata(at: now) }
         .task(id: refresh) { await model.loadSeason(number, store: library, force: refresh > 0) }
         .confirmationDialog(batchWatched == true ? "Mark known aired episodes watched?" : "Mark this season unwatched?",

@@ -17,8 +17,9 @@ struct ViewingHistoryView: View {
                 }
             }
             if library.viewingEvents.isEmpty && library.loadError == nil {
-                ContentUnavailableView("No viewings recorded", systemImage: "calendar",
-                                       description: Text("Record a viewing from a movie or TV detail page."))
+                EmptyStateCard(title: "No viewings recorded", systemImage: "calendar",
+                               message: "Record a viewing from a movie or TV detail page.", presentation: .inline)
+                    .accessibilityIdentifier("history.empty")
             }
             ForEach(library.viewingEvents) { event in
                 if let id = event.mediaID {
@@ -48,8 +49,9 @@ struct ViewingHistoryView: View {
                 } else { Text(event.savedTitle + " — unknown media type") }
             }
         }
-        .navigationTitle("Viewing History")
-        .sheet(item: $editing) { ViewingEventEditor(draft: $0) }
+        .appListScreen("Viewing History")
+        .accessibilityIdentifier("screen.history")
+        .sheet(item: $editing) { ViewingEventEditor(draft: $0).appEditorSheet() }
         .confirmationDialog("Delete this viewing event?", isPresented: Binding(get: { pendingDelete != nil }, set: { if !$0 { pendingDelete = nil } }), titleVisibility: .visible) {
             Button("Delete Viewing", role: .destructive) {
                 do { if let pendingDelete { try library.deleteViewingEvent(pendingDelete) } }

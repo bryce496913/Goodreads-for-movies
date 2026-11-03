@@ -1,6 +1,6 @@
 import SwiftUI
 
-private enum LibrarySection: Hashable { case history, reviews, tvProgress }
+enum LibrarySection: Hashable { case history, reviews, tvProgress }
 
 struct LibraryView: View {
     let detailModel: (MediaDestination, MediaSearchResult?) -> MediaDetailModel
@@ -8,7 +8,7 @@ struct LibraryView: View {
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(LibraryStore.self) private var library
     @Bindable var organization: LibraryOrganizationModel
-    @State private var presentedSection: LibrarySection?
+    let openSection: (LibrarySection) -> Void
     @State private var errorMessage: String?
 
     var body: some View {
@@ -41,7 +41,7 @@ struct LibraryView: View {
                     ProgressView("Loading saved titles…")
                 } else if organization.visible.isEmpty && library.loadError == nil {
                     VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
-                        EmptyStateCard(title: organization.emptyState.title, systemImage: "books.vertical", message: organization.emptyState.message)
+                        EmptyStateCard(title: organization.emptyState.title, systemImage: "books.vertical", message: organization.emptyState.message, presentation: .inline)
                         Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("library.findTitles")
                         if organization.hasFilters { Button("Reset Filters") { organization.resetFilters() } }
                     }
@@ -71,20 +71,19 @@ struct LibraryView: View {
             }
 
         }
-        .listStyle(.insetGrouped)
-        .appListBackground()
-        .navigationTitle("Library")
+        .appListScreen(AppTab.library.title, isRoot: true)
+        .accessibilityIdentifier("screen.library")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button("TV Episode Progress") { presentedSection = .tvProgress }.accessibilityIdentifier("tv.savedProgress")
-                    Button("Viewing History") { presentedSection = .history }.accessibilityIdentifier("diary.open")
-                    Button("Personal Reviews") { presentedSection = .reviews }.accessibilityIdentifier("review.archive")
+                    Button("TV Episode Progress") { openSection(.tvProgress) }.accessibilityIdentifier("tv.savedProgress")
+                    Button("Viewing History") { openSection(.history) }.accessibilityIdentifier("diary.open")
+                    Button("Personal Reviews") { openSection(.reviews) }.accessibilityIdentifier("review.archive")
                 } label: { Label("More in Library", systemImage: "ellipsis.circle") }
                 .accessibilityIdentifier("library.more")
             }
         }
-        .navigationDestination(item: $presentedSection) { section in
+        .navigationDestination(for: LibrarySection.self) { section in
             switch section {
             case .history: ViewingHistoryView()
             case .reviews: PersonalReviewsView()
@@ -93,7 +92,6 @@ struct LibraryView: View {
         }
         .searchable(text: $organization.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search saved titles")
         .autocorrectionDisabled()
-        .scrollDismissesKeyboard(.interactively)
         .onChange(of: library.libraryRevision, initial: true) { _, revision in organization.replaceEntries(library.entries, revision: revision) }
         .modifier(SavedMediaNavigation(detailModel: detailModel))
         .alert("Favorite could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {

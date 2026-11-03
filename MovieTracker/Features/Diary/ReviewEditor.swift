@@ -12,6 +12,7 @@ struct ReviewEditor: View {
     let draft: ReviewDraft
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var editingText: Bool
     @State private var text: String
     @State private var eventID: UUID?
     @State private var discard = false
@@ -29,7 +30,7 @@ struct ReviewEditor: View {
             Form {
                 Text(SearchItem(draft.media).title).font(.headline)
                 Text("Private review, stored only on this device.").font(.subheadline)
-                TextEditor(text: $text).font(.body).frame(minHeight: 240)
+                TextEditor(text: $text).font(.body).frame(minHeight: 240).focused($editingText)
                     .accessibilityLabel("Your private review").accessibilityIdentifier("review.editor")
                 Picker("Associated viewing", selection: $eventID) {
                     Text("No associated viewing").tag(nil as UUID?)
@@ -41,10 +42,15 @@ struct ReviewEditor: View {
                     Text("Enter review text before saving.").font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Personal Review")
+            .appFormScreen("Personal Review")
+            .accessibilityIdentifier("screen.reviewEditor")
             .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { editingText = false }.accessibilityIdentifier("review.keyboardDone")
+                }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { if hasChanges { discard = true } else { dismiss() } }
+                    Button("Cancel") { editingText = false; if hasChanges { discard = true } else { dismiss() } }
                         .accessibilityIdentifier("review.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {

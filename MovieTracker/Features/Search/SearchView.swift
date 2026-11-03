@@ -16,7 +16,7 @@ struct SearchView: View {
             switch model.phase {
             case .idle:
                 EmptyStateCard(title: "Find your next story", systemImage: "magnifyingglass",
-                               message: "Search for movies and TV shows.")
+                               message: "Search for movies and TV shows.", presentation: .inline)
             case .loading:
                 AppLoadingState(title: "Searching…").accessibilityIdentifier("search.loading")
             case .cancelled:
@@ -25,7 +25,7 @@ struct SearchView: View {
             case .failed(let error):
                 Section {
                     EmptyStateCard(title: "Search unavailable", systemImage: "exclamationmark.triangle",
-                                   message: error.localizedDescription)
+                                   message: error.localizedDescription, presentation: .inline)
                         .accessibilityIdentifier("search.error")
                     Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retry")
                 }
@@ -34,7 +34,7 @@ struct SearchView: View {
                     EmptyStateCard(title: "No results", systemImage: "magnifyingglass",
                         message: model.nextPage == nil
                             ? "Try another title or media filter."
-                            : "No matching titles on this page. More pages are available below.")
+                            : "No matching titles on this page. More pages are available below.", presentation: .inline)
                         .accessibilityIdentifier("search.empty")
                 }
                 ForEach(model.items) { item in
@@ -61,12 +61,10 @@ struct SearchView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .appListBackground()
-        .navigationTitle("Search")
+        .appListScreen(AppTab.search.title, isRoot: true)
+        .accessibilityIdentifier("screen.search")
         .searchable(text: $model.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Movies and TV shows")
         .autocorrectionDisabled()
-        .scrollDismissesKeyboard(.interactively)
         .navigationDestination(for: MediaDestination.self) { MediaDetailView(model: model.detailModel(for: $0)) }
     }
 

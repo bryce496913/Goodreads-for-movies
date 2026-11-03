@@ -41,10 +41,12 @@ struct ViewingEventEditor: View {
                 }
                 Text("Recording a viewing does not change your overall rating or viewing status.").font(.footnote)
             }
-            .navigationTitle(draft.isNew ? "Record Viewing" : "Edit Viewing")
+            .appFormScreen(draft.isNew ? "Record Viewing" : "Edit Viewing")
+            .accessibilityIdentifier("screen.viewingEditor")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { if hasChanges { discard = true } else { dismiss() } }
+                        .accessibilityIdentifier("diary.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {

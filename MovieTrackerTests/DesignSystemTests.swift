@@ -7,6 +7,12 @@ final class DesignSystemTests: XCTestCase {
     private let names = ["CanvasColor", "SurfaceColor", "RaisedSurfaceColor", "PrimaryTextColor", "SecondaryTextColor",
                          "AccentColor", "PressedAccentColor", "OnAccentColor", "DividerColor"]
 
+    @MainActor func testAppShellDefinesExactlyFourUniqueNativeTabs() {
+        XCTAssertEqual(AppTab.allCases.map(\.title), ["Home", "Search", "Library", "Profile"])
+        XCTAssertEqual(Set(AppTab.allCases.map(\.symbol)).count, 4)
+        for tab in AppTab.allCases { XCTAssertNotNil(UIImage(systemName: tab.symbol)) }
+    }
+
     @MainActor func testAllSemanticAssetsResolveForBothAppearancesAndContrastModes() throws {
         for style in [UIUserInterfaceStyle.light, .dark] {
             for contrast in [UIAccessibilityContrast.normal, .high] {

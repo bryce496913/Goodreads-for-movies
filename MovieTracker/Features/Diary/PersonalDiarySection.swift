@@ -44,8 +44,8 @@ struct PersonalDiarySection: View {
             }
         }
         .buttonStyle(.bordered)
-        .sheet(item: $reviewDraft) { ReviewEditor(draft: $0) }
-        .sheet(item: $eventDraft) { ViewingEventEditor(draft: $0) }
+        .sheet(item: $reviewDraft) { ReviewEditor(draft: $0).appEditorSheet() }
+        .sheet(item: $eventDraft) { ViewingEventEditor(draft: $0).appEditorSheet() }
         .confirmationDialog("Delete this personal review?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete Review", role: .destructive) {
                 do {

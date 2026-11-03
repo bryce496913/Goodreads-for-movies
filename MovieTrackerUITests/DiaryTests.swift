@@ -59,7 +59,7 @@ final class DiaryUITests: XCTestCase {
         app.terminate()
         app.launchArguments += ["--detail-fixture=error"]
         app.launch()
-        XCTAssertTrue(app.navigationBars["Welcome"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
         openArchive(in: app)
         XCTAssertTrue(app.staticTexts["review.text"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts.matching(identifier: "review.text").firstMatch.label, "Private text survives relaunch")
@@ -72,7 +72,7 @@ final class DiaryUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
         app.launch()
-        XCTAssertTrue(app.navigationBars["Welcome"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
         app.tabBars.buttons["Search"].tap()
         let field = app.searchFields["Movies and TV shows"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))

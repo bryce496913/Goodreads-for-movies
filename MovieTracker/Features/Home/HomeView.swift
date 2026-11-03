@@ -13,7 +13,7 @@ struct HomeView: View {
                 if !snapshot.hasPersonalData {
                     Section {
                         EmptyStateCard(title: "Your viewing story starts here", systemImage: "play.rectangle",
-                            message: "Find a movie or series, save a title, or record a watch. Your personal activity will appear here.")
+                            message: "Find a movie or series, save a title, or record a watch. Your personal activity will appear here.", presentation: .inline)
                         Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("home.findTitles")
                     }.accessibilityIdentifier("home.empty")
                 }
@@ -68,8 +68,7 @@ struct HomeView: View {
                 }
             } else if !dashboard.isLoading { Text("Your saved summary is not available yet.") }
         }
-        .appListBackground()
-        .navigationTitle("Welcome")
-        .listStyle(.insetGrouped)
+        .appListScreen(AppTab.home.title, isRoot: true)
+        .accessibilityIdentifier("screen.home")
     }
 }

@@ -44,9 +44,9 @@ struct SettingsView: View {
                 NavigationLink("About & Credits") { CreditsView() }
             }
         }
-        .navigationTitle("Settings")
-        .scrollDismissesKeyboard(.interactively)
-        .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editingToken = false } } }
+        .appFormScreen("Settings")
+        .accessibilityIdentifier("screen.settings")
+        .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editingToken = false }.accessibilityIdentifier("settings.keyboardDone") } }
         .task { perform { configured = try credentials.read() != nil } }
         .onDisappear { token = "" }
         .confirmationDialog("Remove this device’s provider credential?", isPresented: $confirmRemoval, titleVisibility: .visible) {
