@@ -114,10 +114,10 @@ struct TVEpisodeRow: View {
     let watched: Bool
     let future: Bool
     let listed: Bool
-    let setWatched: (Bool) -> Void
+    let setWatched: @MainActor @Sendable (Bool) -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
-            Toggle(isOn: Binding(get: { watched }, set: setWatched)) {
+            Toggle(isOn: Binding(get: { watched }, set: { value in setWatched(value) })) {
                 VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
                     Text(episode.number > 0 ? "E\(episode.number) — \(episode.title)" : "Saved episode")
                         .font(AppStyle.Typography.mediaTitle).fixedSize(horizontal: false, vertical: true)

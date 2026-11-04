@@ -87,7 +87,7 @@ struct HomeActivityRow: View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
             Text(item.title.title).font(AppStyle.Typography.mediaTitle)
                 .foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
-            Text(HomePresentation.activityLabel(item) + " · " + item.date.formatted(date: .abbreviated, time: .shortened))
+            Text(activityDescription)
                 .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             if let watched = item.watchedDate {
@@ -95,9 +95,20 @@ struct HomeActivityRow: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(item.title.title + ", " + item.label + ", Recorded: "
-            + item.date.formatted(date: .abbreviated, time: .shortened)
-            + (item.watchedDate.map { ", Watch date: " + DetailFormatting.date($0) } ?? ""))
+        .accessibilityLabel(Text(spokenDescription))
+    }
+    private var recordedDate: String {
+        item.date.formatted(date: .abbreviated, time: .shortened)
+    }
+    private var activityDescription: String {
+        [HomePresentation.activityLabel(item), recordedDate].joined(separator: " · ")
+    }
+    private var spokenDescription: String {
+        var parts: [String] = [item.title.title, item.label, "Recorded: " + recordedDate]
+        if let date = item.watchedDate {
+            parts.append("Watch date: " + DetailFormatting.date(date))
+        }
+        return parts.joined(separator: ", ")
     }
 }
 
