@@ -249,6 +249,20 @@ final class TVProgressTests: XCTestCase {
         XCTAssertEqual(show.id.kind, .tvShow)
     }
 
+    @MainActor
+    func testLargeSeasonCatalogKeepsNumericOrderAndStableIdentity() throws {
+        let store = try makeStore()
+        let seasons = (0...24).reversed().map { summary($0, nil) }
+        let show = TVShow(id: "tmdb:series", title: "Large series", seasons: seasons)
+        try store.cacheSeasonCatalog(show: show)
+        let first = store.seasons(for: show.id)
+        XCTAssertEqual(first.map(\.number), Array(0...24))
+        let identities = first.map(\.id)
+        try store.cacheSeasonCatalog(show: show)
+        XCTAssertEqual(store.seasons(for: show.id).map(\.id), identities)
+        XCTAssertEqual(store.episodeProgress.count, 0)
+    }
+
     private func summary(_ number: Int, _ count: Int?) -> TVSeasonSummary {
         TVSeasonSummary(number: number, providerID: nil, name: "Season \(number)", episodeCount: count)
     }

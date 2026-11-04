@@ -5,6 +5,7 @@ import Foundation
 actor SearchUITestService: MediaMetadataService {
     private var retryAttempts = 0
     private var detailAttempts = 0
+    private var seasonAttempts: [Int: Int] = [:]
     private let detailScenario: String
 
     init(detailScenario: String = "complete") { self.detailScenario = detailScenario }
@@ -53,12 +54,13 @@ actor SearchUITestService: MediaMetadataService {
         if detailScenario == "missing" { return TVShow(id: id.value, title: "Sample Story") }
         return TVShow(id: id.value, title: detailScenario == "long" ? longTitle : "Sample Story",
             overview: detailScenario == "long" ? longOverview : "A fictional series synopsis for deterministic UI testing.",
-            firstAirDate: show.firstAirDate, seasonCount: 3, episodeRuntimeMinutes: 45,
-            genres: [MediaGenre(id: "fixture:drama", name: "Drama")], episodeCount: 24, seriesStatus: "Returning Series", seasons: fixtureSeasons)
+            firstAirDate: show.firstAirDate, seasonCount: detailScenario == "many-seasons" ? 24 : 3, episodeRuntimeMinutes: 45,
+            genres: [MediaGenre(id: "fixture:drama", name: "Drama")], episodeCount: detailScenario == "many-seasons" ? 192 : 24, seriesStatus: "Returning Series", seasons: fixtureSeasons)
     }
 
     private var fixtureSeasons: [TVSeasonSummary] {
-        (0...3).map { TVSeasonSummary(number: $0, providerID: "fixture:season:\($0)",
+        let numbers = detailScenario == "many-seasons" ? Array((0...24).reversed()) : Array(0...3)
+        return numbers.map { TVSeasonSummary(number: $0, providerID: "fixture:season:\($0)",
             name: $0 == 0 ? "Specials" : "Season \($0)", episodeCount: $0 == 0 ? 2 : 8) }
     }
     func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] {
@@ -66,8 +68,10 @@ actor SearchUITestService: MediaMetadataService {
         return fixtureSeasons
     }
     func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails {
-        if detailScenario == "error" { throw MetadataError.offline }
-        guard id.kind == .tvShow, id.value == "fixture:1", (0...3).contains(number) else { throw MetadataError.invalidIdentifier }
+        seasonAttempts[number, default: 0] += 1
+        if detailScenario == "error" || detailScenario == "season-unavailable"
+            || (detailScenario == "season-once" && seasonAttempts[number, default: 0] > 1) { throw MetadataError.offline }
+        guard id.kind == .tvShow, id.value == "fixture:1", (0...(detailScenario == "many-seasons" ? 24 : 3)).contains(number) else { throw MetadataError.invalidIdentifier }
         let episodes = (1...(number == 0 ? 2 : 8)).map { index in
             TVEpisode(id: EpisodeID(seriesID: id, providerValue: "fixture:episode:\(number):\(index)"),
                 seasonNumber: number, number: index, title: "Sample Episode \(index)",
