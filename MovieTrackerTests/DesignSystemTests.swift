@@ -184,6 +184,28 @@ final class DesignSystemTests: XCTestCase {
         XCTAssertEqual(TVSeasonPresentation.progress(zero), "0 episodes watched")
     }
 
+    @MainActor func testControlHierarchyFitsCompactAndAccessibilityWidths() {
+        for type in [DynamicTypeSize.large, .accessibility5] {
+            for scheme in [ColorScheme.light, .dark] {
+                let content = VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
+                    Button("A primary action with a long localized label") {}.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true))
+                    Button("Secondary action") {}.buttonStyle(AppActionStyle(fillsWidth: true))
+                    Button("Tertiary action") {}.buttonStyle(AppActionStyle(emphasis: .tertiary))
+                    Button("Remove saved entry", role: .destructive) {}.appDestructiveAction()
+                    FavoriteAction(selected: true) {}
+                    ViewingStatusSelector(status: .watching, currentLabel: "Watching", supportsWatching: true, canClear: true) { _ in }
+                    PersonalRatingControl(current: { nil }, save: { _ in })
+                }.environment(\.dynamicTypeSize, type).environment(\.colorScheme, scheme)
+                let host = UIHostingController(rootView: content)
+                host.loadViewIfNeeded()
+                let size = host.sizeThatFits(in: CGSize(width: 288, height: 20_000))
+                XCTAssertGreaterThan(size.height, 0)
+                XCTAssertTrue(size.height.isFinite)
+                XCTAssertLessThanOrEqual(size.width, 288.5)
+            }
+        }
+    }
+
     @MainActor private func resolved(_ name: String, style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast = .normal) throws -> UIColor {
         let traits = UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style), UITraitCollection(accessibilityContrast: contrast)])
         return try XCTUnwrap(UIColor(named: name, in: .main, compatibleWith: traits)).resolvedColor(with: traits)

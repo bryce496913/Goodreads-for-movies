@@ -22,6 +22,7 @@ extension View {
         listStyle(.insetGrouped)
             .appListBackground()
             .contentMargins(.horizontal, AppStyle.Layout.contentMargin, for: .scrollContent)
+            .contentMargins(.bottom, AppStyle.Layout.contentMargin, for: .scrollContent)
             .listSectionSpacing(.custom(AppStyle.Spacing.large))
             .scrollDismissesKeyboard(.interactively)
             .appPageTitle(title, isRoot: isRoot)
@@ -29,6 +30,7 @@ extension View {
     func appFormScreen(_ title: String) -> some View {
         appListBackground()
             .contentMargins(.horizontal, AppStyle.Layout.contentMargin, for: .scrollContent)
+            .contentMargins(.bottom, AppStyle.Layout.contentMargin, for: .scrollContent)
             .listSectionSpacing(.custom(AppStyle.Spacing.large))
             .scrollDismissesKeyboard(.interactively)
             .appPageTitle(title)

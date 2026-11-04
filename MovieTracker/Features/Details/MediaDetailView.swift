@@ -67,13 +67,14 @@ struct MediaDetailView: View {
                     Button(model.error == nil && !model.castUnavailable && !model.artworkUnavailable ? "Refresh Details" : "Retry Details") {
                         refreshID += 1
                     }
-                    .buttonStyle(AppActionStyle())
+                    .buttonStyle(AppActionStyle(emphasis: .tertiary))
                     .accessibilityIdentifier("details.retry")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(AppStyle.Layout.contentMargin)
         }
+        .safeAreaPadding(.bottom, AppStyle.Layout.contentMargin)
         .background(AppStyle.background)
         .appPageTitle("Details")
         .scrollDismissesKeyboard(.interactively)

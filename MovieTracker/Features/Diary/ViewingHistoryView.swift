@@ -43,11 +43,11 @@ struct ViewingHistoryView: View {
                         }.accessibilityIdentifier("diary.row")
                         if let media = event.savedMedia {
                             Button("Edit Viewing") { editing = ViewingEventDraft(id: event.id, media: media, watchedDate: event.watchedDate, isNew: false) }
-                                .buttonStyle(.bordered).accessibilityIdentifier("diary.edit")
+                                .buttonStyle(AppActionStyle()).accessibilityIdentifier("diary.edit")
                                 .accessibilityLabel("Edit viewing for " + event.savedTitle + ", " + event.dateLabel)
                         }
                         Button("Delete Viewing", role: .destructive) { pendingDelete = event.id }
-                            .buttonStyle(.bordered).accessibilityIdentifier("diary.delete")
+                            .appDestructiveAction().accessibilityIdentifier("diary.delete")
                             .accessibilityLabel("Delete viewing for " + event.savedTitle + ", " + event.dateLabel)
                     }
                 } else { Text(event.savedTitle + " — unknown media type") }

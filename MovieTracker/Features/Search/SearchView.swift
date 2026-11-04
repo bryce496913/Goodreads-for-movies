@@ -21,13 +21,13 @@ struct SearchView: View {
                 AppLoadingState(title: "Searching…").accessibilityIdentifier("search.loading")
             case .cancelled:
                 Text("Search canceled. Try again when you are ready.")
-                Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retry")
+                Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
             case .failed(let error):
                 Section {
                     EmptyStateCard(title: "Search unavailable", systemImage: "exclamationmark.triangle",
                                    message: error.localizedDescription, presentation: .inline)
                         .accessibilityIdentifier("search.error")
-                    Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retry")
+                    Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
                 }
             case .loaded:
                 if model.items.isEmpty {
@@ -82,7 +82,7 @@ struct SearchView: View {
             AppErrorMessage(message: error.localizedDescription).accessibilityIdentifier("search.pageError")
             Button("Retry More Results") { model.loadMore() }.buttonStyle(AppActionStyle()).accessibilityIdentifier("search.retryMore")
         } else if model.nextPage != nil {
-            Button("Load More") { model.loadMore() }.accessibilityIdentifier("search.loadMore")
+            Button("Load More") { model.loadMore() }.buttonStyle(AppActionStyle(emphasis: .tertiary)).accessibilityIdentifier("search.loadMore")
         }
     }
 }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Native menu and stepper provide large, accessible targets; decorative stars never require tapping.
+/// One native menu edits precise half-star values; decorative stars never require tapping.
 struct PersonalRatingControl: View {
     let current: () throws -> PersonalRating?
     let save: (PersonalRating?) throws -> Void
@@ -36,23 +36,27 @@ struct PersonalRatingControl: View {
                     .font(AppStyle.Typography.metadata)
                     .accessibilityIdentifier("rating.value")
             }
-            Picker("Your rating", selection: units) {
-                Text("Unrated").tag(0)
+            Menu {
+                Button("Unrated") { units.wrappedValue = 0 }
+                    .disabled(selected == nil && !invalidStoredValue)
                 ForEach(PersonalRating.allValues, id: \.halfStarUnits) { rating in
-                    Text(rating.label).tag(rating.halfStarUnits)
+                    Button { units.wrappedValue = rating.halfStarUnits } label: {
+                        if selected == rating { Label(rating.label, systemImage: "checkmark") }
+                        else { Text(rating.label) }
+                    }
                 }
+                if selected != nil || invalidStoredValue {
+                    Divider()
+                    Button("Clear Personal Rating", systemImage: "star.slash") { units.wrappedValue = 0 }
+                        .accessibilityIdentifier("rating.clear")
+                }
+            } label: {
+                Label(selected == nil && !invalidStoredValue ? "Rate this title" : "Edit rating", systemImage: "star")
             }
-            .pickerStyle(.menu)
-            .frame(minHeight: AppStyle.Layout.minimumTarget)
+            .buttonStyle(AppActionStyle(fillsWidth: true))
+            .accessibilityLabel("Edit personal rating")
             .accessibilityValue(invalidStoredValue ? "Stored rating unavailable" : selected?.label ?? "Unrated")
             .accessibilityIdentifier("rating.picker")
-            Stepper("Adjust personal rating", value: units, in: 0...10)
-                .accessibilityValue(invalidStoredValue ? "Stored rating unavailable" : selected?.label ?? "Unrated")
-                .accessibilityIdentifier("rating.stepper")
-            if selected != nil || invalidStoredValue {
-                Button("Clear Personal Rating", systemImage: "star.slash") { units.wrappedValue = 0 }
-                    .accessibilityIdentifier("rating.clear")
-            }
             if saved { Text("Saved").font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText).accessibilityIdentifier("rating.saved") }
         }
         .alert("Rating could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {

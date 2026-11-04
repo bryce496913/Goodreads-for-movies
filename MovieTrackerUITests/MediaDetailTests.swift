@@ -92,20 +92,18 @@ final class MediaDetailUITests: XCTestCase {
     @MainActor
     func testPersonalActionsKeepIndependentSelectedStates() {
         let app = launchDetails(kind: "tvShow")
-        let watching = app.buttons["library.watchingAction"]
-        reveal(watching, in: app)
-        watching.tap()
-        XCTAssertEqual(watching.value as? String, "Selected")
+        let selector = app.buttons["library.statusSelector"]
+        reveal(selector, in: app); selector.tap()
+        app.buttons["library.watchingAction"].tap()
+        XCTAssertEqual(selector.value as? String, "Watching")
         let favorite = app.buttons["library.favoriteAction"]
         reveal(favorite, in: app)
         favorite.tap()
         XCTAssertEqual(favorite.value as? String, "Selected")
-        XCTAssertEqual(watching.value as? String, "Selected")
-        let watched = app.buttons["library.watchedAction"]
-        reveal(watched, in: app)
-        watched.tap()
-        XCTAssertEqual(watched.value as? String, "Selected")
-        XCTAssertEqual(watching.value as? String, "Not selected")
+        XCTAssertEqual(selector.value as? String, "Watching")
+        reveal(selector, in: app); selector.tap()
+        app.buttons["library.watchedAction"].tap()
+        XCTAssertEqual(selector.value as? String, "Watched")
         XCTAssertEqual(favorite.value as? String, "Selected")
     }
 
