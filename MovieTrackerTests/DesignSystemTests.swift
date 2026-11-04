@@ -170,6 +170,20 @@ final class DesignSystemTests: XCTestCase {
         XCTAssertEqual(snapshot.recentlyWatched.count, 1)
     }
 
+    @MainActor func testSeasonPresentationDistinguishesUnknownEmptyAndReliableProgress() {
+        XCTAssertEqual(TVSeasonPresentation.title(0), "Specials")
+        XCTAssertEqual(TVSeasonPresentation.title(20), "Season 20")
+        XCTAssertEqual(TVSeasonPresentation.emptyState(loaded: false, expected: 0), "Episode details unavailable")
+        XCTAssertEqual(TVSeasonPresentation.emptyState(loaded: true, expected: nil), "Episode details unavailable")
+        XCTAssertEqual(TVSeasonPresentation.emptyState(loaded: true, expected: 0), "No episodes listed")
+        let partial = EpisodeProgressSummary(watched: 3, totalWatched: 3, eligible: 7, future: 0, unknownAirDate: 0, coverageKnown: true)
+        XCTAssertEqual(TVSeasonPresentation.progress(partial), "3 of 7 known aired episodes · 43% of known")
+        let unknown = EpisodeProgressSummary(watched: 3, totalWatched: 3, eligible: 7, future: 0, unknownAirDate: 0, coverageKnown: false)
+        XCTAssertEqual(TVSeasonPresentation.progress(unknown), "3 episodes watched")
+        let zero = EpisodeProgressSummary(watched: 0, totalWatched: 0, eligible: 0, future: 0, unknownAirDate: 0, coverageKnown: true)
+        XCTAssertEqual(TVSeasonPresentation.progress(zero), "0 episodes watched")
+    }
+
     @MainActor private func resolved(_ name: String, style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast = .normal) throws -> UIColor {
         let traits = UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style), UITraitCollection(accessibilityContrast: contrast)])
         return try XCTUnwrap(UIColor(named: name, in: .main, compatibleWith: traits)).resolvedColor(with: traits)

@@ -14,12 +14,14 @@ final class TVProgressUITests: XCTestCase {
         app.navigationBars["Season 1"].buttons.element(boundBy: 0).tap()
         let season = app.buttons["tv.season.1"]
         reveal(season, in: app)
-        XCTAssertTrue(season.label.contains("Episodes marked watched: 1"))
+        XCTAssertTrue(season.label.contains("1 of 6 known aired episodes"))
     }
 
     @MainActor
     func testBatchWatchedAndUnwatchedSkipFutureEpisodes() {
         let app = openSeason()
+        let actions = app.buttons["tv.actions.1"]
+        reveal(actions, in: app); actions.tap()
         let watched = app.buttons["tv.batchWatched"]
         reveal(watched, in: app); watched.tap()
         app.sheets.buttons["Mark Aired Watched"].tap()
@@ -33,6 +35,7 @@ final class TVProgressUITests: XCTestCase {
         reveal(future, in: app)
         XCTAssertFalse(future.isEnabled)
         XCTAssertEqual(future.value as? String, "0")
+        reveal(actions, in: app); actions.tap()
         let unwatched = app.buttons["tv.batchUnwatched"]
         reveal(unwatched, in: app); unwatched.tap()
         app.sheets.buttons["Mark Unwatched"].tap()
@@ -89,6 +92,80 @@ final class TVProgressUITests: XCTestCase {
     }
 
     @MainActor
+    func testInlineSeasonExpansionToggleAndCollapsePreserveIdentity() {
+        let app = launch(extra: ["--detail-fixture=season-once"])
+        searchAndOpen("tvShow", in: app)
+        let season = app.buttons["tv.season.1"]
+        reveal(season, in: app)
+        season.tap()
+        let first = app.switches["episode.toggle.fixture:episode:1:1"]
+        reveal(first, in: app)
+        first.tap()
+        XCTAssertEqual(first.value as? String, "1")
+        XCTAssertTrue(app.navigationBars["Details"].exists)
+        reveal(season, in: app)
+        season.tap()
+        XCTAssertFalse(first.exists)
+        season.tap()
+        reveal(first, in: app)
+        XCTAssertEqual(first.value as? String, "1")
+        XCTAssertEqual(app.switches.matching(identifier: "episode.toggle.fixture:episode:1:1").count, 1)
+        XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "tv.cached").firstMatch.exists)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Series — expanded season with saved watched flag"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
+    func testSpecialsUseSeparateExpandableGroup() {
+        let app = launch(extra: [])
+        searchAndOpen("tvShow", in: app)
+        let specials = app.buttons["tv.season.0"]
+        reveal(specials, in: app)
+        XCTAssertTrue(specials.label.contains("Specials"))
+        XCTAssertFalse(specials.label.contains("Season 0"))
+        specials.tap()
+        let toggle = app.switches["episode.toggle.fixture:episode:0:1"]
+        reveal(toggle, in: app)
+        XCTAssertTrue(toggle.isHittable)
+        toggle.tap()
+        XCTAssertEqual(toggle.value as? String, "1")
+        XCTAssertTrue(app.navigationBars["Details"].exists)
+    }
+
+    @MainActor
+    func testManySeasonsStayCollapsedUntilSelected() {
+        let app = launch(extra: ["--detail-fixture=many-seasons"])
+        searchAndOpen("tvShow", in: app)
+        XCTAssertEqual(app.switches.matching(NSPredicate(format: "identifier BEGINSWITH %@", "episode.toggle.")).count, 0)
+        let last = app.buttons["tv.season.24"]
+        reveal(last, in: app)
+        XCTAssertTrue(last.isHittable)
+        last.tap()
+        let episode = app.switches["episode.toggle.fixture:episode:24:1"]
+        reveal(episode, in: app)
+        XCTAssertTrue(episode.isHittable)
+        XCTAssertFalse(app.switches["episode.toggle.fixture:episode:1:1"].exists)
+    }
+
+    @MainActor
+    func testUnavailableSeasonKeepsConciseStateAndExplicitRetry() {
+        let app = launch(extra: ["--detail-fixture=season-unavailable"])
+        searchAndOpen("tvShow", in: app)
+        let season = app.buttons["tv.season.1"]
+        reveal(season, in: app)
+        XCTAssertTrue(season.label.contains("Episode details unavailable"))
+        season.tap()
+        let error = app.descendants(matching: .any).matching(identifier: "tv.cached").firstMatch
+        XCTAssertTrue(error.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.switches.matching(NSPredicate(format: "identifier BEGINSWITH %@", "episode.toggle.")).count, 0)
+        let retry = app.buttons["tv.refreshEpisodes"]
+        reveal(retry, in: app)
+        XCTAssertTrue(retry.isEnabled)
+    }
+
+    @MainActor
     private func launch(extra: [String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
@@ -116,6 +193,8 @@ final class TVProgressUITests: XCTestCase {
         let season = app.buttons["tv.season.1"]
         XCTAssertTrue(season.waitForExistence(timeout: 10))
         reveal(season, in: app); season.tap()
+        let open = app.buttons["tv.openSeason.1"]
+        reveal(open, in: app); open.tap()
         XCTAssertTrue(app.navigationBars["Season 1"].waitForExistence(timeout: 5))
         return app
     }
@@ -130,6 +209,8 @@ final class TVProgressUITests: XCTestCase {
         let season = app.buttons["tv.season.1"]
         XCTAssertTrue(season.waitForExistence(timeout: 5))
         reveal(season, in: app); season.tap()
+        let open = app.buttons["tv.openSeason.1"]
+        reveal(open, in: app); open.tap()
         XCTAssertTrue(app.navigationBars["Season 1"].waitForExistence(timeout: 5))
     }
 
