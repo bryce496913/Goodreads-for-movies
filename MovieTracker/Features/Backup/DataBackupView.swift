@@ -33,9 +33,9 @@ struct DataBackupView: View {
                         await model.prepareExport(from: library)
                         if model.exportBytes != nil && !Task.isCancelled { exportPresented = true }
                     }
-                }.buttonStyle(AppActionStyle()).disabled(model.isBusy).accessibilityIdentifier("backup.export")
+                }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).disabled(model.isBusy).accessibilityIdentifier("backup.export")
                 Button("Restore from Backup", systemImage: "square.and.arrow.down") { importPresented = true }
-                    .buttonStyle(AppActionStyle())
+                    .buttonStyle(AppActionStyle(fillsWidth: true))
                     .disabled(model.isBusy).accessibilityIdentifier("backup.import")
             }
             Section("Your privacy") {

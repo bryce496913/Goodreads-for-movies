@@ -22,6 +22,8 @@ final class RatingUITests: XCTestCase {
         XCTAssertTrue(row.label.contains("2.5 stars"))
         reveal(row, in: app)
         row.tap()
+        let edit = app.buttons["rating.picker"]
+        reveal(edit, in: app); edit.tap()
         let clear = app.buttons["rating.clear"]
         reveal(clear, in: app)
         clear.tap()
@@ -31,16 +33,19 @@ final class RatingUITests: XCTestCase {
     }
 
     @MainActor
-    func testAccessibleStepperAndStatusIndependence() {
+    func testAccessibleHalfStarMenuAndStatusIndependence() {
         let app = openDetails(kind: "tvShow")
-        let stepper = app.steppers["rating.stepper"]
-        reveal(stepper, in: app)
-        stepper.buttons["Increment"].tap()
+        select("0.5 stars", in: app)
+        XCTAssertFalse(app.steppers["rating.stepper"].exists)
         XCTAssertEqual(app.staticTexts["rating.value"].label, "0.5 stars")
+        let status = app.buttons["library.statusSelector"]
+        reveal(status, in: app); status.tap()
         let watched = app.buttons["library.watchedAction"]
         reveal(watched, in: app)
         watched.tap()
         XCTAssertEqual(app.staticTexts["library.currentStatus"].label, "Watched")
+        let edit = app.buttons["rating.picker"]
+        reveal(edit, in: app); edit.tap()
         let clear = app.buttons["rating.clear"]
         reveal(clear, in: app)
         clear.tap()
@@ -63,6 +68,22 @@ final class RatingUITests: XCTestCase {
         row.tap()
         XCTAssertTrue(app.staticTexts["rating.value"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["rating.value"].label, "5.0 stars")
+    }
+
+    @MainActor
+    func testEveryHalfStarValueUsesSingleAccessibleEditor() {
+        let app = openDetails()
+        for units in 1...10 {
+            let label = String(format: "%.1f stars", Double(units) / 2)
+            select(label, in: app)
+            XCTAssertEqual(app.staticTexts["rating.value"].label, label)
+            XCTAssertEqual(app.buttons.matching(identifier: "rating.picker").count, 1)
+            XCTAssertFalse(app.steppers["rating.stepper"].exists)
+        }
+        let edit = app.buttons["rating.picker"]
+        reveal(edit, in: app); edit.tap()
+        app.buttons["rating.clear"].tap()
+        XCTAssertEqual(app.staticTexts["rating.value"].label, "Unrated")
     }
 
     @MainActor

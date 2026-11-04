@@ -51,6 +51,8 @@ final class LibraryOrganizationUITests: XCTestCase {
         XCTAssertTrue(movie.waitForExistence(timeout: 5))
         reveal(movie, in: app); movie.tap()
         XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 5))
+        let selector = app.buttons["library.statusSelector"]
+        reveal(selector, in: app); selector.tap()
         let watchlist = app.buttons["library.watchlistAction"]
         reveal(watchlist, in: app); watchlist.tap()
         app.navigationBars["Details"].buttons.element(boundBy: 0).tap()

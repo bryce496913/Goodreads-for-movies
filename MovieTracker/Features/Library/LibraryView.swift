@@ -42,7 +42,7 @@ struct LibraryView: View {
                 } else if organization.visible.isEmpty && library.loadError == nil {
                     VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
                         EmptyStateCard(title: organization.emptyState.title, systemImage: "books.vertical", message: organization.emptyState.message, presentation: .inline)
-                        Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary)).accessibilityIdentifier("library.findTitles")
+                        Button("Find Movies and TV", action: openSearch).buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("library.findTitles")
                         if organization.hasFilters { Button("Reset Filters") { organization.resetFilters() } }
                     }
                     .buttonStyle(AppActionStyle())

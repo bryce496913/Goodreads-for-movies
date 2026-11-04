@@ -87,14 +87,14 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (373 methods total, all require local macOS/Xcode execution):
+Included tests (377 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
-- 9 library store and 3 library UI tests.
+- 9 library store and 5 library UI tests.
 - 18 SearchModel and 5 Search UI tests.
 - 12 detail model/component and 7 detail UI tests.
-- 3 rating value, 9 rating persistence and 3 rating UI tests.
+- 3 rating value, 9 rating persistence and 4 rating UI tests.
 - 3 general navigation and 10 app-shell UI tests.
 - 17 review/diary store and 5 review/diary UI tests.
 - 19 TV progress store/calculation/model tests and 9 TV progress UI tests.
@@ -103,7 +103,7 @@ Included tests (373 methods total, all require local macOS/Xcode execution):
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
-- 13 design token/contrast/component-layout and tab-contract methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
+- 14 design token/contrast/component-layout and tab-contract methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
 - 34 backup/restore and validation methods, all unrun; see [backup and restore](docs/DATA_BACKUP_AND_RESTORE.md).
 - 19 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
 - 28 performance/concurrency methods (13 regressions and 15 benchmarks), all unrun; see [findings, isolation and reproducible harness](docs/PERFORMANCE_CONCURRENCY.md).
@@ -137,3 +137,5 @@ Home/Profile modernization, full screen-family consistency audit, screenshot cov
 Home’s provisional “Your screen” header, compact Continue Watching, empty states and native scroll-margin checks: [Home refinement](docs/HOME_REFINEMENT.md). The tab remains Home.
 
 Expandable Series → Seasons → Episodes presentation, metadata states, component structure and regression limits: [TV episode hierarchy](docs/TV_EPISODE_HIERARCHY.md).
+
+Primary/secondary/tertiary action styling, native destructive actions, status/rating menus and safe-area checks: [Control consistency](docs/CONTROL_CONSISTENCY.md).

@@ -53,6 +53,56 @@ final class LibraryUITests: XCTestCase {
     }
 
     @MainActor
+    func testAllStatusTransitionsPreserveFavoriteAndHalfStarRating() {
+        let app = openDetails(kind: "tvShow")
+        tap("library.favoriteAction", in: app)
+        tap("rating.picker", in: app)
+        app.buttons["2.5 stars"].tap()
+        let choices = ["library.watchlistAction", "library.watchingAction", "library.watchedAction", "library.clearStatus"]
+        let labels = ["Watchlist", "Watching", "Watched", "No viewing status"]
+        for from in 0..<choices.count {
+            for to in 0..<choices.count {
+                if from < 3 || app.buttons["library.statusSelector"].value as? String != "No viewing status" {
+                    tap(choices[from], in: app)
+                }
+                if to < 3 || from < 3 { tap(choices[to], in: app) }
+                XCTAssertEqual(app.staticTexts["library.currentStatus"].label, labels[to])
+                XCTAssertEqual(app.buttons["library.favoriteAction"].value as? String, "Selected")
+                XCTAssertEqual(app.staticTexts["rating.value"].label, "2.5 stars")
+            }
+        }
+        app.tabBars.buttons["Library"].tap()
+        XCTAssertEqual(app.buttons.matching(identifier: "library.row.tvShow.fixture:1").count, 1)
+    }
+
+    @MainActor
+    func testMovieStatusSelectorOmitsWatchingAndRemovalStaysBelowRoutineActions() {
+        let app = openDetails(kind: "movie", extraArguments: [
+            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "-AppleInterfaceStyle", "Dark"
+        ])
+        tap("library.statusSelector", in: app)
+        XCTAssertFalse(app.buttons["library.watchingAction"].exists)
+        app.buttons["library.watchlistAction"].tap()
+        let remove = app.buttons["library.removeAction"]
+        for _ in 0..<30 {
+            if remove.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(remove.isHittable)
+        XCTAssertLessThanOrEqual(remove.frame.maxY, app.tabBars.firstMatch.frame.minY)
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = "Personal controls — largest text dark"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        tap(remove.identifier, in: app)
+        let cancel = app.sheets.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap()
+        XCTAssertEqual(app.staticTexts["library.currentStatus"].label, "Watchlist")
+        XCTAssertTrue(app.buttons["library.statusSelector"].exists)
+    }
+
+    @MainActor
     private func openDetails(kind: String, extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search"] + extraArguments
@@ -71,6 +121,9 @@ final class LibraryUITests: XCTestCase {
 
     @MainActor
     private func tap(_ id: String, in app: XCUIApplication) {
+        if ["library.watchlistAction", "library.watchingAction", "library.watchedAction", "library.clearStatus"].contains(id) {
+            tap("library.statusSelector", in: app)
+        }
         let button = app.buttons[id]
         for _ in 0..<30 {
             if button.isHittable { break }

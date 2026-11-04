@@ -31,7 +31,7 @@ struct PersonalDiarySection: View {
                     Button("Edit Earlier Review") {
                         reviewDraft = ReviewDraft(id: UUID(), media: media, text: legacy, legacyEntryID: entry.id)
                     }
-                    Button("Delete Earlier Review", role: .destructive) { deletingLegacy = true; confirmDelete = true }
+                    Button("Delete Earlier Review", role: .destructive) { deletingLegacy = true; confirmDelete = true }.appDestructiveAction()
                 }
             }
             ForEach(library.reviews(for: id)) { review in
@@ -43,7 +43,7 @@ struct PersonalDiarySection: View {
                 }
             }
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(AppActionStyle())
         .sheet(item: $reviewDraft) { ReviewEditor(draft: $0).appEditorSheet() }
         .sheet(item: $eventDraft) { ViewingEventEditor(draft: $0).appEditorSheet() }
         .confirmationDialog("Delete this personal review?", isPresented: $confirmDelete, titleVisibility: .visible) {

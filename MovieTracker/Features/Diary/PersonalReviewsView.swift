@@ -73,7 +73,7 @@ struct PersonalReviewCard: View {
                 .accessibilityIdentifier("review.text")
             Button("Edit Review", systemImage: "square.and.pencil", action: edit).buttonStyle(AppActionStyle()).accessibilityIdentifier("review.edit")
                 .accessibilityLabel("Edit review, " + review.dateLabel)
-            Button("Delete Review", role: .destructive, action: delete).buttonStyle(.bordered).accessibilityIdentifier("review.delete")
+            Button("Delete Review", role: .destructive, action: delete).appDestructiveAction().accessibilityIdentifier("review.delete")
                 .accessibilityLabel("Delete review, " + review.dateLabel)
         }
     }
