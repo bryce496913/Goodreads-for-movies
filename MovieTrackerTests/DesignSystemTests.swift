@@ -139,6 +139,37 @@ final class DesignSystemTests: XCTestCase {
         }
     }
 
+    @MainActor func testHomeActivityCopyPreservesValuesAndUnknownProgressCounts() throws {
+        let title = DashboardTitle(id: MediaID(kind: .movie, value: "fixture:home"), title: "A saved movie",
+            year: nil, posterURL: nil, rating: try PersonalRating(halfStarUnits: 5))
+        let date = Date(timeIntervalSince1970: 1_735_689_600)
+        let rated = DashboardActivity(id: "rating:fixture:home", title: title,
+            label: "Personal rating updated: 2.5 stars", date: date, watchedDate: nil)
+        XCTAssertEqual(HomePresentation.activityLabel(rated), "Rated 2.5 stars")
+        let cleared = DashboardActivity(id: rated.id, title: title, label: "Personal rating cleared", date: date, watchedDate: nil)
+        XCTAssertEqual(HomePresentation.activityLabel(cleared), "Rating cleared")
+        XCTAssertEqual(HomePresentation.watchedCount(0), "0 episodes watched")
+        XCTAssertEqual(HomePresentation.watchedCount(1), "1 episode watched")
+        XCTAssertEqual(HomePresentation.watchedCount(3), "3 episodes watched")
+    }
+
+    @MainActor func testHomeOmitsOnlyActivityForViewingEventsAlreadyPreviewed() {
+        let title = DashboardTitle(id: MediaID(kind: .movie, value: "fixture:home"), title: "A saved movie",
+            year: nil, posterURL: nil, rating: nil)
+        let date = Date(timeIntervalSince1970: 1_735_689_600)
+        let event = DashboardDiaryItem(id: UUID(), title: title, watchedDate: date, recordedAt: date)
+        let shown = DashboardActivity(id: "viewing:" + event.id.uuidString, title: title, label: "Viewing recorded", date: date, watchedDate: date)
+        let undated = DashboardActivity(id: "viewing:undated", title: title, label: "Viewing recorded", date: date, watchedDate: nil)
+        let rated = DashboardActivity(id: "rating:fixture:home", title: title, label: "Personal rating cleared", date: date, watchedDate: nil)
+        let snapshot = DashboardSnapshot(statistics: ViewingStatistics(watchedMovies: 1, seriesWithProgress: 0,
+            watchedEpisodes: 0, watchlist: 0, favorites: 0, ratings: 0, averageRating: nil, reviews: 0, viewingEvents: 2),
+            continueWatching: [], recentlyWatched: [event], recentDiary: [event], watchlist: [], activity: [shown, undated, rated],
+            duplicateTitles: 0, invalidRatings: 0, unclassifiedTitles: 0, hasPersonalData: true)
+        XCTAssertEqual(HomePresentation.activity(in: snapshot).map(\.id), [undated.id, rated.id])
+        XCTAssertEqual(snapshot.activity.count, 3)
+        XCTAssertEqual(snapshot.recentlyWatched.count, 1)
+    }
+
     @MainActor private func resolved(_ name: String, style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast = .normal) throws -> UIColor {
         let traits = UITraitCollection(traitsFrom: [UITraitCollection(userInterfaceStyle: style), UITraitCollection(accessibilityContrast: contrast)])
         return try XCTUnwrap(UIColor(named: name, in: .main, compatibleWith: traits)).resolvedColor(with: traits)

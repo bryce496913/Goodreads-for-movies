@@ -2,18 +2,19 @@ import XCTest
 
 /// All dataset values are owned by the test target; app import is DEBUG + isolated in-memory only.
 final class DashboardUITests: XCTestCase {
-    @MainActor private func launch(populated: Bool, extra: [String] = []) throws -> XCUIApplication {
+    @MainActor private func launch(populated: Bool, incomplete: Bool = false, emptyWatchlist: Bool = false, undated: Bool = false, extra: [String] = []) throws -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "--ui-testing-dashboard"] + extra
-        if populated { app.launchEnvironment["DASHBOARD_UI_INPUT"] = try DashboardUIFixture.payload() }
+        if populated { app.launchEnvironment["DASHBOARD_UI_INPUT"] = try DashboardUIFixture.payload(incomplete: incomplete, emptyWatchlist: emptyWatchlist, undated: undated) }
         app.launch()
-        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Your screen"].waitForExistence(timeout: 10))
         return app
     }
     @MainActor func testEmptyHomeRoutesToSearchAndProfileAverageUnavailable() throws {
         let app = try launch(populated: false)
         XCTAssertTrue(app.buttons["home.findTitles"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["Continue Watching"].exists)
+        assertAboveTabBar(app.buttons["home.findTitles"], app)
         screenshot(app, "Home-empty")
         app.buttons["home.findTitles"].tap()
         XCTAssertTrue(app.navigationBars["Search"].waitForExistence(timeout: 5))
@@ -27,6 +28,10 @@ final class DashboardUITests: XCTestCase {
     @MainActor func testPopulatedProfileMatchesDeterministicFixture() throws {
         let app = try launch(populated: true)
         XCTAssertTrue(app.buttons["home.nextEpisode"].waitForExistence(timeout: 10))
+        let rating = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "home.activity.rating:")).firstMatch
+        reveal(rating, app)
+        XCTAssertTrue(rating.label.contains("Personal rating updated")) // Full spoken description remains explicit.
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "home.activity.viewing:")).count, 0)
         screenshot(app, "Home-populated")
         app.tabBars.buttons["Profile"].tap()
         assertMetric(app, "movies", "1"); assertMetric(app, "series", "1")
@@ -84,6 +89,7 @@ final class DashboardUITests: XCTestCase {
         let next = app.buttons["home.nextEpisode"]
         reveal(next, app)
         XCTAssertTrue(next.isHittable)
+        assertAboveTabBar(app.buttons["home.openLibrary"], app)
         screenshot(app, "Home-large-text-dark")
         app.tabBars.buttons["Profile"].tap()
         assertMetric(app, "movies", "1")
@@ -104,6 +110,49 @@ final class DashboardUITests: XCTestCase {
         let restore = app.buttons["backup.import"]
         reveal(restore, app)
         XCTAssertTrue(restore.isHittable)
+    }
+
+    @MainActor func testIncompleteProgressHasNoInventedPercentageOrNextEpisode() throws {
+        let app = try launch(populated: true, incomplete: true)
+        let series = app.buttons["home.series.fixture:3"]
+        XCTAssertTrue(series.waitForExistence(timeout: 5))
+        XCTAssertTrue(series.label.contains("1 episode watched"))
+        XCTAssertFalse(app.progressIndicators["home.progress"].exists)
+        XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
+        XCTAssertFalse(app.staticTexts["Next episode unavailable from saved metadata."].exists)
+        XCTAssertFalse(app.staticTexts["Percentage unavailable: episode metadata is incomplete."].exists)
+        screenshot(app, "Home-incomplete-progress")
+        reveal(series, app)
+        series.tap()
+        XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor func testEmptyWatchlistAndUndatedHistoryKeepShortcutsAboveTabBar() throws {
+        let app = try launch(populated: true, emptyWatchlist: true, undated: true)
+        let message = app.staticTexts["Your recent watches will appear here."]
+        reveal(message, app)
+        XCTAssertTrue(message.exists)
+        let history = app.buttons["home.history"]
+        reveal(history, app)
+        history.tap()
+        XCTAssertTrue(app.navigationBars["Viewing History"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons.matching(identifier: "diary.row").count, 2)
+        app.navigationBars["Viewing History"].buttons.element(boundBy: 0).tap()
+        let search = app.buttons["home.watchlistSearch"]
+        reveal(search, app)
+        XCTAssertTrue(app.staticTexts["Start your watchlist"].exists)
+        let last = app.buttons["home.openLibrary"]
+        assertAboveTabBar(last, app)
+        screenshot(app, "Home-empty-watchlist-scroll-end")
+        reveal(search, app)
+        search.tap()
+        XCTAssertTrue(app.navigationBars["Search"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor private func assertAboveTabBar(_ element: XCUIElement, _ app: XCUIApplication) {
+        reveal(element, app)
+        XCTAssertTrue(element.isHittable)
+        XCTAssertLessThanOrEqual(element.frame.maxY, app.tabBars.firstMatch.frame.minY)
     }
 
     @MainActor private func find(_ app: XCUIApplication, _ id: String) -> XCUIElement {
@@ -127,7 +176,7 @@ final class DashboardUITests: XCTestCase {
 }
 
 private enum DashboardUIFixture {
-    static func payload() throws -> String {
+    static func payload(incomplete: Bool = false, emptyWatchlist: Bool = false, undated: Bool = false) throws -> String {
         let date = Date(timeIntervalSince1970: 1_735_689_600).timeIntervalSinceReferenceDate
         let aired = Date(timeIntervalSince1970: 1_577_836_800).timeIntervalSinceReferenceDate
         func uuid(_ number: Int) -> String { String(format: "00000000-0000-0000-0000-%012d", number) }
@@ -147,16 +196,19 @@ private enum DashboardUIFixture {
         let episodes = [episode(1), episode(2)]
         let input: [String: Any] = [
             "titles": [title(1, "Fixture Movie", "movie", "watched", true, 8),
-                       title(2, "A long saved Watchlist title for accessibility and wrapping", "movie", "watchlist", false, nil),
+                       title(2, "A long saved Watchlist title for accessibility and wrapping", "movie", emptyWatchlist ? "none" : "watchlist", false, nil),
                        title(3, "Fixture Series", "tvShow", "watching", true, 6)],
-            "viewings": (0..<2).map { ["id": uuid(10 + $0), "mediaID": id("1"), "title": "Fixture Movie",
-                                      "watchedDate": aired + Double($0) * 86_400, "recordedAt": date] as [String: Any] },
+            "viewings": (0..<2).map { number -> [String: Any] in
+                var event: [String: Any] = ["id": uuid(10 + number), "mediaID": id("1"), "title": "Fixture Movie", "recordedAt": date]
+                if !undated { event["watchedDate"] = aired + Double(number) * 86_400 }
+                return event
+            },
             "reviews": [["id": uuid(20), "mediaID": id("1"), "title": "Fixture Movie", "text": "Private fixture review",
                          "createdAt": date, "editedAt": date, "imported": false]],
             "progress": [["id": uuid(30), "episodeID": episode(1)["id"]!, "season": 1,
                           "watched": true, "watchedAt": date, "episodeData": try data(episode(1))]],
             "seasons": [["id": uuid(40), "seriesID": seriesID, "title": "Fixture Series", "number": 1,
-                         "expectedEpisodes": 2, "expectedRegularSeasons": 1, "listed": true, "loaded": true,
+                         "expectedEpisodes": 2, "expectedRegularSeasons": 1, "listed": true, "loaded": !incomplete,
                          "episodesData": try data(episodes), "listedIDsData": try data(episodes.map { $0["id"]! }), "refreshedAt": date]]
         ]
         let encoded = try JSONSerialization.data(withJSONObject: input, options: [.sortedKeys])
