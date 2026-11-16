@@ -155,6 +155,41 @@ final class DashboardUITests: XCTestCase {
         XCTAssertLessThanOrEqual(element.frame.maxY, app.tabBars.firstMatch.frame.minY)
     }
 
+    @MainActor func testDirectHomeMarkWorksOfflineAndKeepsIndependentProfileData() throws {
+        let app = try launch(populated: true, extra: ["--detail-fixture=error"])
+        let mark = app.buttons["home.markEpisode.fixture:3"]
+        reveal(mark, app)
+        XCTAssertTrue(mark.isHittable)
+        mark.tap()
+        let series = app.buttons["home.series.fixture:3"]
+        let updated = NSPredicate(format: "label CONTAINS %@", "Up to date with known aired episodes")
+        expectation(for: updated, evaluatedWith: series)
+        waitForExpectations(timeout: 5)
+        XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
+        screenshot(app, "Home-direct-mark-up-to-date-offline-fixture")
+        app.tabBars.buttons["Profile"].tap()
+        assertMetric(app, "episodes", "2")
+        assertMetric(app, "favorites", "2")
+        assertMetric(app, "ratings", "2")
+        assertMetric(app, "reviews", "1")
+        assertMetric(app, "events", "2")
+        app.tabBars.buttons["Home"].tap()
+        reveal(series, app); series.tap()
+        XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 5))
+        let status = app.staticTexts["library.currentStatus"]
+        reveal(status, app)
+        XCTAssertEqual(status.label, "Watching")
+    }
+
+    @MainActor func testIncompleteHomeCardDoesNotOfferDirectMarkAction() throws {
+        let app = try launch(populated: true, incomplete: true)
+        let series = app.buttons["home.series.fixture:3"]
+        XCTAssertTrue(series.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["home.markEpisode.fixture:3"].exists)
+        XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
+        XCTAssertTrue(series.label.contains("1 episode watched"))
+    }
+
     @MainActor private func find(_ app: XCUIApplication, _ id: String) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: id).firstMatch
     }

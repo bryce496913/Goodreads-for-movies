@@ -78,3 +78,7 @@ xcodebuild test -project MovieTracker.xcodeproj -scheme MovieTracker \
 Confirm **43 selected methods** execute (18 progress + 21 provider + 4 UI), then run all 140 without only-testing filters. These commands are unexecuted instructions. Manually review compact/large iPhones, dark/light and largest Dynamic Type, VoiceOver toggle descriptions, empty/special seasons, missing dates/totals, future episodes, explicit batch confirmations/reversal, error/offline states, cold relaunch, metadata omissions/new episodes, earlier Library snapshots, preserved personal data, migration and unchanged movie flows. No genuine simulator screenshots are available here.
 
 Episode-level public reviews, notifications and streaming-service availability are not implemented.
+
+## Pass 031 — Home direct actions
+
+[Continue Watching actions](CONTINUE_WATCHING_ACTIONS.md) adds a local-only, revalidated reliable-next action. Home opts out of the writer's existing implicit Watching promotion; episode/season screens retain their original default behavior. Unknown coverage and partial candidates do not expose a Home mutation, and no diary event is created. Status/rating/favorite/review independence, existing eligibility arithmetic and metadata/artwork retention remain. All new Apple tests remain unrun until local Xcode execution.

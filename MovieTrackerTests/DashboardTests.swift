@@ -30,6 +30,73 @@ final class DashboardTests: XCTestCase {
             episodesData: try JSONEncoder().encode(episodes), listedIDsData: try JSONEncoder().encode(episodes.map(\.id)),
             seriesData: nil, refreshedAt: now)
     }
+    func testNextSelectionOrdersRegularSeasonsAndSkipsWatchedSpecialsAndFuture() {
+        let series = id("next", .tvShow)
+        let one = episode(1, series: series), two = episode(2, series: series)
+        let future = episode(3, series: series, date: now.addingTimeInterval(86_400))
+        var later = episode(1, series: series, season: 2)
+        later = TVEpisode(id: EpisodeID(seriesID: series, providerValue: "fixture:later"), seasonNumber: 2,
+            number: 1, title: later.title, airDate: aired, overview: "", runtimeMinutes: nil)
+        let special = episode(99, series: series, season: 0)
+        let values = [later, future, special, two, one]
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: values, watched: [one.id],
+            seasons: [2, 0, 1], coverageKnown: true, now: now), .reliable(two))
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: values, watched: [two.id],
+            seasons: [1, 2], coverageKnown: true, now: now), .reliable(one))
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: values, watched: [one.id, two.id],
+            seasons: [1, 2], coverageKnown: true, now: now), .reliable(later))
+    }
+
+    func testKnownCandidateIsNotReliableWithUnknownDatesMissingSeasonsOrPositions() {
+        let series = id("next", .tvShow)
+        let one = episode(1, series: series)
+        var unknown = episode(2, series: series); unknown.airDate = nil
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: [one, unknown], watched: [],
+            seasons: [1], coverageKnown: true, now: now), .knownUnwatched(one))
+        XCTAssertNil(NextEpisodeSelector.select(series: series, episodes: [one], watched: [],
+            seasons: [1], coverageKnown: false, now: now).reliableEpisode)
+        XCTAssertNil(NextEpisodeSelector.select(series: series, episodes: [one], watched: [],
+            seasons: [1, 3], coverageKnown: true, now: now).reliableEpisode)
+        let gap = episode(3, series: series)
+        XCTAssertNil(NextEpisodeSelector.select(series: series, episodes: [one, gap], watched: [],
+            seasons: [1], coverageKnown: true, now: now).reliableEpisode)
+        var duplicatePosition = episode(2, series: series); duplicatePosition.number = 1
+        XCTAssertNil(NextEpisodeSelector.select(series: series, episodes: [one, duplicatePosition], watched: [],
+            seasons: [1], coverageKnown: true, now: now).reliableEpisode)
+    }
+
+    func testNextSelectionRejectsExpiredUnknownAndInvalidMetadata() {
+        let series = MediaID(kind: .tvShow, value: "tmdb:1")
+        var value = episode(1, series: series)
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: [value], watched: [],
+            seasons: [1], coverageKnown: true, now: now), .unavailable)
+        value.metadataRetrievedAt = now.addingTimeInterval(-MetadataPolicy.retention)
+        XCTAssertNil(NextEpisodeSelector.select(series: series, episodes: [value], watched: [],
+            seasons: [1], coverageKnown: true, now: now).reliableEpisode)
+        value.metadataRetrievedAt = now
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: [value], watched: [],
+            seasons: [1], coverageKnown: true, now: now), .reliable(value))
+        value.number = 0
+        XCTAssertEqual(NextEpisodeSelector.select(series: series, episodes: [value], watched: [],
+            seasons: [1], coverageKnown: true, now: now), .unavailable)
+    }
+
+    func testWatchingZeroAndUpToDateCardsDoNotChangeProgressStatistics() throws {
+        let series = id("watching", .tvShow)
+        let empty = try result(DashboardInput(titles: [title(series, status: "watching")]))
+        XCTAssertEqual(empty.continueWatching.count, 1)
+        XCTAssertEqual(empty.statistics.seriesWithProgress, 0)
+        XCTAssertNil(empty.continueWatching.first?.next)
+        let values = [episode(1, series: series), episode(2, series: series)]
+        let ready = try result(DashboardInput(titles: [title(series, status: "watching")], seasons: [try season(values)]))
+        XCTAssertEqual(ready.continueWatching.first?.next?.number, 1)
+        XCTAssertEqual(ready.continueWatching.first?.progress.percentage, 0)
+        let complete = try result(DashboardInput(titles: [title(series, status: "watching")],
+            progress: values.map { try progress($0) }, seasons: [try season(values)]))
+        XCTAssertTrue(complete.continueWatching.first?.progress.isUpToDate == true)
+        XCTAssertNil(complete.continueWatching.first?.next)
+    }
+
     private func result(_ input: DashboardInput) throws -> DashboardSnapshot { try DashboardAggregator.aggregate(input, now: now) }
 
     func testEmptyProfileHasZeroCountsAndUnavailableAverage() throws {
