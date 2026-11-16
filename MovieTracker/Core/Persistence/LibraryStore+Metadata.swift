@@ -12,7 +12,7 @@ extension LibraryStore {
     func clearProviderMetadata() throws {
         try writeTransaction { try MetadataPurger.purge($0, at: metadataClock(), all: true) }
         metadataInvalidation += 1
-        ProviderArtworkCache.shared.clear()
+        ProviderArtworkLoader.shared.clearTemporaryArtwork()
         URLCache.shared.removeAllCachedResponses()
     }
     func clearMetadataBackoff() throws {

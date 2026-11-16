@@ -42,7 +42,8 @@ final class OfflineArtworkTests: XCTestCase {
         let location = url("shared")
         let first = Task { _ = try await loader.image(location) }
         await transport.waitForRequest()
-        let second = Task { _ = try await loader.image(location) }
+        let alias = URL(string: "https://image.tmdb.org/t/p/w185/shared%2Epng")!
+        let second = Task { _ = try await loader.image(alias) }
         await joined.wait()
         first.cancel()
         do { _ = try await first.value; XCTFail("Expected per-consumer cancellation before response") }
@@ -99,6 +100,104 @@ final class OfflineArtworkTests: XCTestCase {
         catch { XCTAssertEqual(error as? MetadataError, .invalidIdentifier) }
         let calls = await transport.calls; XCTAssertEqual(calls, 0)
     }
+    @MainActor func testCanonicalKeysKeepVariantsDistinctAndRejectInvalidReceipts() throws {
+        let cache = ProviderArtworkCache()
+        let alias = try XCTUnwrap(URL(string: "https://image.tmdb.org/t/p/w185/a%2Epng"))
+        XCTAssertEqual(ProviderArtworkURL.cacheURL(alias), url("a"))
+        XCTAssertTrue(cache.save(png, url: alias, at: now))
+        XCTAssertNotNil(cache.image(url("a"), at: now))
+        let bytes = cache.byteCount
+        XCTAssertTrue(cache.save(png, url: url("a"), at: now))
+        XCTAssertEqual(cache.byteCount, bytes)
+        let larger = try XCTUnwrap(URL(string: "https://image.tmdb.org/t/p/w342/a.png"))
+        XCTAssertNil(cache.image(larger, at: now))
+        XCTAssertFalse(cache.save(png, url: url("bad-receipt"), at: Date(timeIntervalSinceReferenceDate: .nan)))
+        XCTAssertTrue(cache.save(png, url: url("future"), at: now.addingTimeInterval(1)))
+        XCTAssertNil(cache.image(url("future"), at: now))
+    }
+
+    @MainActor func testManualClearImmediatelyReleasesWaiterAndRejectsLateResponse() async throws {
+        let cache = ProviderArtworkCache(), transport = OfflineArtworkTransport(), date = now
+        let loader = ProviderArtworkLoader(cache: cache, transport: transport, clock: { date })
+        let location = url("manual")
+        let pending = Task { _ = try await loader.image(location) }
+        await transport.waitForRequest()
+        let generation = cache.generation
+        loader.clearTemporaryArtwork()
+        XCTAssertNotEqual(cache.generation, generation)
+        do { _ = try await pending.value; XCTFail("Clear must release the consumer without waiting for HTTP") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        await transport.complete(.success(MetadataHTTPResponse(data: png, status: 200, retryAfter: nil)))
+        XCTAssertNil(cache.image(url("manual"), at: now))
+        let retry = Task { _ = try await loader.image(location) }
+        await transport.waitForRequest(count: 2)
+        await transport.complete(.success(MetadataHTTPResponse(data: png, status: 200, retryAfter: nil)))
+        _ = try await retry.value
+        XCTAssertNotNil(cache.image(url("manual"), at: now))
+    }
+
+    @MainActor func testCredentialEpochRejectsArtworkBeforeCachePublication() async throws {
+        let epoch = MetadataRuntimeGate.credentialEpoch
+        defer { MetadataRuntimeGate.credentialEpoch = epoch }
+        let cache = ProviderArtworkCache(), transport = OfflineArtworkTransport(), date = now
+        let loader = ProviderArtworkLoader(cache: cache, transport: transport, clock: { date })
+        let location = url("epoch")
+        let pending = Task { _ = try await loader.image(location) }
+        await transport.waitForRequest()
+        MetadataRuntimeGate.credentialEpoch += 1
+        await transport.complete(.success(MetadataHTTPResponse(data: png, status: 200, retryAfter: nil)))
+        do { _ = try await pending.value; XCTFail("Old credential epoch cannot publish") }
+        catch { XCTAssertEqual(error as? MetadataError, .missingCredential) }
+        XCTAssertEqual(cache.byteCount, 0)
+    }
+
+    @MainActor func testMemoryReadsNeverRenewReceiptAndOfflineRestartHasNoImage() {
+        let cache = ProviderArtworkCache()
+        XCTAssertTrue(cache.save(png, url: url("lease"), at: now))
+        XCTAssertNotNil(cache.image(url("lease"), at: now.addingTimeInterval(MetadataPolicy.retention - 1)))
+        XCTAssertNil(cache.image(url("lease"), at: now.addingTimeInterval(MetadataPolicy.retention)))
+        XCTAssertEqual(cache.byteCount, 0)
+        XCTAssertNil(ProviderArtworkCache().image(url("lease"), at: now))
+    }
+
+    @MainActor func testTemporaryArtworkClearPreservesPersonalDataAndMetadataReceipt() throws {
+        let store = LibraryStore(container: try PersistenceController.makeContainer(inMemory: true))
+        let movie = Movie(id: "fixture:manual-clear", title: "Saved title", metadataRetrievedAt: now)
+        let media = MediaSearchResult.movie(movie), reviewID = UUID(), eventID = UUID()
+        try store.setStatus(.watched, media: media)
+        try store.setFavorite(true, media: media)
+        try store.setPersonalRating(PersonalRating(halfStarUnits: 7), media: media)
+        try store.saveReview(id: reviewID, media: media, text: "Private text", now: now)
+        try store.saveViewingEvent(id: eventID, media: media, watchedDate: nil, now: now)
+        let entry = try XCTUnwrap(store.entry(for: movie.id))
+        let identity = entry.id, updated = entry.updatedAt
+        let cache = ProviderArtworkCache()
+        XCTAssertTrue(cache.save(png, url: url("personal"), at: now))
+        ProviderArtworkLoader(cache: cache).clearTemporaryArtwork()
+        XCTAssertEqual(cache.byteCount, 0)
+        XCTAssertEqual(store.entries.count, 1)
+        XCTAssertEqual(entry.id, identity); XCTAssertEqual(entry.updatedAt, updated)
+        XCTAssertEqual(entry.status, "watched"); XCTAssertTrue(entry.isFavorite)
+        XCTAssertEqual(try entry.validatedRating()?.halfStarUnits, 7)
+        XCTAssertEqual(store.reviews(for: movie.id).first?.text, "Private text")
+        XCTAssertEqual(store.events(for: movie.id).first?.id, eventID)
+        XCTAssertEqual(store.offlineMedia(for: movie.id), media)
+    }
+
+    @MainActor func testChangedArtworkReferenceDoesNotServeOldImageOnFailure() async throws {
+        let cache = ProviderArtworkCache(), transport = OfflineArtworkTransport(), date = now
+        XCTAssertTrue(cache.save(png, url: url("old"), at: now))
+        let loader = ProviderArtworkLoader(cache: cache, transport: transport, clock: { date })
+        let location = url("new")
+        let changed = Task { _ = try await loader.image(location) }
+        await transport.waitForRequest()
+        await transport.complete(.failure(MetadataError.offline))
+        do { _ = try await changed.value; XCTFail("Changed reference needs its own image") }
+        catch { XCTAssertEqual(error as? MetadataError, .offline) }
+        XCTAssertNil(cache.image(url("new"), at: now))
+        XCTAssertNotNil(cache.image(url("old"), at: now))
+    }
+
 }
 
 /// Deliberately noncooperative transport verifies late-response protection without real connectivity.

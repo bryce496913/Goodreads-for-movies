@@ -55,6 +55,9 @@ struct LibraryCachedPoster: View {
             guard !Task.isCancelled, let url else { return }
             image = ProviderArtworkCache.shared.image(url)
         }
+        .onChange(of: ProviderArtworkCache.shared.revision) { _, _ in
+            image = url.flatMap { ProviderArtworkCache.shared.image($0) }
+        }
         .onChange(of: library.metadataReferenceDate) { _, now in
             image = url.flatMap { ProviderArtworkCache.shared.image($0, at: now) }
         }
