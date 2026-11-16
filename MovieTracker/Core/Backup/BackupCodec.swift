@@ -20,7 +20,7 @@ enum BackupCodec {
             let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .deferredToDate
             let header = try decoder.decode(Header.self, from: data)
             guard header.format == "MovieTracker.personal-backup" else { throw BackupError.invalidFormat }
-            guard header.version == 1 else { throw BackupError.unsupportedVersion(header.version) }
+            guard header.version == 1 || header.version == 2 else { throw BackupError.unsupportedVersion(header.version) }
             let value = try decoder.decode(PersonalBackup.self, from: data)
             try value.validate(); return value
         } catch is CancellationError { throw CancellationError() }

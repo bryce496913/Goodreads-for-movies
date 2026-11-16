@@ -8,7 +8,7 @@ This is a **manual export**, not automatic backup. The app does not upload to a 
 
 ## Restore and confirmation
 
-Choose **Restore from Backup**, select an available `.json` file in the native picker, and wait for full parsing/validation. A cloud-only file may need downloading through its Files provider; locally available files work offline. A restore preview shows new Library/review/viewing/progress/season-anchor counts, the number of kept/skipped records, and conflict reasons without showing review text. The first 50 reasons are displayed with the total count; all conflicts use the same rule.
+Choose **Restore from Backup**, select an available `.json` file in the native picker, and wait for full parsing/validation. A cloud-only file may need downloading through its Files provider; locally available files work offline. A restore preview shows new Library/review/viewing/progress/season-anchor/collection/membership counts, the number of kept/skipped records, and conflict reasons without showing review text. The first 50 reasons are displayed with the total count; all conflicts use the same rule.
 
 Choose **Confirm Merge — Keep Existing Data** to acknowledge that rule and save, or **Cancel** to make no changes. There is no replace-all or overwrite mode. A success message appears only after the single persistence save returns. If anything changes the store revision while preparing or reviewing the preview—including maintenance—confirmation rejects the stale plan. Select the file again for a fresh preview; it never silently applies a different merge from the one reviewed.
 
@@ -27,29 +27,29 @@ Choose **Confirm Merge — Keep Existing Data** to acknowledge that rule and sav
 
 There is no separate viewing-event notes column in the current model. The existing legacy review/note and written review text are preserved, not invented or reinterpreted. Reviews/events remain valid without a Library parent; removing a Library row before export does not discard those standalone histories. A rating without a viewing status remains independent after restore. Imported legacy/unknown namespaces also retain identifier-only detail actions when no metadata adapter is available. Movie and TV IDs sharing a provider number remain distinct.
 
-The format is separate from `PersonalDataArchive` / `PersonalData.json` generated internally during migration-backup maintenance. Those internal recovery files are **not public version-1 backups** and are rejected by this importer. Their permissive historical recovery behavior was left unchanged. No SwiftData schema migration is required.
+The format is separate from `PersonalDataArchive` / `PersonalData.json` generated internally during migration-backup maintenance. Those internal recovery files are **not public version-1 backups** and are rejected by this importer. Internal recovery format 2 now preserves collections, while format 1 remains readable. These are separate from public backups. V3 adds the collection entities; the public JSON version remains independent of SwiftData's schema version.
 
-## Version 1 format
+## Version 2 format (version 1 import retained)
 
-Supported import/export version: **1**. Envelope fields:
+Current export version: **2**. Supported import versions: **1 and 2**. Envelope fields:
 
 | Field | Requirement |
 | --- | --- |
 | `format` | Required string `MovieTracker.personal-backup` |
-| `version` | Required integer `1`; another version is rejected before decoding its records |
+| `version` | Required integer `1` or `2`; unsupported versions are rejected before decoding records |
 | `dateEncoding` | Required string `secondsSince2001-01-01T00:00:00Z` |
 | `exportedAt` | Required finite numeric timestamp in that encoding |
 | `applicationVersion` | Optional application short-version string; not a device identifier |
 | `library`, `reviews`, `viewings`, `episodeProgress`, `seasonAnchors` | Required arrays, including for an empty backup |
 
-Dates are **Double seconds since 2001-01-01 00:00:00 UTC**, the explicit reference epoch used by Foundation Date Codable. This documented numeric representation avoids losing fractional timestamps through a second-only ISO 8601 formatter. It requires no Apple API to read: Unix seconds = encoded seconds + 978307200. Absent optional dates remain absent/nil; no watch date is synthesized from a recorded date. Arrays sort by record UUID and object keys sort lexically for repeatable encoding of the same snapshot/timestamp. Export timestamp changes naturally between exports.
+Dates are **Double seconds since 2001-01-01 00:00:00 UTC**, the explicit reference epoch used by Foundation Date Codable. This documented numeric representation avoids losing fractional timestamps through a second-only ISO 8601 formatter. It requires no Apple API to read: Unix seconds = encoded seconds + 978307200. Absent optional dates remain absent/nil; no watch date is synthesized from a recorded date. Base arrays and collections sort by record UUID; memberships sort by collection UUID, position and membership UUID. Object keys sort lexically for repeatable encoding of the same snapshot/timestamp. Export timestamp changes naturally between exports.
 
 An empty example (timestamp is an example, not runtime evidence):
 
 ```json
 {
   "format": "MovieTracker.personal-backup",
-  "version": 1,
+  "version": 2,
   "dateEncoding": "secondsSince2001-01-01T00:00:00Z",
   "exportedAt": 788918400.1234567,
   "applicationVersion": "0.5.0",
@@ -57,7 +57,9 @@ An empty example (timestamp is an example, not runtime evidence):
   "reviews": [],
   "viewings": [],
   "episodeProgress": [],
-  "seasonAnchors": []
+  "seasonAnchors": [],
+  "collections": [],
+  "collectionMemberships": []
 }
 ```
 
@@ -73,7 +75,7 @@ Per-record required fields:
 
 Valid legacy star values are exported as exact half-star units; legacy zero becomes unrated. Invalid existing ratings, identities or integrity conflicts block export/restore preparation instead of silently omitting personal data or clamping it. The public format does not preserve invalid legacy floating-point encodings; the existing internal recovery mechanism remains separate.
 
-The application-version string is informational; compatibility is controlled by the export format version. Unknown extra fields in a version-1 file are ignored by the decoder and never imported/re-exported as metadata or credentials. Required known fields and relationships still validate. Unknown versions are rejected with a version-specific message; there is no best-effort future-schema conversion. Future changes must explicitly version and test the format. No other app's JSON or raw database is supported.
+The application-version string is informational; compatibility is controlled by the export format version. Unrecognized extra fields are not imported/re-exported as metadata or credentials. Version-1 files may omit the new collection arrays (empty is accepted); nonempty collection data under a version-1 header is rejected rather than silently discarded. Required known fields and relationships still validate. Unknown versions are rejected with a version-specific message; there is no best-effort future-schema conversion. Future changes must explicitly version and test the format. No other app's JSON or raw database is supported.
 
 ## Non-destructive merge rules
 
@@ -112,3 +114,18 @@ Temporary disk-backed regressions cover successful restore/reopen and injected s
 **All XCTest remains UNRUN** on the Linux worker without Swift/Apple frameworks. Repository inventory: **338 methods, 298 unit-target (including existing benchmarks), 40 UI**. Passed static validation: project parsing/reference resolution/source membership across three targets; Swift grammar parsing of 131 files (not type checking/macros); resource metadata/privacy parsing; documentation links and whitespace. No Xcode/device builds, simulator/signing checks, or GitHub Xcode CI were run/added.
 
 Locally run BackupRestoreTests and BackupValidationTests plus existing LibraryStore, diary/rating/progress, disk-integrity and migration regressions. Manually verify native Files export/import in Settings, cancel both pickers and preview, inspect a personal-only JSON backup, acknowledge conflicts, change local data while previewing, restore into an empty test installation offline, and reopen after termination. Verify Dynamic Type/VoiceOver and error/success feedback. Native picker lifecycle, actual device persistence and max-size responsiveness remain unverified.
+
+## Pass 032 collection format and merge rules
+
+Version 2 requires `collections` and `collectionMemberships` arrays, including when empty. Actual version-1 JSON without these keys restores successfully and contributes no incoming lists; existing local collections are never cleared by an older import.
+
+- Collection: required `id` UUID, canonical `name`, finite `createdAt` and `updatedAt` (same 2001 UTC date encoding).
+- Membership: required `id` UUID, `collectionID`, typed `mediaID`, nonnegative `position`, finite `addedAt`.
+- Names are trimmed, NFC-normalized, 1…100 characters and at most 1,024 UTF-8 bytes. Unicode/emoji are supported; controls/line breaks and case-insensitive duplicate names are rejected. Case folding uses en_US_POSIX; diacritics remain meaningful.
+- Memberships reference a collection present in the backup, not necessarily a Library row. Each collection has unique MediaIDs and positions exactly 0…count−1. Membership UUIDs are globally unique. Malformed graphs, unsupported versions and missing required v2 keys fail before a merge preview. Existing 32 MB / 100,000-record limits now include both new arrays.
+
+Restore matches a collection by UUID and keeps its **entire local name, membership set and manual order**. Differences generate a conflict reason; no incoming members are silently appended to an existing owner. A new UUID with a conflicting case-folded name, or any membership UUID collision with a local association, skips the entire incoming collection and its members. No automatic rename/remap occurs. A wholly new nonconflicting collection preserves its UUIDs, dates and order. Repeat import adds nothing. Other Library/review/diary/progress merge rules remain unchanged and independently apply.
+
+The revision-bound plan/preview shows both new counts and all conflict reasons. Apply uses the same one-save audited transaction and rollback, with no separate import writer. A collection edit invalidates a stale plan. Provider snapshots, titles, poster references, receipts, credentials and disk artwork remain excluded; user-authored collection names are personal data.
+
+CollectionBackupTests covers v2 round trips/order/UUIDs, actual v1 JSON without collection keys, repeat import, UUID/name/order conflicts, invalid references/positions/names, missing keys/future versions, stale revisions, and failure preserving pre-existing local data. Internal recovery round trips and V3 raw-backup conversion are also covered. These tests, like all Apple-framework tests here, are **UNRUN** until local Xcode execution. See [collection implementation and local validation](CUSTOM_COLLECTIONS.md).

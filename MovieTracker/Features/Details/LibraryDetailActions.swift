@@ -20,6 +20,7 @@ struct LibraryDetailActions: View {
             FavoriteAction(selected: entry?.isFavorite == true) {
                 perform { try library.setFavorite(entry?.isFavorite != true, media: media, posterURL: posterURL) }
             }.accessibilityIdentifier("library.favoriteAction")
+            AddToCollectionAction(media: media)
             PersonalRatingControl(current: { try library.entry(for: item.id)?.validatedRating() }, save: {
                 try library.setPersonalRating($0, media: media, posterURL: posterURL)
             })

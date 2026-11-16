@@ -19,9 +19,11 @@ struct PersonalDataArchive: Codable {
     }
     struct SeasonAnchor: Codable { let id: UUID; let series: String; let number: Int }
     private struct SeasonKey: Hashable { let series: String; let number: Int }
-    var format = 1
+    var format = 2
     let library: [Library]; let reviews: [Review]; let viewings: [Viewing]; let progress: [Progress]
     var seasons: [SeasonAnchor] = []
+    var collections: [PersonalBackup.Collection]? = nil
+    var collectionMemberships: [PersonalBackup.Membership]? = nil
 
     @MainActor static func capture(_ context: ModelContext) throws -> Self {
         let flags = try context.fetch(FetchDescriptor<StoredEpisodeProgress>())
@@ -37,9 +39,15 @@ struct PersonalDataArchive: Codable {
             Viewing(id: $0.id, kind: $0.mediaKind, value: $0.mediaValue, watched: $0.watchedDate, recorded: $0.recordedAt, updated: $0.updatedAt)
         }, progress: flags.map {
             Progress(id: $0.id, series: $0.seriesValue, episode: $0.episodeValue, seasonAnchor: $0.seasonNumber, watched: $0.isWatched, marked: $0.watchedAt)
-        }, seasons: anchors)
+        }, seasons: anchors,
+        collections: try context.fetch(FetchDescriptor<StoredCollection>()).map { PersonalBackup.Collection(id: $0.id, name: $0.name, createdAt: $0.createdAt, updatedAt: $0.updatedAt) },
+        collectionMemberships: try context.fetch(FetchDescriptor<StoredCollectionMembership>()).map {
+            guard let id = $0.mediaID else { throw ArchiveError.conflictingIdentity }
+            return PersonalBackup.Membership(id: $0.id, collectionID: $0.collectionID, mediaID: id, position: $0.position, addedAt: $0.addedAt)
+        })
     }
     func writeVerified(to url: URL) throws {
+        try validateIdentities()
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
         encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: "Infinity", negativeInfinity: "-Infinity", nan: "NaN")
         let bytes = try encoder.encode(self)
@@ -51,11 +59,16 @@ struct PersonalDataArchive: Codable {
         let decoder = JSONDecoder()
         decoder.nonConformingFloatDecodingStrategy = .convertFromString(positiveInfinity: "Infinity", negativeInfinity: "-Infinity", nan: "NaN")
         let result = try decoder.decode(Self.self, from: Data(contentsOf: url))
-        guard result.format == 1 else { throw ArchiveError.verification }
+        guard result.format == 1 || result.format == 2 else { throw ArchiveError.verification }
         try result.validateIdentities(); return result
     }
     private func validateIdentities() throws {
         let groups = [library.map(\.id), reviews.map(\.id), viewings.map(\.id), progress.map(\.id), seasons.map(\.id)]
+        if format == 2 && (collections == nil || collectionMemberships == nil) { throw ArchiveError.verification }
+        var portable = PersonalBackup(exportedAt: Date(timeIntervalSinceReferenceDate: 0), applicationVersion: nil)
+        portable.collections = collections ?? []; portable.collectionMemberships = collectionMemberships ?? []
+        if format == 1 && (!portable.collections.isEmpty || !portable.collectionMemberships.isEmpty) { throw ArchiveError.verification }
+        try portable.validate()
         guard groups.allSatisfy({ Set($0).count == $0.count }) else { throw ArchiveError.conflictingIdentity }
     }
     /// Explicit recovery primitive for an EMPTY destination only; never called automatically by the app.
@@ -66,8 +79,16 @@ struct PersonalDataArchive: Codable {
               try context.fetchCount(FetchDescriptor<StoredViewingEvent>()) == 0,
               try context.fetchCount(FetchDescriptor<StoredEpisodeProgress>()) == 0,
               try context.fetchCount(FetchDescriptor<StoredTVSeason>()) == 0,
-              try context.fetchCount(FetchDescriptor<StoredMetadataState>()) == 0 else { throw ArchiveError.destinationNotEmpty }
+              try context.fetchCount(FetchDescriptor<StoredMetadataState>()) == 0,
+              try context.fetchCount(FetchDescriptor<StoredCollection>()) == 0,
+              try context.fetchCount(FetchDescriptor<StoredCollectionMembership>()) == 0 else { throw ArchiveError.destinationNotEmpty }
         func identity(_ kind: String, _ value: String) -> MediaID { MediaID(kind: MediaID.Kind(rawValue: kind) ?? .movie, value: value) }
+        for row in collections ?? [] {
+            context.insert(StoredCollection(id: row.id, name: row.name, createdAt: row.createdAt, updatedAt: row.updatedAt))
+        }
+        for row in collectionMemberships ?? [] {
+            context.insert(StoredCollectionMembership(id: row.id, collectionID: row.collectionID, mediaID: row.mediaID, position: row.position, addedAt: row.addedAt))
+        }
         for source in library {
             let row = StoredLibraryEntry(entry: UserLibraryEntry(id: source.id, mediaID: identity(source.kind, source.value), status: nil))
             row.mediaKind = source.kind; row.status = source.status; row.isFavorite = source.favorite
@@ -127,7 +148,7 @@ enum MetadataArchiveMaintenance {
                 // Always capture the still-present raw store; never overwrite it using a potentially stale JSON file.
                 let snapshot = try autoreleasepool {
                     try StoreSchemaRecognition.validate(source, supported: LibraryMigrationPlan.schemas)
-                    let schema = Schema(versionedSchema: LibrarySchemaV2.self)
+                    let schema = Schema(versionedSchema: LibrarySchemaV3.self)
                     let container = try ModelContainer(for: schema, migrationPlan: LibraryMigrationPlan.self,
                         configurations: [ModelConfiguration(schema: schema, url: source, cloudKitDatabase: .none)])
                     return try PersonalDataArchive.capture(container.mainContext)
@@ -136,7 +157,7 @@ enum MetadataArchiveMaintenance {
                 for path in [source, URL(fileURLWithPath: source.path + "-wal"), URL(fileURLWithPath: source.path + "-shm")] where files.fileExists(atPath: path.path) {
                     try files.removeItem(at: path)
                 }
-                try Data("Verified personal-data-only recovery archive, format 1.\n".utf8).write(to: directory.appendingPathComponent("COMPLETE"), options: .atomic)
+                try Data("Verified personal-data-only recovery archive, format 2.\n".utf8).write(to: directory.appendingPathComponent("COMPLETE"), options: .atomic)
             } catch { failed += 1 } // No raw-store/content/error-body logging. Keep source bytes on failure.
         }
         return failed

@@ -79,6 +79,10 @@
 			isa = PBXBuildFile;
 			fileRef = 22CBCA2F671ABC3D3DCE6A42;
 		};
+		CBBFD0580AEFE9A97ECEABDC = {
+			isa = PBXBuildFile;
+			fileRef = F6FDFDD62710CD993DC314F6;
+		};
 		290C682266CFF32FE9DE8FE8 = {
 			isa = PBXBuildFile;
 			fileRef = 076772DA103039CBFB8D4DF6;
@@ -155,6 +159,10 @@
 			isa = PBXBuildFile;
 			fileRef = 8211DB803450DEF815748086;
 		};
+		612FF855FCEA70372CB311DC = {
+			isa = PBXBuildFile;
+			fileRef = 8A5D361BAF66A67E5F510E10;
+		};
 		14DE5BB9DE6BCE1D951EFE9A = {
 			isa = PBXBuildFile;
 			fileRef = CF34283A9BA78A010318CCB3;
@@ -190,6 +198,10 @@
 		1CD971E5930F2ABE888B1267 = {
 			isa = PBXBuildFile;
 			fileRef = 1078C2560901391F2787934D;
+		};
+		52DFE44EB05F868C5642172A = {
+			isa = PBXBuildFile;
+			fileRef = 305D8ACDF0A4EC8BA87F4CEC;
 		};
 		422E6B13F15CF7947616770A = {
 			isa = PBXBuildFile;
@@ -242,6 +254,10 @@
 		850578158B206C9D56E09F6D = {
 			isa = PBXBuildFile;
 			fileRef = 85AD51E221571CC9DCBB4BB5;
+		};
+		C52DAD7F460D432707BE2A27 = {
+			isa = PBXBuildFile;
+			fileRef = 33A4C97BA849169178AA3ACA;
 		};
 		C09717A0E9BA7B9EA04B5F07 = {
 			isa = PBXBuildFile;
@@ -407,6 +423,14 @@
 			isa = PBXBuildFile;
 			fileRef = F6E6D37213ED86E8BB5EDE37;
 		};
+		77A1A74E4DF5BE71E05CA693 = {
+			isa = PBXBuildFile;
+			fileRef = B4665603F1FB05EC240F7ABE;
+		};
+		21D6F5E6CD73E06A6B5D2DCA = {
+			isa = PBXBuildFile;
+			fileRef = 210B98F54E05D71A57B49CCA;
+		};
 		CBFD94AB6BBCB94A7B6FC7B6 = {
 			isa = PBXBuildFile;
 			fileRef = B07A2ED1EF22E3815AE8E542;
@@ -518,6 +542,10 @@
 		58D1FA99DAC95D24831483B1 = {
 			isa = PBXBuildFile;
 			fileRef = 8D8AF28CCBA6F498217CA525;
+		};
+		09CE557B9D925312A89033AF = {
+			isa = PBXBuildFile;
+			fileRef = 7C12B0C01D79965B199D2C7A;
 		};
 		7519C2ACDAF13BC3032EC416 = {
 			isa = PBXBuildFile;
@@ -683,6 +711,12 @@
 			path = MovieTracker/Core/Models/CastMember.swift;
 			sourceTree = "<group>";
 		};
+		F6FDFDD62710CD993DC314F6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Models/CollectionName.swift;
+			sourceTree = "<group>";
+		};
 		076772DA103039CBFB8D4DF6 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -809,10 +843,22 @@
 			path = MovieTracker/Core/Persistence/Schema/LibrarySchemaV2.swift;
 			sourceTree = "<group>";
 		};
+		305D8ACDF0A4EC8BA87F4CEC = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Persistence/Schema/LibrarySchemaV3.swift;
+			sourceTree = "<group>";
+		};
 		8211DB803450DEF815748086 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = "MovieTracker/Core/Persistence/LibraryStore+Backup.swift";
+			sourceTree = "<group>";
+		};
+		8A5D361BAF66A67E5F510E10 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "MovieTracker/Core/Persistence/LibraryStore+Collections.swift";
 			sourceTree = "<group>";
 		};
 		CF34283A9BA78A010318CCB3 = {
@@ -927,6 +973,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Features/Backup/DataBackupView.swift;
+			sourceTree = "<group>";
+		};
+		33A4C97BA849169178AA3ACA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Collections/CollectionViews.swift;
 			sourceTree = "<group>";
 		};
 		3F7E7071547C363D8BAB2496 = {
@@ -1175,6 +1227,18 @@
 			path = MovieTrackerTests/BackupValidationTests.swift;
 			sourceTree = "<group>";
 		};
+		B4665603F1FB05EC240F7ABE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/CollectionBackupTests.swift;
+			sourceTree = "<group>";
+		};
+		210B98F54E05D71A57B49CCA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/CollectionTests.swift;
+			sourceTree = "<group>";
+		};
 		B07A2ED1EF22E3815AE8E542 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1341,6 +1405,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/BetaPreparationTests.swift;
+			sourceTree = "<group>";
+		};
+		7C12B0C01D79965B199D2C7A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/CollectionsTests.swift;
 			sourceTree = "<group>";
 		};
 		18C8C4848DA878170E46132D = {
@@ -1518,6 +1588,7 @@
 			isa = PBXGroup;
 			children = (
 				22CBCA2F671ABC3D3DCE6A42,
+				F6FDFDD62710CD993DC314F6,
 				076772DA103039CBFB8D4DF6,
 				9B2F214B1B8AB78C8BF146A7,
 				ECA932BB0FD44B3779212AFF,
@@ -1553,6 +1624,7 @@
 				4057CF3D96D44CB1FC664C52,
 				97DFA7196B655E7DB8A1E11D,
 				1078C2560901391F2787934D,
+				305D8ACDF0A4EC8BA87F4CEC,
 			);
 			name = Schema;
 			sourceTree = "<group>";
@@ -1562,6 +1634,7 @@
 			children = (
 				7F8C791FA6FFD5614FE3D286,
 				8211DB803450DEF815748086,
+				8A5D361BAF66A67E5F510E10,
 				CF34283A9BA78A010318CCB3,
 				76398C8BB7A7C3A1A4027E51,
 				9201AE973F8AA060934F342B,
@@ -1611,6 +1684,14 @@
 				85AD51E221571CC9DCBB4BB5,
 			);
 			name = Backup;
+			sourceTree = "<group>";
+		};
+		97FF43E5D5F64576F3C51307 = {
+			isa = PBXGroup;
+			children = (
+				33A4C97BA849169178AA3ACA,
+			);
+			name = Collections;
 			sourceTree = "<group>";
 		};
 		DF67FB600777F187588C0FD8 = {
@@ -1709,6 +1790,7 @@
 			isa = PBXGroup;
 			children = (
 				8AB109B0089C9F484E1B226E,
+				97FF43E5D5F64576F3C51307,
 				DF67FB600777F187588C0FD8,
 				B5A04877AF369CB350B5325F,
 				43E57F04E05BFA5F698308C3,
@@ -1747,6 +1829,8 @@
 				2095A3AFAA5444365BC69C62,
 				E5E9323C643DB202B1F790FE,
 				F6E6D37213ED86E8BB5EDE37,
+				B4665603F1FB05EC240F7ABE,
+				210B98F54E05D71A57B49CCA,
 				B07A2ED1EF22E3815AE8E542,
 				38EE8DCBC200AA77D0EBCD0C,
 				67C92802A337B56B1068A32A,
@@ -1782,6 +1866,7 @@
 			children = (
 				C004D6A2CA090F93A2F8DB42,
 				8D8AF28CCBA6F498217CA525,
+				7C12B0C01D79965B199D2C7A,
 				18C8C4848DA878170E46132D,
 				78FEB42D669400CF297FA2B2,
 				EA6819FA204CDE02F3C88014,
@@ -1967,6 +2052,7 @@
 				25889753D9248633D1E36BD9,
 				48F28429AA3D02C28FB73E42,
 				BE5C0C42611FA7722B0F7736,
+				CBBFD0580AEFE9A97ECEABDC,
 				290C682266CFF32FE9DE8FE8,
 				C0C35AEEE17C11225ADF806A,
 				A8C75CBB019B5CD228E452EB,
@@ -1986,6 +2072,7 @@
 				BB656F8EC2E06ADBE6A56929,
 				5A6E38530EDE1289DCC726DD,
 				C59D7121AA7D98057ECF0A62,
+				612FF855FCEA70372CB311DC,
 				14DE5BB9DE6BCE1D951EFE9A,
 				CE99EC925A129FF27C3AE3E0,
 				B8D046F9DAAA507063A5CE9E,
@@ -1995,6 +2082,7 @@
 				E2B4F91CDD2080D27AE6998D,
 				B5028C1CBB478FB467CADAD6,
 				1CD971E5930F2ABE888B1267,
+				52DFE44EB05F868C5642172A,
 				422E6B13F15CF7947616770A,
 				850444D786F31F358CD5D761,
 				3CAD8E937F02176051ECB9C8,
@@ -2008,6 +2096,7 @@
 				C1A686EC476EDE99E4B7ADBD,
 				425DF5B2B64A83C947A655C1,
 				850578158B206C9D56E09F6D,
+				C52DAD7F460D432707BE2A27,
 				C09717A0E9BA7B9EA04B5F07,
 				DEAEDF287E18018FD8AC04EA,
 				DE5A1F80F47CC69C187327A4,
@@ -2054,6 +2143,8 @@
 				1DBF3772328D9CFB7219D937,
 				7421B1203D0F845148290444,
 				F63F49002CB0E67810B2929C,
+				77A1A74E4DF5BE71E05CA693,
+				21D6F5E6CD73E06A6B5D2DCA,
 				CBFD94AB6BBCB94A7B6FC7B6,
 				9C66DC5B7F284D452762FE74,
 				970FF44C69872C1D47679B9C,
@@ -2089,6 +2180,7 @@
 			files = (
 				4880C2383380C1C596889F99,
 				58D1FA99DAC95D24831483B1,
+				09CE557B9D925312A89033AF,
 				7519C2ACDAF13BC3032EC416,
 				8D5E59F35785D2405EE5FE33,
 				A2191715CBDCC79FB6A10445,

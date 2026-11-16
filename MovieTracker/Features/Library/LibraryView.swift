@@ -32,6 +32,7 @@ struct LibraryView: View {
                 }.pickerStyle(.menu).accessibilityIdentifier("library.sort")
                 if organization.hasFilters { Button("Reset Filters") { organization.resetFilters() }.accessibilityIdentifier("library.resetFilters") }
             }
+            CollectionsSection()
             if let error = library.loadError {
                 Text(error.localizedDescription).accessibilityIdentifier("library.loadError")
                 Button("Retry Library") { library.reload() }

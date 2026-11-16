@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 struct StoreIntegrityIssue: Hashable {
-    enum Entity: String { case library, review, viewing, season, episode, metadata }
+    enum Entity: String { case library, review, viewing, season, episode, metadata, collection, membership }
     enum Kind: String { case duplicateUUID, duplicateIdentity, invalidIdentity, danglingAssociation, crossMediaAssociation, duplicateAssociation, inconsistentSnapshot }
     let entity: Entity
     let kind: Kind
@@ -17,11 +17,13 @@ enum StoreIntegrityReport {
               reviews: try context.fetch(FetchDescriptor<StoredPersonalReview>()),
               events: try context.fetch(FetchDescriptor<StoredViewingEvent>()),
               seasons: try context.fetch(FetchDescriptor<StoredTVSeason>()),
-              progress: try context.fetch(FetchDescriptor<StoredEpisodeProgress>()), metadata: try context.fetch(FetchDescriptor<StoredMetadataState>()))
+              progress: try context.fetch(FetchDescriptor<StoredEpisodeProgress>()), metadata: try context.fetch(FetchDescriptor<StoredMetadataState>()),
+              collections: try context.fetch(FetchDescriptor<StoredCollection>()), memberships: try context.fetch(FetchDescriptor<StoredCollectionMembership>()))
     }
 
     static func audit(entries: [StoredLibraryEntry], reviews: [StoredPersonalReview], events: [StoredViewingEvent],
-                      seasons: [StoredTVSeason], progress: [StoredEpisodeProgress], metadata: [StoredMetadataState] = []) -> Set<StoreIntegrityIssue> {
+                      seasons: [StoredTVSeason], progress: [StoredEpisodeProgress], metadata: [StoredMetadataState] = [],
+                      collections: [StoredCollection] = [], memberships: [StoredCollectionMembership] = []) -> Set<StoreIntegrityIssue> {
         var issues = Set<StoreIntegrityIssue>()
         func add(_ entity: StoreIntegrityIssue.Entity, _ kind: StoreIntegrityIssue.Kind, _ records: [UUID]) {
             issues.insert(.init(entity: entity, kind: kind, records: records.sorted { $0.uuidString < $1.uuidString }))
@@ -29,6 +31,25 @@ enum StoreIntegrityReport {
         func duplicates<T, Key: Hashable>(_ rows: [T], entity: StoreIntegrityIssue.Entity, kind: StoreIntegrityIssue.Kind,
                                           key: (T) -> Key, id: (T) -> UUID) {
             for group in Dictionary(grouping: rows, by: key).values where group.count > 1 { add(entity, kind, group.map(id)) }
+        }
+        duplicates(collections, entity: .collection, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })
+        duplicates(collections, entity: .collection, kind: .duplicateIdentity, key: { CollectionName.key($0.name) }, id: { $0.id })
+        duplicates(memberships, entity: .membership, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })
+        struct MembershipKey: Hashable { let owner: UUID; let media: MediaID? }
+        duplicates(memberships, entity: .membership, kind: .duplicateAssociation,
+                   key: { MembershipKey(owner: $0.collectionID, media: $0.mediaID) }, id: { $0.id })
+        let owners = Set(collections.map(\.id))
+        for row in collections where (try? CollectionName.validated(row.name)) != row.name || !row.createdAt.timeIntervalSinceReferenceDate.isFinite || !row.updatedAt.timeIntervalSinceReferenceDate.isFinite {
+            add(.collection, .invalidIdentity, [row.id])
+        }
+        for row in memberships {
+            if !owners.contains(row.collectionID) { add(.membership, .danglingAssociation, [row.id]) }
+            if row.mediaID?.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false || row.position < 0 || !row.addedAt.timeIntervalSinceReferenceDate.isFinite {
+                add(.membership, .invalidIdentity, [row.id])
+            }
+        }
+        for rows in Dictionary(grouping: memberships, by: \.collectionID).values {
+            if rows.map(\.position).sorted() != Array(0..<rows.count) { add(.membership, .inconsistentSnapshot, rows.map(\.id)) }
         }
         struct MetadataKey: Hashable { let id: MediaID?; let scope: String }
         duplicates(metadata, entity: .metadata, kind: .duplicateUUID, key: { $0.id }, id: { $0.id })

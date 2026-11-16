@@ -25,7 +25,7 @@ struct DataBackupView: View {
     var body: some View {
         Form {
             Section("Personal backup") {
-                Text("Export your library membership, statuses, favorites, personal ratings, private reviews, viewing diary and episode watched flags. No internet connection is required.")
+                Text("Export your library membership, statuses, favorites, personal ratings, private reviews, viewing diary, episode watched flags and custom collections. No internet connection is required.")
                 Text("Provider titles, artwork, metadata caches and credentials are excluded. Restored titles may show identifiers until you retrieve metadata with an authorized provider configuration.").font(.footnote)
                 if model.isBusy { ProgressView("Preparing personal data…").accessibilityIdentifier("backup.busy") }
                 Button("Export My Data", systemImage: "square.and.arrow.up") {
@@ -65,6 +65,8 @@ struct DataBackupView: View {
                             Text("Viewing events: \(preview.counts.viewings)")
                             Text("Episode progress: \(preview.counts.progress)")
                             Text("Season anchors: \(preview.counts.anchors)")
+                            Text("Collections: \(preview.counts.collections)")
+                            Text("Collection memberships: \(preview.counts.memberships)")
                         }
                         Section("Existing data stays unchanged") {
                             Text("\(preview.kept) existing or conflicting records will be kept or skipped. \(preview.conflicts.count) conflicts need your acknowledgement.")

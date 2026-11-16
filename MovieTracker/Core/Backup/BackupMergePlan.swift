@@ -3,8 +3,8 @@ import Foundation
 /// A complete, immutable plan. Only this planner can construct one; applying it requires its source revision.
 struct BackupMergePlan: Sendable {
     struct Counts: Equatable, Sendable {
-        var library = 0, reviews = 0, viewings = 0, progress = 0, anchors = 0
-        var total: Int { library + reviews + viewings + progress + anchors }
+        var library = 0, reviews = 0, viewings = 0, progress = 0, anchors = 0, collections = 0, memberships = 0
+        var total: Int { library + reviews + viewings + progress + anchors + collections + memberships }
     }
     let revision: Int
     let additions: PersonalBackup
@@ -88,8 +88,28 @@ enum BackupMergePlanner {
             }
             added.episodeProgress.append(row)
         }
+        let localCollections = Dictionary(uniqueKeysWithValues: local.collections.map { ($0.id, $0) })
+        let localNames = Set(local.collections.map { CollectionName.key($0.name) })
+        let membershipIDs = Set(local.collectionMemberships.map(\.id))
+        let sourceMembers = Dictionary(grouping: incoming.collectionMemberships, by: \.collectionID)
+        let localMembers = Dictionary(grouping: local.canonical().collectionMemberships, by: \.collectionID)
+        for row in incoming.collections {
+            try Task.checkCancellation()
+            let members = sourceMembers[row.id] ?? []
+            if let existing = localCollections[row.id] {
+                kept += 1 + members.count
+                if existing != row || (localMembers[row.id] ?? []) != members {
+                    conflicts.append("Collection \(row.id): existing name, memberships and manual order kept.")
+                }
+            } else if localNames.contains(CollectionName.key(row.name)) || members.contains(where: { membershipIDs.contains($0.id) }) {
+                kept += 1 + members.count
+                conflicts.append("Collection \(row.id): name or membership UUID conflicts with local data; collection skipped.")
+            } else {
+                added.collections.append(row); added.collectionMemberships.append(contentsOf: members)
+            }
+        }
         let counts = BackupMergePlan.Counts(library: added.library.count, reviews: added.reviews.count,
-            viewings: added.viewings.count, progress: added.episodeProgress.count, anchors: added.seasonAnchors.count)
+            viewings: added.viewings.count, progress: added.episodeProgress.count, anchors: added.seasonAnchors.count, collections: added.collections.count, memberships: added.collectionMemberships.count)
         return BackupMergePlan(revision: revision, additions: added, kept: kept, conflicts: conflicts, counts: counts)
     }
 }
