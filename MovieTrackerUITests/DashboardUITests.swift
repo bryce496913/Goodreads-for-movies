@@ -116,7 +116,7 @@ final class DashboardUITests: XCTestCase {
         let app = try launch(populated: true, incomplete: true)
         let series = app.buttons["home.series.fixture:3"]
         XCTAssertTrue(series.waitForExistence(timeout: 5))
-        XCTAssertTrue(series.label.contains("1 episode watched"))
+        XCTAssertEqual(app.staticTexts["home.watchedCount.fixture:3"].label, "1 episode watched")
         XCTAssertFalse(app.progressIndicators["home.progress"].exists)
         XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
         XCTAssertFalse(app.staticTexts["Next episode unavailable from saved metadata."].exists)
@@ -162,9 +162,7 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(mark.isHittable)
         mark.tap()
         let series = app.buttons["home.series.fixture:3"]
-        let updated = NSPredicate(format: "label CONTAINS %@", "Up to date with known aired episodes")
-        expectation(for: updated, evaluatedWith: series)
-        waitForExpectations(timeout: 5)
+        XCTAssertTrue(app.staticTexts["home.upToDate.fixture:3"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
         screenshot(app, "Home-direct-mark-up-to-date-offline-fixture")
         app.tabBars.buttons["Profile"].tap()
@@ -187,7 +185,26 @@ final class DashboardUITests: XCTestCase {
         XCTAssertTrue(series.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["home.markEpisode.fixture:3"].exists)
         XCTAssertFalse(app.buttons["home.nextEpisode"].exists)
-        XCTAssertTrue(series.label.contains("1 episode watched"))
+        XCTAssertEqual(app.staticTexts["home.watchedCount.fixture:3"].label, "1 episode watched")
+    }
+
+    @MainActor func testContinueNavigationAndDetailsDoNotMarkAnEpisode() throws {
+        let app = try launch(populated: true, extra: ["--detail-fixture=error"])
+        let series = app.buttons["home.series.fixture:3"]
+        reveal(series, app)
+        XCTAssertEqual(series.label, "Open details for Fixture Series")
+        series.tap()
+        XCTAssertTrue(app.navigationBars["Details"].waitForExistence(timeout: 5))
+        app.navigationBars["Details"].buttons.element(boundBy: 0).tap()
+        let next = app.buttons["home.nextEpisode"]
+        reveal(next, app)
+        XCTAssertTrue(next.label.contains("season 1, episode 2"))
+        next.tap()
+        XCTAssertTrue(app.navigationBars["Season 1"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Profile"].tap()
+        assertMetric(app, "episodes", "1")
+        app.tabBars.buttons["Home"].tap()
+        XCTAssertTrue(app.navigationBars["Season 1"].exists)
     }
 
     @MainActor private func find(_ app: XCUIApplication, _ id: String) -> XCUIElement {

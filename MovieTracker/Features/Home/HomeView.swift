@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Observation
 
 struct HomeView: View {
@@ -23,11 +24,13 @@ struct HomeView: View {
                     }.accessibilityIdentifier("home.empty")
                 }
                 if snapshot.hasPersonalData {
-                    Section("Continue Watching") {
+                    Section {
                         if snapshot.continueWatching.isEmpty { Text("No unfinished series with saved episode progress.") }
                         ForEach(snapshot.continueWatching) { item in
                             HomeContinueWatchingRow(item: item, progressModel: progressModel)
                         }
+                    } header: { Text("Continue Watching") } footer: {
+                        Text("Progress covers known aired regular episodes, not permanent series completion. Open a series for its saved seasons.")
                     }
                     Section("Recent Personal Activity") {
                         let activity = HomePresentation.activity(in: snapshot)
@@ -134,31 +137,33 @@ struct HomeContinueWatchingRow: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
             NavigationLink(value: item.title.destination) {
-                VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
-                    Text(item.title.title).font(AppStyle.Typography.mediaTitle)
-                        .foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
-                    if let percentage = item.progress.percentage {
-                        Text("\(item.progress.watched) of \(item.progress.eligible) known aired regular episodes watched")
-                            .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
-                        if item.progress.isUpToDate {
-                            Text("Up to date with known aired episodes").font(AppStyle.Typography.caption)
-                        }
-                        ProgressView(value: Double(percentage), total: 100)
-                            .accessibilityLabel("Known aired regular episode progress")
-                            .accessibilityValue("\(percentage) percent")
-                            .accessibilityIdentifier("home.progress")
-                    } else {
-                        Text(HomePresentation.watchedCount(item.progress.totalWatched))
-                            .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
-                    }
-                    if let last = item.lastMarked, last.number > 0 {
-                        Text("Last marked watched: S\(last.seasonNumber) E\(last.number)")
-                            .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
-                    }
-                }
+                Text(item.title.title).font(AppStyle.Typography.mediaTitle)
+                    .foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, minHeight: AppStyle.Layout.minimumTarget, alignment: .leading)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Open details for " + item.title.title)
             .accessibilityIdentifier("home.series." + item.id.value)
+            if let percentage = item.progress.percentage {
+                Text("\(item.progress.watched) of \(item.progress.eligible) aired episodes watched")
+                    .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+                if item.progress.isUpToDate {
+                    Text("Up to date with known aired episodes").font(AppStyle.Typography.caption)
+                        .accessibilityIdentifier("home.upToDate." + item.id.value)
+                }
+                ProgressView(value: Double(percentage), total: 100)
+                    .accessibilityLabel(item.title.title + ", known aired regular episode progress")
+                    .accessibilityValue("\(item.progress.watched) of \(item.progress.eligible), \(percentage) percent")
+                    .accessibilityIdentifier("home.progress")
+            } else {
+                Text(HomePresentation.watchedCount(item.progress.totalWatched))
+                    .accessibilityIdentifier("home.watchedCount." + item.id.value)
+                    .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            }
+            if let last = item.lastMarked, last.number > 0 {
+                Text("Last marked watched: S\(last.seasonNumber) E\(last.number)")
+                    .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
+            }
             if let next = item.next {
                 NavigationLink {
                     TVSeasonEpisodesView(number: next.seasonNumber, model: progressModel(item.show))
@@ -169,8 +174,8 @@ struct HomeContinueWatchingRow: View {
                         .frame(minHeight: AppStyle.Layout.minimumTarget, alignment: .leading)
                 }
                 .accessibilityLabel("Continue " + item.title.title + ", season \(next.seasonNumber), episode \(next.number), " + next.title)
-                .buttonStyle(.plain)
-                .foregroundStyle(AppStyle.Colors.accent)
+                .buttonStyle(AppActionStyle(fillsWidth: true))
+                .accessibilityHint("Opens the season. It does not mark the episode watched.")
                 .accessibilityIdentifier("home.nextEpisode")
                 directAction(for: next)
             }
@@ -181,23 +186,33 @@ struct HomeContinueWatchingRow: View {
         Text(next.title).font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
         Button {
-            episodeAction.mark(next.id, store: library)
+            mark(next)
         } label: {
-            Label(library.isWatched(next.id) ? "Watched" : "Mark S\(next.seasonNumber) E\(next.number) watched", systemImage: "checkmark.circle")
+            Label(markLabel(for: next), systemImage: "checkmark.circle")
         }
         .buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true))
         .disabled(episodeAction.isSaving || library.isWatched(next.id))
         .accessibilityLabel("Mark \(item.title.title), season \(next.seasonNumber), episode \(next.number), \(next.title), watched")
-        .accessibilityValue(library.isWatched(next.id) ? "Watched" : "Not watched")
+        .accessibilityValue(episodeAction.isSaving ? "Saving" : library.isWatched(next.id) ? "Watched" : "Not watched")
         .accessibilityIdentifier("home.markEpisode." + item.id.value)
         if episodeAction.isSaving { AppLoadingState(title: "Saving progress…") }
         if let error = episodeAction.errorMessage {
             AppErrorMessage(message: error).accessibilityIdentifier("home.episodeError")
-            Button("Retry Save") { episodeAction.mark(next.id, store: library) }
+            Button("Retry Save") { mark(next) }
                 .buttonStyle(AppActionStyle()).accessibilityIdentifier("home.retryEpisode")
         }
     }
-
+    private func markLabel(for next: TVEpisode) -> String {
+        if episodeAction.isSaving { return "Saving progress…" }
+        if library.isWatched(next.id) { return "Watched" }
+        return "Mark S\(next.seasonNumber) E\(next.number) watched"
+    }
+    private func mark(_ next: TVEpisode) {
+        episodeAction.mark(next.id, store: library)
+        if episodeAction.errorMessage == nil && library.isWatched(next.id) {
+            UIAccessibility.post(notification: .announcement, argument: "\(item.title.title), season \(next.seasonNumber), episode \(next.number) marked watched")
+        }
+    }
 }
 
 @MainActor
