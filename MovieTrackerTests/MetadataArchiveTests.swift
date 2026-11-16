@@ -3,6 +3,80 @@ import XCTest
 @testable import MovieTracker
 
 final class MetadataArchiveTests: XCTestCase {
+    @MainActor func testCorruptArchiveOnlyFolderRemainsBlockedAndPreserved() throws { try verifyArchiveOnly("corrupt") }
+    @MainActor func testUnsupportedArchiveOnlyFolderRemainsBlockedAndPreserved() throws { try verifyArchiveOnly("future") }
+    @MainActor func testSupportedArchiveOnlyFolderIsRevalidatedWithoutRewriting() throws { try verifyArchiveOnly("valid") }
+
+    @MainActor private func verifyArchiveOnly(_ mode: String) throws {
+        let files = FileManager.default, directory = files.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let backup = directory.appendingPathComponent("StoreSafetyBackups").appendingPathComponent(UUID().uuidString)
+        try files.createDirectory(at: backup, withIntermediateDirectories: true)
+        defer { try? files.removeItem(at: directory) }
+        let archive = backup.appendingPathComponent("PersonalData.json")
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        try PersonalDataArchive.capture(container.mainContext).writeVerified(to: archive)
+        if mode == "corrupt" { try Data("unreadable recovery data".utf8).write(to: archive) }
+        if mode == "future" {
+            var json = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: archive)) as? [String: Any])
+            json["format"] = 999
+            try JSONSerialization.data(withJSONObject: json).write(to: archive)
+        }
+        let before = try Data(contentsOf: archive)
+        for _ in 0..<2 {
+            XCTAssertEqual(MetadataArchiveMaintenance.convertBackups(beside: directory.appendingPathComponent("Library.store")), mode == "valid" ? 0 : 1)
+            XCTAssertEqual(try Data(contentsOf: archive), before)
+        }
+        XCTAssertFalse(files.fileExists(atPath: directory.appendingPathComponent("Library.store").path))
+    }
+
+    @MainActor func testArchiveConversionRejectsLinkedRootWithoutTouchingTarget() throws { try verifyLinkedBackup("root") }
+    @MainActor func testArchiveConversionRejectsLinkedDirectoryWithoutTouchingTarget() throws { try verifyLinkedBackup("directory") }
+    @MainActor func testArchiveConversionRejectsLinkedStoreWithoutTouchingTarget() throws { try verifyLinkedBackup("store") }
+    @MainActor func testArchiveConversionRejectsLinkedOutputWithoutTouchingTarget() throws { try verifyLinkedBackup("output") }
+
+    @MainActor private func verifyLinkedBackup(_ kind: String) throws {
+        let files = FileManager.default
+        let directory = files.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try files.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? files.removeItem(at: directory) }
+        let source = directory.appendingPathComponent("Library.store")
+        let store = try BackupFixtures.store(at: source)
+        let media = MediaSearchResult.movie(Movie(id: "fixture:private", title: "Provider title"))
+        try store.saveReview(id: UUID(), media: media, text: "Private content must be preserved")
+        let backup = try StoreSafetyBackup.create(for: source)
+        let root = backup.deletingLastPathComponent()
+        let external = directory.appendingPathComponent("OutsideManagedBackups", isDirectory: kind != "store" && kind != "output")
+        var raw = backup.appendingPathComponent(source.lastPathComponent)
+        switch kind {
+        case "root":
+            try files.moveItem(at: root, to: external)
+            try files.createSymbolicLink(at: root, withDestinationURL: external)
+            raw = external.appendingPathComponent(backup.lastPathComponent).appendingPathComponent(source.lastPathComponent)
+        case "directory":
+            try files.moveItem(at: backup, to: external)
+            try files.createSymbolicLink(at: backup, withDestinationURL: external)
+            raw = external.appendingPathComponent(source.lastPathComponent)
+        case "store":
+            try files.moveItem(at: raw, to: external)
+            try files.createSymbolicLink(at: raw, withDestinationURL: external)
+            raw = external
+        default:
+            try Data("Do not overwrite".utf8).write(to: external)
+            try files.createSymbolicLink(at: backup.appendingPathComponent("PersonalData.json"), withDestinationURL: external)
+        }
+        let before = try Data(contentsOf: raw)
+        if kind == "root" {
+            let original = try files.contentsOfDirectory(atPath: external.path).sorted()
+            XCTAssertThrowsError(try StoreSafetyBackup.create(for: source))
+            XCTAssertEqual(try files.contentsOfDirectory(atPath: external.path).sorted(), original)
+        }
+        XCTAssertEqual(MetadataArchiveMaintenance.convertBackups(beside: source), 1)
+        XCTAssertEqual(try Data(contentsOf: raw), before)
+        if kind != "output" { XCTAssertFalse(files.fileExists(atPath: raw.deletingLastPathComponent().appendingPathComponent("PersonalData.json").path)) }
+        if kind == "output" { XCTAssertEqual(try Data(contentsOf: external), Data("Do not overwrite".utf8)) }
+        XCTAssertEqual(store.personalReviews.first?.text, "Private content must be preserved")
+    }
+
     @MainActor func testPersonalArchiveExcludesMetadataAndRestoresExactUserRecords() throws {
         let directory = try temporaryDirectory(); defer { try? FileManager.default.removeItem(at: directory) }
         let container = try PersistenceController.makeContainer(at: directory.appendingPathComponent("Source.store"))

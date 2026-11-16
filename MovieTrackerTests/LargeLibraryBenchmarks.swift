@@ -62,6 +62,46 @@ final class LargeLibraryBenchmarks: XCTestCase {
             XCTAssertEqual(values.filter { episode in store.episodeProgress.first { $0.episodeID == episode.id }?.isWatched == true }.count, 50)
         }
     }
+    @MainActor func testBenchmarkIndexed500Collections5000Memberships() throws {
+        let store = try LargeLibraryFixtures.collectionsStore(), ids = store.collections.map(\.id)
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+            XCTAssertEqual(ids.reduce(0) { $0 + store.members(of: $1).count }, 5_000)
+        }
+    }
+    @MainActor func testBenchmarkReorderWithin500Collections5000Memberships() throws {
+        let store = try LargeLibraryFixtures.collectionsStore(), id = LargeLibraryFixtures.uuid(100_000)
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+            do {
+                let original = store.members(of: id).map(\.id)
+                try store.reorderCollection(id, memberships: Array(original.reversed()), original: original, now: LargeLibraryFixtures.now)
+            } catch { XCTFail("Reorder failed") }
+        }
+        XCTAssertEqual(store.collectionMemberships.count, 5_000)
+    }
+    @MainActor func testBenchmarkBackupEncodeAndImportPlan500Collections5000Memberships() throws {
+        let store = try LargeLibraryFixtures.collectionsStore()
+        let backup = try store.capturePersonalBackup(at: LargeLibraryFixtures.now)
+        let empty = PersonalBackup(exportedAt: LargeLibraryFixtures.now, applicationVersion: nil)
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+            do {
+                let decoded = try BackupCodec.decode(BackupCodec.encode(backup))
+                let plan = try BackupMergePlanner.prepare(decoded, local: empty, revision: 0)
+                XCTAssertEqual(plan.counts.memberships, 5_000); XCTAssertEqual(plan.counts.collections, 500)
+            } catch { XCTFail("Backup preparation failed") }
+        }
+    }
+    func testBenchmarkDiscoveryFilterAndPick5000() throws {
+        let source = try WatchDiscoveryProjection.build(LargeLibraryFixtures.discoveryInputs(), watchlist: false, at: LargeLibraryFixtures.now)
+        var filters = DiscoveryFilters(); filters.media = .movies; filters.firstYear = 2020
+        filters.genres = ["fixture:drama"]; filters.maximumMovieMinutes = 120
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+            do {
+                let pool = try WatchDiscoveryProjection.filter(source, using: filters, at: LargeLibraryFixtures.now)
+                XCTAssertEqual(pool.count, 2_000)
+                XCTAssertEqual(WatchDiscoveryProjection.pick(pool, index: { _ in 0 })?.id, pool.first?.id)
+            } catch { XCTFail("Discovery failed") }
+        }
+    }
     private func benchmarkFilter(_ count: Int) throws {
         let items = try LargeLibraryFixtures.items(count)
         let options = LibraryOptions(media: .tvShows, status: .watching, favoritesOnly: true)

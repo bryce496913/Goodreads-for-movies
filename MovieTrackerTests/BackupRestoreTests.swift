@@ -3,6 +3,23 @@ import XCTest
 @testable import MovieTracker
 
 final class BackupRestoreTests: XCTestCase {
+    @MainActor func testCancellationBeforeRestoreCommitWritesNothingAndAllowsRetry() async throws {
+        let backup = try BackupFixtures.populated().capturePersonalBackup(at: BackupFixtures.now)
+        let url = try BackupFixtures.tempFile(BackupCodec.encode(backup))
+        defer { try? FileManager.default.removeItem(at: url) }
+        let target = try BackupFixtures.store(), model = DataBackupModel()
+        await model.prepareImport(url, into: target)
+        XCTAssertNotNil(model.preview)
+        let before = try target.capturePersonalBackup(at: BackupFixtures.now)
+        let task = Task { await model.confirmRestore(into: target) }
+        task.cancel(); await task.value
+        XCTAssertEqual(try target.capturePersonalBackup(at: BackupFixtures.now).canonical(), before.canonical())
+        XCTAssertFalse(model.isBusy); XCTAssertFalse(model.message?.contains("Restore saved") == true)
+        await model.confirmRestore(into: target)
+        XCTAssertEqual(target.entries.count, backup.library.count)
+        XCTAssertEqual(target.personalReviews.count, backup.reviews.count)
+    }
+
     @MainActor func testEmptyExportAndRoundTrip() throws {
         let source = try BackupFixtures.store(), target = try BackupFixtures.store()
         let backup = try source.capturePersonalBackup(at: BackupFixtures.now)

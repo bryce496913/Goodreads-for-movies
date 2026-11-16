@@ -73,4 +73,30 @@ enum LargeLibraryFixtures {
         try context.save()
         return LibraryStore(container: container)
     }
+    @MainActor static func collectionsStore() throws -> LibraryStore {
+        let store = try Self.store(titles: 5_000, episodes: 0, events: 0)
+        try store.writeTransaction { context in
+            for list in 0..<500 {
+                let id = uuid(100_000 + list)
+                context.insert(StoredCollection(id: id, name: "Collection \(list)", createdAt: now, updatedAt: now))
+                for position in 0..<10 {
+                    let index = list * 10 + position
+                    context.insert(StoredCollectionMembership(id: uuid(200_000 + index), collectionID: id,
+                        mediaID: mediaID(index), position: position, addedAt: now))
+                }
+            }
+        }
+        return store
+    }
+    static func discoveryInputs(_ count: Int = 5_000) throws -> [DiscoveryInput] {
+        try (0..<count).map { index in
+            let id = mediaID(index), genres = [MediaGenre(id: "fixture:drama", name: "Drama")]
+            let date: Date? = index.isMultiple(of: 5) ? nil : aired
+            let media: MediaSearchResult = id.kind == .movie
+                ? .movie(Movie(id: id.value, title: "Title \(index)", releaseDate: date, runtimeMinutes: 90, genres: genres))
+                : .tvShow(TVShow(id: id.value, title: "Title \(index)", firstAirDate: date, episodeRuntimeMinutes: 42, genres: genres))
+            return DiscoveryInput(id: id, library: nil, payloads: [try JSONEncoder().encode(media)], seriesPayloads: [])
+        }
+    }
+
 }

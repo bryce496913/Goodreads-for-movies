@@ -132,19 +132,31 @@ enum MetadataArchiveMaintenance {
     static func convertBackups(beside store: URL) -> Int {
         let files = FileManager.default
         let root = store.deletingLastPathComponent().appendingPathComponent("StoreSafetyBackups", isDirectory: true)
-        guard files.fileExists(atPath: root.path) else { return 0 }
+        // Never follow a substituted managed root into another directory while converting/deleting backups.
+        guard files.fileExists(atPath: root.path) || (try? files.destinationOfSymbolicLink(atPath: root.path)) != nil else { return 0 }
+        do { try requireDirectory(root) } catch { return 1 }
         guard let directories = try? files.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) else { return 1 }
         var failed = 0
         for directory in directories {
             do {
+                try requireDirectory(directory)
                 let contents = try files.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
                 let raw = contents.filter { $0.lastPathComponent == store.lastPathComponent || $0.pathExtension == "store" }
                 let archive = directory.appendingPathComponent("PersonalData.json")
+                try requirePlainFileIfPresent(archive)
+                try requirePlainFileIfPresent(directory.appendingPathComponent("COMPLETE"))
                 if raw.isEmpty {
-                    if contents.contains(where: { $0.lastPathComponent.hasSuffix("-wal") || $0.lastPathComponent.hasSuffix("-shm") }) { failed += 1 }
+                    if contents.contains(where: { $0.lastPathComponent.hasSuffix("-wal") || $0.lastPathComponent.hasSuffix("-shm") }) { failed += 1; continue }
+                    if files.fileExists(atPath: archive.path) {
+                        // A marker or filename alone is not evidence of a supported recovery archive.
+                        _ = try PersonalDataArchive.read(archive)
+                    } else if !contents.isEmpty { failed += 1 }
                     continue
                 }
                 guard raw.count == 1, let source = raw.first else { failed += 1; continue }
+                for path in [source, URL(fileURLWithPath: source.path + "-wal"), URL(fileURLWithPath: source.path + "-shm")] {
+                    try requirePlainFileIfPresent(path)
+                }
                 // Always capture the still-present raw store; never overwrite it using a potentially stale JSON file.
                 let snapshot = try autoreleasepool {
                     try StoreSchemaRecognition.validate(source, supported: LibraryMigrationPlan.schemas)
@@ -161,5 +173,19 @@ enum MetadataArchiveMaintenance {
             } catch { failed += 1 } // No raw-store/content/error-body logging. Keep source bytes on failure.
         }
         return failed
+    }
+    private enum PathError: Error { case unsafeManagedPath }
+    private static func requireDirectory(_ url: URL) throws {
+        guard (try? FileManager.default.destinationOfSymbolicLink(atPath: url.path)) == nil else { throw PathError.unsafeManagedPath }
+        let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+        guard attributes[.type] as? FileAttributeType == .typeDirectory else { throw PathError.unsafeManagedPath }
+    }
+    private static func requirePlainFileIfPresent(_ url: URL) throws {
+        let files = FileManager.default
+        // fileExists follows links and returns false for dangling links; reject those too.
+        guard (try? files.destinationOfSymbolicLink(atPath: url.path)) == nil else { throw PathError.unsafeManagedPath }
+        guard files.fileExists(atPath: url.path) else { return }
+        let attributes = try files.attributesOfItem(atPath: url.path)
+        guard attributes[.type] as? FileAttributeType == .typeRegular else { throw PathError.unsafeManagedPath }
     }
 }

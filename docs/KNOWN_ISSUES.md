@@ -1,4 +1,25 @@
-# Known V0.5 issues — 2026-11-02
+# Known issues — V0.6 stabilization and V0.5 history
+
+## Current V0.6 disposition — Pass 035
+
+**READY FOR PERSONAL DEVICE VALIDATION. V0.6 VALIDATED is not established.** The fixed source finding below and passing Linux static checks support isolated owner-run Apple validation, not a claim of verified real-store upgrade safety. See [checklist](V0.6_RELEASE_CHECKLIST.md) and [actual test evidence](V0.6_TEST_PLAN.md). TestFlight, signing for distribution and uploads are deferred, not V0.6 completion gates.
+
+| ID / classification | Current finding | Disposition |
+| --- | --- | --- |
+| V06-001 / P1 source defect | Recovery conversion could traverse substituted backup-directory links, then open/delete outside the managed folder. | Fixed by rejecting linked directories and linked/nonregular managed files before conversion. Four regression cases authored, native UNRUN. Invalid/unknown paths are preserved and reported, retaining provider blocking. |
+| V06-007 / P1 source defect | Archive-only folders bypassed validation of corrupt/unsupported recovery JSON. | Fixed by revalidating supported recovery archives and preserving/reporting unknown nonempty folders. Three native regressions authored, UNRUN. |
+| V06-002 / P1 evidence gate | All SwiftUI/SwiftData compilation, migration, disk/relaunch and UI tests remain unexecuted on Linux. No observed native failure is claimed. | Run full shared scheme and real copied historical stores before promoting to validated or upgrading valuable data. Never reset a failed database. |
+| V06-003 / gated provider feature | Pass 030 persistent artwork rights remain unresolved; live provider/account authorization is not verified here. | Disk artwork remains disabled. Bounded memory/placeholder fallback is implemented; owner authorization is required for provider activation. No legal certification. |
+| V06-004 / P2 | Large-scale main-actor capture/integrity/index work and image decode lack native performance evidence. | Added 500-collection/5,000-membership/discovery benchmarks; all timing/memory results UNRUN. Profile before optimizing. |
+| V06-005 / P2 | Native accessibility/custom move actions, sheet announcement timing, multiline name field, numeric year formatter, compact safe areas and long localized strings remain unverified. | Complete Pass 034/035 native manual matrix and record screenshots/results. |
+| V06-006 / P2 documentation defect | Historical text claimed no export/restore, six schema shapes and obsolete repeated-read costs. | Corrected for personal-only v2/v1 backups, eight retained shapes/current V3 and current remaining costs. |
+
+No known unaddressed P0/P1 **source defect** was established by this bounded review after the path fix. This does not waive P1 evidence gates or prove an absence of runtime defects. Existing private data stays local; no cloud sync/automatic backup was added.
+
+## Historical V0.5 release record
+
+The following earlier distribution/release notes remain historical; distribution-specific signing/TestFlight gates do not define the current V0.6 implementation gate.
+
 
 Pass 014 adds a conservative metadata lifecycle; see [METADATA_POLICY.md](METADATA_POLICY.md). It has not executed on Apple frameworks.
 
@@ -14,8 +35,8 @@ Release classification: **NOT READY — BLOCKERS REMAIN**. Severity describes re
 | BETA-006 / P1 gate | Simulator/device layout, accessibility, offline/force-quit durability and resource usage have never been executed here. | Complete the named test matrix and physical-device run, with evidence. Fix inaccessible actions, stalls, crashes or data loss before internal testing. |
 | BETA-007 / P2 | Save a title, relaunch offline after the OS evicts artwork: text/progress survive, but rows may show placeholders. Library/Home posters read bounded memory only. Cast/session metadata also expires. | Expected current caching limit; do not promise permanent offline artwork/cast. No disk artwork cache is written. |
 | BETA-008 / P2 | Change/remove a provider token while a detail page remains on another tab, then revisit that still-open page. Its retained model uses the prior service. | Reopen that destination. New Search requests cancel/restart with the new service; local data remains usable. |
-| BETA-009 / P2 | Edit content on two installations or reinstall/change App ID: no cloud sync/export/restore flow exists. | Local-only limitation. Preserve backups and app identity; never suggest reinstall as data repair. Keychain tokens are device-only and may outlive uninstall, so use explicit Remove Credential when deauthorizing a device. |
-| BETA-010 / P2 | Large libraries/season lists: store commits reload collections on main actor, Library sorts/projections and season JSON/progress can repeat on redraw; image decoding also occurs locally. | Profile using the representative datasets. Dashboard heavy aggregation is off actor, but no latency/frame-rate/memory claims are supported. Optimize measured stalls before accepting performance. |
+| BETA-009 / P2 | Edit content on two installations or reinstall/change App ID: no cloud sync exists; manual personal-only export/Keep Existing restore is implemented in Pass 018 and extended for collections in Pass 032. | Local-only limitation. Preserve backups and app identity; never suggest reinstall as data repair. Keychain tokens are device-only and may outlive uninstall, so use explicit Remove Credential when deauthorizing a device. |
+| BETA-010 / P2 | Large libraries/season lists: commits reconcile/audit and rebuild affected indexes on the main actor; source snapshot capture and season decoding can still scale with collection size; image decoding also occurs locally. | Profile using the representative datasets. Dashboard heavy aggregation is off actor, but no latency/frame-rate/memory claims are supported. Optimize measured stalls before accepting performance. |
 
 Pass 015 adds mocked authentication/HTTP/retry hardening, but authenticated live Search/details/season checks remain unexecuted because no authorized credential is configured. Current client-held credentials are not a confidential production-secret solution. See [TMDB_NETWORKING.md](TMDB_NETWORKING.md).
 
@@ -37,3 +58,5 @@ No user database was reset, migrated in this Linux runtime, seeded, or deleted. 
 - Pass 017 supports saved text and personal edits without mandatory provider calls, but artwork remains process-memory-only under the project policy. Offline tests and disk-container reopen regressions are authored but unrun; see [offline matrix and remaining limits](OFFLINE_RELIABILITY.md).
 
 - Pass 018 adds manual personal-only JSON export and Keep Existing Data merge. Native document pickers, disk save-failure regressions and maximum-size responsiveness are unverified. Backups are plaintext and not automatic; invalid existing ratings/integrity errors block preparation. See [backup and restore](DATA_BACKUP_AND_RESTORE.md).
+
+Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.

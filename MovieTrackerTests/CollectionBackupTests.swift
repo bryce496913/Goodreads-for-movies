@@ -3,6 +3,89 @@ import XCTest
 @testable import MovieTracker
 
 final class CollectionBackupTests: XCTestCase {
+    @MainActor func testV06DiskReopenOfflineEditsExpiryRefreshAndBackupRestorePreservePersonalData() throws {
+        let files = FileManager.default, instant = BackupFixtures.now
+        let directory = files.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try files.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? files.removeItem(at: directory) }
+        let sourceURL = directory.appendingPathComponent("Source.store"), targetURL = directory.appendingPathComponent("Restored.store")
+        let movie = MediaSearchResult.movie(Movie(id: BackupFixtures.movieID.value, title: "Locally retained movie", runtimeMinutes: 90,
+            genres: [MediaGenre(id: "tmdb:18", name: "Drama")], metadataRetrievedAt: instant))
+        let show = MediaSearchResult.tvShow(TVShow(id: BackupFixtures.showID.value, title: "Locally retained series", metadataRetrievedAt: instant))
+        var expected = try BackupFixtures.populated().capturePersonalBackup(at: instant)
+        var firstList = UUID(), otherList = UUID()
+        try autoreleasepool {
+            let store = try BackupFixtures.store(at: sourceURL)
+            try store.restorePersonalBackup(BackupFixtures.plan(expected, into: store))
+            try store.setStatus(.watchlist, media: movie)
+            firstList = try store.saveCollection(name: "Tonight", now: instant)
+            otherList = try store.saveCollection(name: "Keep separately", now: instant)
+            for value in [movie, show] { try store.setCollectionMembership(true, collection: firstList, media: value, now: instant) }
+            try store.setCollectionMembership(true, collection: otherList, media: movie, now: instant)
+            let before = store.members(of: firstList).map(\.id)
+            try store.reorderCollection(firstList, memberships: Array(before.reversed()), original: before, now: instant)
+            expected = try store.capturePersonalBackup(at: instant)
+            XCTAssertFalse(String(decoding: try BackupCodec.encode(expected), as: UTF8.self).contains("Locally retained"))
+        }
+        // Reopen actual on-disk stores, not just a second in-memory context. No provider client is involved.
+        for pass in 0..<2 {
+            try autoreleasepool {
+                let store = try BackupFixtures.store(at: sourceURL)
+                XCTAssertNil(store.loadError)
+                XCTAssertEqual(try store.capturePersonalBackup(at: instant).canonical(), expected.canonical())
+                XCTAssertEqual(store.members(of: firstList).map(\.position), [0, 1])
+                XCTAssertEqual(store.members(of: firstList).compactMap(\.mediaID), [BackupFixtures.showID, BackupFixtures.movieID])
+                if pass == 0 {
+                    try store.setPersonalRating(PersonalRating(halfStarUnits: 10), media: movie)
+                    try store.saveViewingEvent(id: LargeLibraryFixtures.uuid(900), media: movie, watchedDate: nil, now: instant)
+                    try store.setEpisodeWatched(false, episode: BackupFixtures.episode, show: TVShow(id: BackupFixtures.showID.value, title: "Series"), now: instant)
+                    try store.setEpisodeWatched(true, episode: BackupFixtures.episode, show: TVShow(id: BackupFixtures.showID.value, title: "Series"), now: instant)
+                    expected = try store.capturePersonalBackup(at: instant)
+                }
+            }
+        }
+        try autoreleasepool {
+            let later = instant.addingTimeInterval(MetadataPolicy.retention)
+            let store = LibraryStore(container: try PersistenceController.makeContainer(at: sourceURL), clock: { later })
+            XCTAssertEqual(try store.capturePersonalBackup(at: instant).canonical(), expected.canonical())
+            try store.maintainMetadata()
+            XCTAssertNil(store.cachedMedia(for: BackupFixtures.movieID))
+            XCTAssertEqual(try store.capturePersonalBackup(at: instant).canonical(), expected.canonical())
+            let refreshedMovie = MediaSearchResult.movie(Movie(id: BackupFixtures.movieID.value, title: "Refreshed movie", metadataRetrievedAt: later))
+            let refreshedShow = MediaSearchResult.tvShow(TVShow(id: BackupFixtures.showID.value, title: "Refreshed series", metadataRetrievedAt: later))
+            try store.metadataRefreshSucceeded(refreshedMovie)
+            try store.metadataRefreshSucceeded(refreshedShow)
+            XCTAssertEqual(store.cachedMedia(for: BackupFixtures.movieID)?.metadataRetrievedAt, later)
+            XCTAssertEqual(store.cachedMedia(for: BackupFixtures.showID)?.metadataRetrievedAt, later)
+            XCTAssertEqual(try store.capturePersonalBackup(at: instant).canonical(), expected.canonical())
+            // Deleting one list leaves the shared title and other list, review, repeats and flags unchanged.
+            try store.deleteCollection(firstList)
+            let after = try store.capturePersonalBackup(at: instant)
+            XCTAssertEqual(after.library, expected.library); XCTAssertEqual(after.reviews, expected.reviews)
+            XCTAssertEqual(after.viewings, expected.viewings); XCTAssertEqual(after.episodeProgress, expected.episodeProgress)
+            XCTAssertEqual(store.members(of: otherList).count, 1)
+            expected = after
+        }
+        let bytes = try BackupCodec.encode(expected)
+        let decoded = try BackupCodec.decode(bytes)
+        try autoreleasepool {
+            let target = try BackupFixtures.store(at: targetURL)
+            try target.restorePersonalBackup(BackupFixtures.plan(decoded, into: target))
+            let again = try BackupFixtures.plan(decoded, into: target)
+            XCTAssertEqual(again.counts.total, 0)
+            try target.restorePersonalBackup(again)
+        }
+        try autoreleasepool {
+            let reopened = try BackupFixtures.store(at: targetURL)
+            XCTAssertEqual(try reopened.capturePersonalBackup(at: instant).canonical(), expected.canonical())
+            XCTAssertEqual(reopened.entry(for: BackupFixtures.movieID)?.ratingHalfStarUnits, 10)
+            XCTAssertEqual(reopened.personalReviews.first?.text, BackupFixtures.text)
+            XCTAssertEqual(reopened.viewingEvents.count, 3)
+            XCTAssertTrue(reopened.isWatched(BackupFixtures.episode.id))
+            XCTAssertNil(reopened.cachedMedia(for: BackupFixtures.movieID)) // Restore never reinstates provider content.
+        }
+    }
+
     private let now = Date(timeIntervalSince1970: 1_767_225_600)
     @MainActor private func populated() throws -> LibraryStore {
         let store = try BackupFixtures.store()
