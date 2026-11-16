@@ -263,6 +263,117 @@ final class TVProgressTests: XCTestCase {
         XCTAssertEqual(store.episodeProgress.count, 0)
     }
 
+    @MainActor
+    func testDirectHomeActionIsIdempotentAndPreservesIndependentPersonalData() throws {
+        let store = try makeStore()
+        let (show, values) = try prepareHome(store)
+        try store.setFavorite(true, media: .tvShow(show))
+        try store.setPersonalRating(PersonalRating(halfStarUnits: 7), media: .tvShow(show))
+        let review = UUID(), viewing = UUID()
+        try store.saveReview(id: review, media: .tvShow(show), text: "Keep review", now: today)
+        try store.saveViewingEvent(id: viewing, media: .tvShow(show), watchedDate: nil, now: today)
+        let entry = try XCTUnwrap(store.entry(for: show.id)), updated = store.entry(for: show.id)?.updatedAt
+        XCTAssertTrue(try store.markNextEpisodeWatched(values[1].id, now: today))
+        let record = try XCTUnwrap(store.episodeProgress.first { $0.episodeID == values[1].id })
+        let identity = record.id, marked = record.watchedAt
+        XCTAssertFalse(try store.markNextEpisodeWatched(values[1].id, now: today.addingTimeInterval(1)))
+        XCTAssertEqual(record.id, identity); XCTAssertEqual(record.watchedAt, marked)
+        XCTAssertEqual(entry.status, "watchlist"); XCTAssertTrue(entry.isFavorite)
+        XCTAssertEqual(entry.updatedAt, updated); XCTAssertEqual(try entry.validatedRating()?.halfStarUnits, 7)
+        XCTAssertEqual(store.personalReviews.first?.text, "Keep review")
+        XCTAssertEqual(store.viewingEvents.map(\.id), [viewing])
+        XCTAssertEqual(store.seriesProgress(show.id, now: today).watched, 2)
+        XCTAssertEqual(store.episodeProgress.count, 2)
+    }
+
+    @MainActor
+    func testDirectHomeFailureRollsBackAndExplicitRetryRecovers() throws {
+        var fail = false, writes = 0
+        let store = LibraryStore(container: try PersistenceController.makeContainer(inMemory: true), save: { context in
+            if fail { throw LibraryStoreError.saveFailed }
+            writes += 1; try context.save()
+        })
+        let (show, values) = try prepareHome(store)
+        let action = HomeEpisodeAction(), before = writes
+        fail = true
+        action.mark(values[1].id, store: store, now: today)
+        XCTAssertNotNil(action.errorMessage); XCTAssertFalse(action.isSaving)
+        XCTAssertFalse(store.isWatched(values[1].id)); XCTAssertEqual(writes, before)
+        XCTAssertEqual(store.entry(for: show.id)?.status, "watchlist")
+        fail = false
+        action.mark(values[1].id, store: store, now: today)
+        XCTAssertNil(action.errorMessage); XCTAssertTrue(store.isWatched(values[1].id))
+        action.mark(values[1].id, store: store, now: today)
+        XCTAssertEqual(writes, before + 1)
+        XCTAssertTrue(store.viewingEvents.isEmpty)
+    }
+
+    @MainActor
+    func testDirectHomeActionRejectsStaleCardsAndKeepsNamespacesIndependent() throws {
+        let store = try makeStore()
+        let (first, values) = try prepareHome(store, namespace: "fixture:1")
+        let (other, others) = try prepareHome(store, namespace: "other:1")
+        XCTAssertThrowsError(try store.markNextEpisodeWatched(values[2].id, now: today))
+        XCTAssertTrue(try store.markNextEpisodeWatched(values[1].id, now: today))
+        XCTAssertFalse(store.isWatched(others[1].id))
+        XCTAssertEqual(store.seriesProgress(other.id, now: today).watched, 1)
+        XCTAssertEqual(store.seriesProgress(first.id, now: today).watched, 2)
+        let movie = EpisodeID(seriesID: MediaID(kind: .movie, value: first.id.value), providerValue: values[1].id.providerValue)
+        XCTAssertThrowsError(try store.markNextEpisodeWatched(movie, now: today))
+    }
+
+    @MainActor
+    func testDirectHomeProgressPersistsAcrossOfflineContainerReopening() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("HomeEpisodes.store")
+        var target: EpisodeID?
+        try autoreleasepool {
+            let store = LibraryStore(container: try PersistenceController.makeContainer(at: url))
+            let (_, values) = try prepareHome(store)
+            target = values[1].id
+            try store.markNextEpisodeWatched(values[1].id, now: today)
+        }
+        let reopened = LibraryStore(container: try PersistenceController.makeContainer(at: url))
+        let exact = try XCTUnwrap(target)
+        XCTAssertTrue(reopened.isWatched(exact))
+        XCTAssertEqual(reopened.entry(for: exact.seriesID)?.status, "watchlist")
+        XCTAssertTrue(reopened.viewingEvents.isEmpty)
+        XCTAssertFalse(try reopened.markNextEpisodeWatched(exact, now: today))
+    }
+
+    @MainActor
+    func testHomeActionRevalidatesAfterUnwatchAndMetadataRefresh() throws {
+        let store = try makeStore()
+        let (show, values) = try prepareHome(store)
+        try store.markNextEpisodeWatched(values[1].id, now: today)
+        try store.cacheSeason(TVSeasonDetails(seriesID: show.id, number: 1, name: "Season 1", episodes: values,
+            metadataRetrievedAt: today), show: show)
+        XCTAssertTrue(store.isWatched(values[1].id))
+        try store.setEpisodeWatched(false, episode: values[0], show: show, now: today, updateViewingStatus: false)
+        XCTAssertThrowsError(try store.markNextEpisodeWatched(values[2].id, now: today))
+        XCTAssertFalse(store.isWatched(values[2].id))
+        let incomplete = TVShow(id: show.id.value, title: show.title, seasons: [summary(1, 4)], metadataRetrievedAt: today)
+        try store.cacheSeasonCatalog(show: incomplete)
+        XCTAssertThrowsError(try store.markNextEpisodeWatched(values[0].id, now: today))
+        XCTAssertTrue(store.isWatched(values[1].id))
+        XCTAssertTrue(store.viewingEvents.isEmpty)
+    }
+
+    @MainActor private func prepareHome(_ store: LibraryStore, namespace: String = "fixture:home") throws -> (TVShow, [TVEpisode]) {
+        let show = TVShow(id: namespace, title: "Home series", seasons: [summary(1, 3)], metadataRetrievedAt: today)
+        let values = (1...3).map { number in
+            TVEpisode(id: EpisodeID(seriesID: show.id, providerValue: "fixture:episode:\(number)"), seasonNumber: 1,
+                number: number, title: "Episode \(number)", airDate: aired, overview: "", runtimeMinutes: nil, metadataRetrievedAt: today)
+        }
+        try store.cacheSeasonCatalog(show: show)
+        try store.cacheSeason(TVSeasonDetails(seriesID: show.id, number: 1, name: "Season 1", episodes: values, metadataRetrievedAt: today), show: show)
+        try store.setStatus(.watchlist, media: .tvShow(show))
+        try store.setEpisodeWatched(true, episode: values[0], show: show, now: today, updateViewingStatus: false)
+        return (show, values)
+    }
+
     private func summary(_ number: Int, _ count: Int?) -> TVSeasonSummary {
         TVSeasonSummary(number: number, providerID: nil, name: "Season \(number)", episodeCount: count)
     }

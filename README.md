@@ -87,7 +87,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (384 methods total, all require local macOS/Xcode execution):
+Included tests (395 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -97,9 +97,9 @@ Included tests (384 methods total, all require local macOS/Xcode execution):
 - 3 rating value, 9 rating persistence and 4 rating UI tests.
 - 3 general navigation and 10 app-shell UI tests.
 - 17 review/diary store and 5 review/diary UI tests.
-- 19 TV progress store/calculation/model tests and 9 TV progress UI tests.
+- 24 TV progress store/calculation/model tests and 9 TV progress UI tests.
 - 14 Library organization/store tests (including 5,000-item data) and 5 organization UI tests.
-- 24 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 8 dashboard UI tests.
+- 28 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 10 dashboard UI tests.
 - 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 3 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
@@ -141,3 +141,5 @@ Expandable Series → Seasons → Episodes presentation, metadata states, compon
 Primary/secondary/tertiary action styling, native destructive actions, status/rating menus and safe-area checks: [Control consistency](docs/CONTROL_CONSISTENCY.md).
 
 Pass 030's [artwork licensing gate](docs/ARTWORK_LICENSING_GATE.md) is **BLOCKED** for persistent disk caching. Artwork remains bounded, deduplicated and memory-only; Settings can confirm/clear temporary artwork without clearing saved text or personal data. Offline artwork survival across relaunch is not promised. The existing 150-day metadata maximum remains unchanged.
+
+Direct offline Home episode actions, reliable-next versus known-candidate selection, status independence and validation limits: [Continue Watching actions](docs/CONTINUE_WATCHING_ACTIONS.md).

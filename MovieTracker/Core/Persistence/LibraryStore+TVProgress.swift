@@ -120,18 +120,39 @@ extension LibraryStore {
         }
     }
 
-    func setEpisodeWatched(_ watched: Bool, episode: TVEpisode, show: TVShow, now: Date = .now) throws {
+    func setEpisodeWatched(_ watched: Bool, episode: TVEpisode, show: TVShow, now: Date = .now, updateViewingStatus: Bool = true) throws {
         guard episode.id.seriesID == show.id, show.id.kind == .tvShow, episode.seasonNumber >= 0, episode.number >= 0,
               !show.id.value.isEmpty, !episode.id.providerValue.isEmpty else { throw TVProgressError.invalidEpisode }
         if watched && isFuture(episode, now: now) { throw TVProgressError.futureEpisode }
         try writeTransaction { context in
-            if watched { try prepareWatching(show) }
+            if watched && updateViewingStatus { try prepareWatching(show) }
             try updateProgress(watched, episode: episode, context: context, now: now)
             let season = try seasonRecord(show, number: episode.seasonNumber, context: context)
             if !season.episodes.contains(where: { $0.id == episode.id }) {
                 season.episodesData = try JSONEncoder().encode(season.episodes + [episode])
             }
         }
+    }
+
+    /// Re-resolve a stale Home card against current local metadata/flags before the atomic write.
+    @discardableResult
+    func markNextEpisodeWatched(_ expected: EpisodeID, now: Date = .now) throws -> Bool {
+        let series = expected.seriesID
+        guard series.kind == .tvShow else { throw TVProgressError.invalidEpisode }
+        if isWatched(expected) { return false }
+        let regular = seasons(for: series).filter { $0.number > 0 }
+        let receiptValid = regular.allSatisfy { season in
+            season.expectedRegularSeasonCount == regular.count && (!MetadataPolicy.isTMDB(series)
+                || (MetadataPolicy.isUsable(season.refreshedAt, at: now)
+                    && MetadataPolicy.isUsable(season.savedShow?.metadataRetrievedAt, at: now)))
+        }
+        let selection = NextEpisodeSelector.select(series: series, episodes: regular.flatMap { episodes(for: $0) },
+            watched: watchedEpisodeIDs, seasons: regular.map(\.number),
+            coverageKnown: receiptValid && seriesProgress(series, now: now).coverageKnown, now: now)
+        guard let next = selection.reliableEpisode, next.id == expected else { throw TVProgressError.nextEpisodeUnavailable }
+        let show = savedTVShow(for: series) ?? TVShow(id: series.value, title: MetadataPolicy.placeholder(series))
+        try setEpisodeWatched(true, episode: next, show: show, now: now, updateViewingStatus: false)
+        return true
     }
 
     func setSeasonWatched(_ watched: Bool, season: StoredTVSeason, show: TVShow, now: Date = .now) throws {
@@ -206,11 +227,12 @@ extension LibraryStore {
 }
 
 enum TVProgressError: Error, LocalizedError {
-    case invalidEpisode, futureEpisode
+    case invalidEpisode, futureEpisode, nextEpisodeUnavailable
     var errorDescription: String? {
         switch self {
         case .invalidEpisode: "This season or episode has inconsistent identifiers. No progress was changed."
         case .futureEpisode: "This episode has a future air date. It cannot be marked watched yet."
+        case .nextEpisodeUnavailable: "Episode information changed. Open the series to review saved progress, or retry."
         }
     }
 }

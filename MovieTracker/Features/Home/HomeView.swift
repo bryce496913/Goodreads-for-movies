@@ -1,4 +1,5 @@
 import SwiftUI
+import Observation
 
 struct HomeView: View {
     let dashboard: DashboardModel
@@ -116,6 +117,8 @@ struct HomeContinueWatchingRow: View {
     let item: ContinueWatchingItem
     let progressModel: (TVShow) -> TVProgressModel
     @Environment(\.dynamicTypeSize) private var textSize
+    @Environment(LibraryStore.self) private var library
+    @State private var episodeAction = HomeEpisodeAction()
     var body: some View {
         Group {
             if textSize.isAccessibilitySize {
@@ -125,6 +128,7 @@ struct HomeContinueWatchingRow: View {
             }
         }
         .padding(.vertical, AppStyle.Spacing.xSmall)
+        .onChange(of: item.next?.id) { _, _ in episodeAction.clearError() }
     }
     private var poster: some View { LibraryCachedPoster(url: item.title.posterURL) }
     private var content: some View {
@@ -136,6 +140,9 @@ struct HomeContinueWatchingRow: View {
                     if let percentage = item.progress.percentage {
                         Text("\(item.progress.watched) of \(item.progress.eligible) known aired regular episodes watched")
                             .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+                        if item.progress.isUpToDate {
+                            Text("Up to date with known aired episodes").font(AppStyle.Typography.caption)
+                        }
                         ProgressView(value: Double(percentage), total: 100)
                             .accessibilityLabel("Known aired regular episode progress")
                             .accessibilityValue("\(percentage) percent")
@@ -145,11 +152,12 @@ struct HomeContinueWatchingRow: View {
                             .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
                     }
                     if let last = item.lastMarked, last.number > 0 {
-                        Text("Last watched: S\(last.seasonNumber) E\(last.number)")
+                        Text("Last marked watched: S\(last.seasonNumber) E\(last.number)")
                             .font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
                     }
                 }
             }
+            .buttonStyle(.plain)
             .accessibilityIdentifier("home.series." + item.id.value)
             if let next = item.next {
                 NavigationLink {
@@ -161,9 +169,51 @@ struct HomeContinueWatchingRow: View {
                         .frame(minHeight: AppStyle.Layout.minimumTarget, alignment: .leading)
                 }
                 .accessibilityLabel("Continue " + item.title.title + ", season \(next.seasonNumber), episode \(next.number), " + next.title)
+                .buttonStyle(.plain)
+                .foregroundStyle(AppStyle.Colors.accent)
                 .accessibilityIdentifier("home.nextEpisode")
+                directAction(for: next)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+    @ViewBuilder private func directAction(for next: TVEpisode) -> some View {
+        Text(next.title).font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+        Button {
+            episodeAction.mark(next.id, store: library)
+        } label: {
+            Label(library.isWatched(next.id) ? "Watched" : "Mark S\(next.seasonNumber) E\(next.number) watched", systemImage: "checkmark.circle")
+        }
+        .buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true))
+        .disabled(episodeAction.isSaving || library.isWatched(next.id))
+        .accessibilityLabel("Mark \(item.title.title), season \(next.seasonNumber), episode \(next.number), \(next.title), watched")
+        .accessibilityValue(library.isWatched(next.id) ? "Watched" : "Not watched")
+        .accessibilityIdentifier("home.markEpisode." + item.id.value)
+        if episodeAction.isSaving { AppLoadingState(title: "Saving progress…") }
+        if let error = episodeAction.errorMessage {
+            AppErrorMessage(message: error).accessibilityIdentifier("home.episodeError")
+            Button("Retry Save") { episodeAction.mark(next.id, store: library) }
+                .buttonStyle(AppActionStyle()).accessibilityIdentifier("home.retryEpisode")
+        }
+    }
+
+}
+
+@MainActor
+@Observable
+final class HomeEpisodeAction {
+    private(set) var isSaving = false
+    private(set) var errorMessage: String?
+
+    func mark(_ episode: EpisodeID, store: LibraryStore, now: Date = .now) {
+        guard !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            try store.markNextEpisodeWatched(episode, now: now)
+            errorMessage = nil
+        } catch { errorMessage = error.localizedDescription }
+    }
+    func clearError() { errorMessage = nil }
 }

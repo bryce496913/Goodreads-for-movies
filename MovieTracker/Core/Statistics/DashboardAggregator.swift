@@ -82,15 +82,21 @@ enum DashboardAggregator {
         let progressBySeries = Dictionary(grouping: progress.values, by: { $0.episodeID.seriesID })
         let watchedBySeries = Dictionary(grouping: watched, by: { $0.episodeID.seriesID })
         var continuing: [ContinueWatchingItem] = []
-        for id in seriesIDs {
+        let watchingIDs = Set(canonical.filter { $0.key.kind == .tvShow && $0.value.status == "watching" }.map(\.key))
+        for id in seriesIDs.union(watchingIDs) {
             try Task.checkCancellation()
             let regular = Array(cached[id, default: [:]].values).filter { $0.number > 0 }.sorted { $0.number < $1.number }
             var episodes: [EpisodeID: TVEpisode] = [:]
             var complete = !regular.isEmpty && regular.compactMap(\.expectedRegularSeasons).max() == regular.count
+            if !regular.isEmpty { complete = complete && regular.map(\.number) == Array(1...regular.count) }
             for season in regular {
                 try Task.checkCancellation()
                 let values = decode([TVEpisode].self, season.episodesData) ?? []
                 let listed = Set(decode([EpisodeID].self, season.listedIDsData) ?? [])
+                let catalogReceipt = decode(TVShow.self, season.seriesData)?.metadataRetrievedAt
+                complete = complete && season.expectedRegularSeasons == regular.count
+                complete = complete && (!MetadataPolicy.isTMDB(id)
+                    || (MetadataPolicy.isUsable(season.refreshedAt, at: now) && MetadataPolicy.isUsable(catalogReceipt, at: now)))
                 complete = complete && season.listed && season.loaded && season.expectedEpisodes == values.count
                     && Set(values.map(\.id)).count == values.count && listed == Set(values.map(\.id))
                 let valid = values.filter { $0.id.seriesID == id && $0.seasonNumber == season.number }
@@ -108,8 +114,10 @@ enum DashboardAggregator {
             let remaining = values.filter { !watchedIDs.contains($0.id) }
             let available = remaining.filter { $0.airDate.map { $0 <= today } == true }.sorted(by: episodeOrder)
             let unknown = remaining.contains { $0.airDate == nil }
-            guard !available.isEmpty || !complete || unknown else { continue } // Nothing aired remains: never recommend a future episode.
-            let next = complete && !unknown ? available.first : nil
+            guard !available.isEmpty || !complete || unknown || watchingIDs.contains(id) else { continue } // Nothing aired remains: never recommend a future episode.
+            let selection = NextEpisodeSelector.select(series: id, episodes: values, watched: watchedIDs,
+                seasons: regular.map(\.number), coverageKnown: complete, now: now)
+            let next = selection.reliableEpisode
             let last = watchedBySeries[id, default: []].filter { $0.watchedAt != nil }.sorted {
                 if $0.watchedAt != $1.watchedAt { return ($0.watchedAt ?? .distantPast) > ($1.watchedAt ?? .distantPast) }
                 return $0.episodeID.providerValue < $1.episodeID.providerValue
