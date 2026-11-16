@@ -8,12 +8,14 @@ enum LibraryProjection {
         let ordered = try sorted ?? sort(source, by: options.sort)
         return Result(source: source, sorted: ordered, visible: try filter(ordered, query: query, options: options))
     }
+    static func matchesMedia(_ id: MediaID?, filter: LibraryMediaFilter) -> Bool {
+        filter == .all || (filter == .movies && id?.kind == .movie) || (filter == .tvShows && id?.kind == .tvShow)
+    }
     static func filter(_ sorted: [LibraryItem], query: String, options: LibraryOptions) throws -> [LibraryItem] {
         let needle = LibraryText.normalize(query)
         return try sorted.filter { item in
             try Task.checkCancellation()
-            return (options.media == .all || (options.media == .movies && item.mediaID?.kind == .movie)
-                || (options.media == .tvShows && item.mediaID?.kind == .tvShow))
+            return matchesMedia(item.mediaID, filter: options.media)
                 && (options.status.storedValue == nil || item.rawStatus == options.status.storedValue)
                 && (!options.favoritesOnly || item.isFavorite)
                 && (needle.isEmpty || item.normalizedTitle.contains(needle))

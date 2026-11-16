@@ -10,6 +10,7 @@ struct LibraryView: View {
     @Bindable var organization: LibraryOrganizationModel
     let openSection: (LibrarySection) -> Void
     @State private var errorMessage: String?
+    @State private var discovery = WatchDiscoveryModel()
 
     var body: some View {
         List {
@@ -31,6 +32,11 @@ struct LibraryView: View {
                     ForEach(LibrarySort.allCases) { Text($0.rawValue).tag($0) }
                 }.pickerStyle(.menu).accessibilityIdentifier("library.sort")
                 if organization.hasFilters { Button("Reset Filters") { organization.resetFilters() }.accessibilityIdentifier("library.resetFilters") }
+            }
+            Section {
+                NavigationLink { WatchDiscoveryView(model: discovery) } label: {
+                    Label("What Should I Watch?", systemImage: "shuffle")
+                }.accessibilityIdentifier("library.discovery")
             }
             CollectionsSection()
             if let error = library.loadError {

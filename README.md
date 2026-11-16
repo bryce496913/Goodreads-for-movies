@@ -147,3 +147,7 @@ Primary/secondary/tertiary action styling, native destructive actions, status/ra
 Pass 030's [artwork licensing gate](docs/ARTWORK_LICENSING_GATE.md) is **BLOCKED** for persistent disk caching. Artwork remains bounded, deduplicated and memory-only; Settings can confirm/clear temporary artwork without clearing saved text or personal data. Offline artwork survival across relaunch is not promised. The existing 150-day metadata maximum remains unchanged.
 
 Direct offline Home episode actions, reliable-next versus known-candidate selection, status independence and validation limits: [Continue Watching actions](docs/CONTINUE_WATCHING_ACTIONS.md).
+
+## Local Watchlist discovery
+
+Library → **What Should I Watch?** makes a random local pick from your Watchlist or an explicitly selected custom collection. Filter by media type, OR-matched genres, inclusive year bounds and movie runtime. No recommendation API or network connection is required; choosing does not edit personal data. See [eligibility, retention, state and local test instructions](docs/LOCAL_WATCH_DISCOVERY.md). Native compilation and XCTest remain unverified in the Linux cloud environment.
