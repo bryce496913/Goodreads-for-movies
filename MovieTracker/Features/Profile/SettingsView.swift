@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     let credentials: any MetadataCredentialStorage
@@ -44,9 +45,12 @@ struct SettingsView: View {
                 Text("Artwork is kept only in memory and may need downloading again. It is not saved for offline relaunch. Clearing it preserves your personal data and saved text.")
                     .font(AppStyle.Typography.metadata)
                 Button("Clear Temporary Artwork", role: .destructive) { confirmArtworkClear = true }
-                    .appDestructiveAction().accessibilityIdentifier("settings.clearArtwork")
+                    .appDestructiveAction()
+                    .accessibilityHint("Asks for confirmation. Ratings, reviews and watched progress are kept.")
+                    .accessibilityIdentifier("settings.clearArtwork")
                 if artworkCleared {
-                    Text("Temporary artwork cleared").font(AppStyle.Typography.caption)
+                    Label("Temporary artwork cleared", systemImage: "checkmark.circle").font(AppStyle.Typography.caption)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("settings.artworkCleared")
                 }
             }
@@ -72,7 +76,9 @@ struct SettingsView: View {
             Button("Clear Artwork", role: .destructive) {
                 ProviderArtworkLoader.shared.clearTemporaryArtwork()
                 artworkCleared = true
+                UIAccessibility.post(notification: .announcement, argument: "Temporary artwork cleared. Your personal data is kept.")
             }
+            Button("Keep Artwork", role: .cancel) { }
         } message: { Text("Currently displayed images will be removed and may need downloading again. Ratings, reviews, viewing history, progress and saved text are kept.") }
         .confirmationDialog("Remove this device’s provider credential?", isPresented: $confirmRemoval, titleVisibility: .visible) {
             Button("Remove Credential", role: .destructive) {

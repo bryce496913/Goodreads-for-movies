@@ -56,13 +56,31 @@ final class BetaPreparationUITests: XCTestCase {
         let confirm = app.buttons["Clear Artwork"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
-        let feedback = app.staticTexts["settings.artworkCleared"]
+        let feedback = app.descendants(matching: .any).matching(identifier: "settings.artworkCleared").firstMatch
         reveal(feedback, app)
         XCTAssertTrue(feedback.exists)
         XCTAssertTrue(app.navigationBars["Settings"].exists)
         let backup = app.buttons["settings.backup"]
         reveal(backup, app)
         XCTAssertTrue(backup.exists)
+    }
+
+    @MainActor func testArtworkCancelAndConfirmAtAccessibilitySizeKeepNavigationReachable() {
+        let app = launch(extra: ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "-AppleInterfaceStyle", "Dark"])
+        app.tabBars.buttons["Profile"].tap()
+        reveal(app.buttons["profile.settings"], app); app.buttons["profile.settings"].tap()
+        let clear = app.buttons["settings.clearArtwork"]
+        reveal(clear, app); clear.tap()
+        XCTAssertTrue(app.buttons["Keep Artwork"].waitForExistence(timeout: 5))
+        app.buttons["Keep Artwork"].tap()
+        XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "settings.artworkCleared").firstMatch.exists)
+        reveal(clear, app); clear.tap(); app.buttons["Clear Artwork"].tap()
+        let feedback = app.descendants(matching: .any).matching(identifier: "settings.artworkCleared").firstMatch
+        reveal(feedback, app); XCTAssertTrue(feedback.exists)
+        let backup = app.buttons["settings.backup"]
+        reveal(backup, app)
+        XCTAssertLessThanOrEqual(backup.frame.maxY, app.tabBars.firstMatch.frame.minY)
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
     }
 
     @MainActor private func launch(extra: [String] = []) -> XCUIApplication {
