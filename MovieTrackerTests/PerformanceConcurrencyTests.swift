@@ -3,6 +3,22 @@ import XCTest
 @testable import MovieTracker
 
 final class PerformanceConcurrencyTests: XCTestCase {
+    @MainActor func testV06LargeCollectionFixtureIntegrityAndDeterministicDiscoveryPool() throws {
+        let store = try LargeLibraryFixtures.collectionsStore()
+        XCTAssertNil(store.loadError); XCTAssertEqual(store.collections.count, 500)
+        XCTAssertEqual(store.collectionMemberships.count, 5_000)
+        XCTAssertEqual(Set(store.collectionMemberships.map(\.id)).count, 5_000)
+        for id in store.collections.map(\.id) { XCTAssertEqual(store.members(of: id).map(\.position), Array(0..<10)) }
+        let inputs = try LargeLibraryFixtures.discoveryInputs()
+        let pool = try WatchDiscoveryProjection.build(inputs + inputs, watchlist: false, at: LargeLibraryFixtures.now)
+        XCTAssertEqual(pool.count, 5_000); XCTAssertEqual(Set(pool.map(\.id)).count, 5_000)
+        let first = store.collections[0].id, other = store.collections[1].id
+        let unchanged = store.members(of: other).map(\.id), before = store.members(of: first).map(\.id)
+        try store.reorderCollection(first, memberships: Array(before.reversed()), original: before)
+        XCTAssertEqual(store.members(of: other).map(\.id), unchanged)
+        XCTAssertEqual(store.collectionMemberships.count, 5_000)
+    }
+
     func testDeterministicFixtureSizesAndDashboardCounts() throws {
         for count in [100, 1_000, 5_000] {
             let items = try LargeLibraryFixtures.items(count)

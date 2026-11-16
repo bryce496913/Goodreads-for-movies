@@ -8,6 +8,9 @@ Current explicit schema: **LibrarySchemaV3, 3.0.0** (pass 032). V2 (2.0.0) is re
 
 | Entity | Persisted content | Uniqueness / logical identity |
 | --- | --- | --- |
+| StoredMetadataState | Typed media identity/scope, actual retrieval/attempt/failure/retry timestamps, sanitized failure category | Unique UUID plus application `(MediaID, scope)` identity; no personal text. |
+| StoredCollection | UUID, user-owned name, created/updated timestamps | Unique UUID; application case-insensitive normalized-name uniqueness. |
+| StoredCollectionMembership | UUID, collection UUID, typed media identity, dense position and added timestamp | Unique UUID plus application `(collection UUID, MediaID)`; ordered independently per collection. References do not cascade to title data. |
 | StoredLibraryEntry | Kind/provider-qualified value, status, independent favorite, legacy Double rating and optional integer half-star rating, rating timestamp, reserved legacy review text, added/updated dates, saved title/year/poster reference/URL and JSON snapshot | SwiftData unique UUID. Application uniqueness is exact `(mediaKind, mediaValue)`. The namespace is part of the opaque mediaValue; no numeric-ID coercion or case/whitespace normalization occurs. Movie `tmdb:42`, TV `tmdb:42`, and movie `other:42` remain distinct. |
 | StoredPersonalReview | UUID, exact media identity, text, created/edited dates, optional viewing-event UUID, saved title/JSON and legacy-import flag | Unique UUID; multiple reviews per title are allowed. At most one explicit review may reference a particular viewing event; referenced event must exist and have the same MediaID. |
 | StoredViewingEvent | UUID, exact media identity, optional date-only watched date, recorded/updated timestamps and saved title/JSON | Unique UUID; repeats intentionally have separate UUIDs, never separate library identities. |
@@ -18,9 +21,11 @@ There are **no SwiftData @Relationship properties or cascade deletion rules**. A
 
 LibraryStore is the main-actor writer with explicit save and rollback. Clearing status preserves ratings/favorites/reviews/history. Clearing rating preserves status/history. Removing the library row intentionally removes its rating/status/favorite after the existing confirmation, archives reserved legacy text and leaves separate reviews/events/episode flags. Deleting a viewing event detaches review links in the same transaction; deleting a review leaves viewing events and personal data intact. Metadata refresh updates caches and stable episode positions, never watched flags or other personal fields. No migration recreates missing personal records.
 
+Collections have scalar references; deleting a collection removes only its memberships, never Library/ratings/reviews/diary/progress. Removing a Library row may leave a valid collection identity-only reference.
+
 ## Retained history and declared stages
 
-The repository contains these six distinct published shapes. Historical model methods are not persisted; old library constructors adapt to current domain values while field names/types/defaults/unique attributes are retained. Unchanged review/event/season/progress classes are shared with frozen V1, avoiding redundant historical copies. The separate PR012 test-only Legacy010Schema was removed in favor of the production historical definition.
+The repository contains these eight retained published shapes. Historical model methods are not persisted; old library constructors adapt to current domain values while field names/types/defaults/unique attributes are retained. Unchanged review/event/season/progress classes are shared with frozen V1, avoiding redundant historical copies. The separate PR012 test-only Legacy010Schema was removed in favor of the production historical definition.
 
 | Shape / schema identifier | Source | Change from predecessor | Disk fixture |
 | --- | --- | --- | --- |
@@ -30,16 +35,18 @@ The repository contains these six distinct published shapes. Historical model me
 | Diary / 0.8.0 | PR008 `5bdf099` | Review and viewing entities | Unversioned fixture, UNRUN |
 | TV progress / 0.9.0 | PR009 `7c3de2b`, unchanged PR010 `516bb28` | Season and episode-progress entities | Unversioned fixture, UNRUN |
 | Baseline / 1.0.0 | PR011 `f9d4dfd`, unchanged PR012 `5e5a3cc` | Optional ratingUpdatedAt | Unversioned adoption/repeated opening fixtures, UNRUN |
+| Lifecycle / 2.0.0 | Pass 014 retained V2 | Adds metadata-state entity | Versioned V2→V3 fixture, UNRUN |
+| Collections / 3.0.0 (current) | Pass 032 retained V3 | Adds collection and membership entities | Repeated V3 reopen/backup/expiry/refresh fixture, UNRUN |
 
 `LibraryMigrationPlan` now declares seven ordered lightweight stages (including V2 lifecycle state and V3 collection entities) between these shapes. Every change is optional-field/entity addition; there is no deduplication, deletion, rating rounding, timestamp fabrication, status conversion or review import during migration. Logical duplicate rows retain their UUIDs/content and are reported rather than merged. No new database composite uniqueness constraint is imposed on existing potentially conflicting rows.
 
 ### Recognition and historical limits
 
-Before opening an existing library, the factory compares public Core Data entity-version hash dictionaries against reference metadata generated from the retained schemas. It checks actual entity hashes, not just a marker file, filename, app version or a guessed source version. Unknown/mismatched schemas fail closed. Reference stores are empty UUID paths in OS temporary storage, have no user records, are cached by schema for the process, and are **never returned as the application container or used as a fallback**. Current-first matching usually needs only one reference; an older source may require all six. OS temporary cleanup owns those empty references.
+Before opening an existing library, the factory compares public Core Data entity-version hash dictionaries against reference metadata generated from the retained schemas. It checks actual entity hashes, not just a marker file, filename, app version or a guessed source version. Unknown/mismatched schemas fail closed. Reference stores are empty UUID paths in OS temporary storage, have no user records, are cached by schema for the process, and are **never returned as the application container or used as a fallback**. Current-first matching usually needs only one reference; an older source may require all eight. OS temporary cleanup owns those empty references.
 
 Hash recognition is an additional guard, not proof that SwiftData recognizes historical unversioned version identifiers, nested/global type adoption or a particular OS/SDK’s store metadata. The explicit chain must still execute successfully. The tests deliberately create sources using **unversioned Schema(models)**, matching earlier application behavior, plus an explicitly versioned old-source case. Real stores produced by earlier app binaries remain required evidence; reconstructed nested fixture classes alone cannot establish all runtime/model metadata equivalence.
 
-Not claimed supported/verified: local model edits absent from git, intermediate unmerged shapes, downgrades, unknown future schemas, arbitrary Core Data stores, corrupted stores, cross-device copies with incomplete journals, or every OS/Xcode combination. All six retained candidate paths currently lack execution evidence. Unknown stores are preserved and rejected; they are not opened without the plan as a recovery shortcut.
+Not claimed supported/verified: local model edits absent from git, intermediate unmerged shapes, downgrades, unknown future schemas, arbitrary Core Data stores, corrupted stores, cross-device copies with incomplete journals, or every OS/Xcode combination. All retained candidate paths currently lack execution evidence. Unknown stores are preserved and rejected; they are not opened without the plan as a recovery shortcut.
 
 ## Opening and failure safety
 
@@ -95,3 +102,13 @@ A new disk-backed fixture creates an actual explicit V2 six-entity store (librar
 Internal PersonalData.json recovery archives advance to format 2 with collection names/UUIDs/dates and membership IDs/order. Format 1 remains readable with no collections. A V3 backup conversion test verifies collection preservation, and a legacy-archive test verifies format-1 recovery. Capture/verification must succeed before raw backup deletion; invalid collection graphs retain the raw source and provider activation remains blocked under existing policy. Recovery refuses destinations containing collections as well as existing personal entities. No collection metadata snapshot or artwork is archived.
 
 See [complete collection lifecycle and test matrix](CUSTOM_COLLECTIONS.md). The new schema/recovery formats and disk tests are implementation plus unexecuted regression coverage, not a completed migration certification.
+
+## Pass 035 evidence update
+
+No historical/current entity declarations or migration stages changed. Existing historical disk fixtures and the V2→V3 fixture are retained; the new cross-feature V3 disk test compares canonical personal fields/UUIDs and collection order across repeated opening, offline edits, metadata expiry/refresh and portable restore. All remain **UNRUN**. Real binary-produced historical stores and Apple OS/SDK adoption coverage remain unsupported by executed evidence. See [V0.6 test plan](V0.6_TEST_PLAN.md).
+
+Archive conversion now rejects symbolic-link roots/directories and linked/nonregular managed stores/journals/output files before opening or cleanup. It preserves and reports unresolved archives rather than following paths or deleting a user database as recovery. The application container factory still has no destructive fallback. This preflight guard does not claim to defeat concurrent malicious filesystem replacement.
+
+Archive-only folders are now revalidated on maintenance. Corrupt/unsupported recovery JSON and nonempty folders without a recognized archive are preserved and reported rather than silently treated as converted; three native revalidation regressions remain UNRUN.
+
+Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.

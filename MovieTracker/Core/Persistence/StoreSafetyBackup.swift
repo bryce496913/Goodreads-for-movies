@@ -14,9 +14,14 @@ enum StoreSafetyBackup {
         input.close()
         guard count == 16, header == Array("SQLite format 3\0".utf8) else { throw Failure(code: SQLITE_NOTADB) }
         let files = FileManager.default
-        let directory = source.deletingLastPathComponent().appendingPathComponent("StoreSafetyBackups", isDirectory: true)
-            .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        try files.createDirectory(at: directory, withIntermediateDirectories: true)
+        let root = source.deletingLastPathComponent().appendingPathComponent("StoreSafetyBackups", isDirectory: true)
+        // A substituted backup root must not redirect a private safety snapshot elsewhere.
+        guard (try? files.destinationOfSymbolicLink(atPath: root.path)) == nil else { throw Failure(code: SQLITE_CANTOPEN) }
+        try files.createDirectory(at: root, withIntermediateDirectories: true)
+        let attributes = try files.attributesOfItem(atPath: root.path)
+        guard attributes[.type] as? FileAttributeType == .typeDirectory else { throw Failure(code: SQLITE_CANTOPEN) }
+        let directory = root.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try files.createDirectory(at: directory, withIntermediateDirectories: false)
         let destination = directory.appendingPathComponent(source.lastPathComponent)
         var sourceDB: OpaquePointer?
         let opened = sqlite3_open_v2(source.path, &sourceDB, SQLITE_OPEN_READONLY, nil)

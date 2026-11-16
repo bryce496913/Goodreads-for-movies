@@ -2,7 +2,11 @@
 
 A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. The app supplies navigation, accessible empty states, domain models, local persistence infrastructure, and an opt-in metadata service. Search now finds movie and TV metadata with authorized local TMDB configuration; titles can be saved locally with independent favorites and viewing statuses.
 
-## V0.5 beta status
+## V0.6 stabilization status
+
+**READY FOR PERSONAL DEVICE VALIDATION**, not V0.6 VALIDATED. The implementation and available Linux static checks are ready for owner-run testing with isolated/copied data; all native XCTest, migration, offline-relaunch, accessibility and performance checks remain unrun. See the [V0.6 checklist](docs/V0.6_RELEASE_CHECKLIST.md), [test evidence and local commands](docs/V0.6_TEST_PLAN.md), and [release notes](docs/V0.6_RELEASE_NOTES.md). Persistent artwork remains explicitly blocked by its rights gate; only bounded memory caching/placeholders are implemented. Provider authorization remains an owner gate. **TestFlight is deferred and is not a V0.6 completion requirement.** App marketing version/build remains 0.5.0/12.
+
+## Historical V0.5 beta status
 
 **NOT READY — BLOCKERS REMAIN.** Version 0.5.0/build 12 is prepared for local validation, not uploaded or certified. See the [release checklist and TestFlight steps](docs/V0.5_RELEASE_CHECKLIST.md), [regression matrix/evidence](docs/V0.5_TEST_PLAN.md), [known issues](docs/KNOWN_ISSUES.md), and [release notes](docs/V0.5_RELEASE_NOTES.md). TMDB cache content now uses a 150-day lifecycle with personal data preserved separately; see [metadata policy and remaining licensing/operational gates](docs/METADATA_POLICY.md). Runtime behavior, dormant-device retention and provider authorization still require verification.
 

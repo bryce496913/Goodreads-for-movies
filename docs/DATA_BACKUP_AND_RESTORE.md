@@ -129,3 +129,13 @@ Restore matches a collection by UUID and keeps its **entire local name, membersh
 The revision-bound plan/preview shows both new counts and all conflict reasons. Apply uses the same one-save audited transaction and rollback, with no separate import writer. A collection edit invalidates a stale plan. Provider snapshots, titles, poster references, receipts, credentials and disk artwork remain excluded; user-authored collection names are personal data.
 
 CollectionBackupTests covers v2 round trips/order/UUIDs, actual v1 JSON without collection keys, repeat import, UUID/name/order conflicts, invalid references/positions/names, missing keys/future versions, stale revisions, and failure preserving pre-existing local data. Internal recovery round trips and V3 raw-backup conversion are also covered. These tests, like all Apple-framework tests here, are **UNRUN** until local Xcode execution. See [collection implementation and local validation](CUSTOM_COLLECTIONS.md).
+
+## Pass 035 stabilization evidence
+
+Portable v2/v1 and internal recovery 2/1 behavior is unchanged. New disk-backed integration checks exact personal values, collection UUIDs/manual order, repeated restore, offline edits and expiry/refresh without reinstating provider content. A canceled restore confirmation must write nothing and permit explicit retry. Existing malformed/unsupported/conflict/save-failure rollback tests are retained. These native tests are **UNRUN**; see [V0.6 actual results and commands](V0.6_TEST_PLAN.md).
+
+Managed safety-archive conversion rejects symbolic-link roots/directories and linked/nonregular store/journal/output files before conversion/deletion, preserving unresolved paths and provider blocking. Four path regressions are authored, not executed. No import creates arbitrary files from JSON: native JSON selection, 32 MiB/100k-record bounds, value/relationship validation, revision-bound preview, explicit confirmation and a one-transaction Keep Existing merge remain required. Backups are plaintext personal data, not encrypted or automatic cloud backups. No artwork or provider payloads are exported.
+
+Archive-only folders are now revalidated on maintenance. Corrupt/unsupported recovery JSON and nonempty folders without a recognized archive are preserved and reported rather than silently treated as converted; three native revalidation regressions remain UNRUN.
+
+Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.
