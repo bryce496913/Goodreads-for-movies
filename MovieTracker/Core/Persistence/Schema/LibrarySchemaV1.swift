@@ -13,7 +13,7 @@ enum LibrarySchemaV1: VersionedSchema {
 enum LibraryMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
         [LibrarySchemaFoundation.self, LibrarySchemaSnapshots.self, LibrarySchemaRatings.self,
-         LibrarySchemaDiary.self, LibrarySchemaTVProgress.self, LibrarySchemaV1.self, LibrarySchemaV2.self]
+         LibrarySchemaDiary.self, LibrarySchemaTVProgress.self, LibrarySchemaV1.self, LibrarySchemaV2.self, LibrarySchemaV3.self]
     }
     static var stages: [MigrationStage] {
         [
@@ -22,7 +22,8 @@ enum LibraryMigrationPlan: SchemaMigrationPlan {
             .lightweight(fromVersion: LibrarySchemaRatings.self, toVersion: LibrarySchemaDiary.self),
             .lightweight(fromVersion: LibrarySchemaDiary.self, toVersion: LibrarySchemaTVProgress.self),
             .lightweight(fromVersion: LibrarySchemaTVProgress.self, toVersion: LibrarySchemaV1.self),
-            .lightweight(fromVersion: LibrarySchemaV1.self, toVersion: LibrarySchemaV2.self)
+            .lightweight(fromVersion: LibrarySchemaV1.self, toVersion: LibrarySchemaV2.self),
+            .lightweight(fromVersion: LibrarySchemaV2.self, toVersion: LibrarySchemaV3.self)
         ]
     }
 }

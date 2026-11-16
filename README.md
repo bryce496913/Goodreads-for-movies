@@ -54,6 +54,8 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 - Manual personal-only JSON export and confirmed non-destructive restore from Settings; see [format, conflict rules, privacy and validation](docs/DATA_BACKUP_AND_RESTORE.md).
 - A recoverable persistence-error screen that retries opening the store without deleting user data or silently switching to a disposable store.
 
+- Private custom collections with multi-list membership, native manual reordering and portable backup v2 (v1 imports supported); see [collections, migration and restore rules](docs/CUSTOM_COLLECTIONS.md).
+
 ## Architecture and decisions
 
 ```text
@@ -79,7 +81,7 @@ Feature views stay together. SearchModel owns observable search state on the mai
 
 Library entries have at most one viewing status (`watchlist`, `watching`, `watched`), with an independent favorites flag so a watched title can also be a favorite. Personal ratings use validated half-star units independently of viewing status. Written reviews and repeat viewings have separate entities; the old review column remains readable for safe legacy import. LibraryStore preserves `addedAt` and updates `updatedAt` for meaningful edits.
 
-SwiftData now uses a frozen VersionedSchema and an explicit additive migration plan, with pre-open safety backups and schema recognition. V2 adds metadata refresh state; recognized raw backups become verified personal-only recovery archives after successful application startup. Historical adoption remains unverified until the disk fixtures and real store copies execute; see [migration support and failure recovery](docs/DATA_MIGRATIONS.md).
+SwiftData now uses a frozen VersionedSchema and an explicit additive migration plan, with pre-open safety backups and schema recognition. V2 adds metadata refresh state; V3 adds private collections and memberships without modifying historical entities; recognized raw backups become verified personal-only recovery archives after successful application startup. Historical adoption remains unverified until the disk fixtures and real store copies execute; see [migration support and failure recovery](docs/DATA_MIGRATIONS.md).
 
 SwiftData stores explicit raw kind/status strings and throws on unknown values instead of silently changing their meaning. UUIDs identify library entries. LibraryStore looks up the exact typed/provider-qualified media identity before inserting or updating; existing duplicate rows are reported rather than destructively merged. The container uses the default local app store, explicitly disables CloudKit, and inserts **no seed/demo records**. In-memory containers are isolated for tests. SwiftData/context work runs on the main actor. Persistence has no repository layer, authentication, or cloud sync. Metadata networking starts only after a nonempty Search query, never automatically on app startup.
 
@@ -87,7 +89,9 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (395 methods total, all require local macOS/Xcode execution):
+Included tests (418 methods total, all require local macOS/Xcode execution):
+
+- 21 collection store/backup/migration/recovery methods and 2 collection UI methods; all unrun.
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.

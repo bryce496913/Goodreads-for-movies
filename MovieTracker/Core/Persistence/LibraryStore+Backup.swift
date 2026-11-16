@@ -38,6 +38,11 @@ extension LibraryStore {
             if !known.contains(key), missing[key] == nil || row.id.uuidString < missing[key]!.id.uuidString { missing[key] = row }
         }
         for (key, row) in missing { result.seasonAnchors.append(.init(id: row.id, seriesID: key.series, number: key.number)) }
+        result.collections = collections.map { .init(id: $0.id, name: $0.name, createdAt: $0.createdAt, updatedAt: $0.updatedAt) }
+        result.collectionMemberships = try collectionMemberships.map {
+            guard let identity = $0.mediaID else { throw BackupError.libraryUnavailable }
+            return .init(id: $0.id, collectionID: $0.collectionID, mediaID: identity, position: $0.position, addedAt: $0.addedAt)
+        }
         return result
     }
 
@@ -48,6 +53,12 @@ extension LibraryStore {
         let source = plan.additions
         do {
             try writeTransaction { context in
+                for row in source.collections {
+                    context.insert(StoredCollection(id: row.id, name: row.name, createdAt: row.createdAt, updatedAt: row.updatedAt))
+                }
+                for row in source.collectionMemberships {
+                    context.insert(StoredCollectionMembership(id: row.id, collectionID: row.collectionID, mediaID: row.mediaID, position: row.position, addedAt: row.addedAt))
+                }
                 for row in source.library {
                     let rating = try row.ratingHalfStarUnits.map { try PersonalRating(halfStarUnits: $0) }
                     let value = StoredLibraryEntry(entry: UserLibraryEntry(id: row.id, mediaID: row.mediaID, status: row.status,

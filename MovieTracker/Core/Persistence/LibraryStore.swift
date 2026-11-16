@@ -13,6 +13,8 @@ final class LibraryStore {
     var metadataInvalidation = 0
     var metadataReferenceDate = Date.now
     @ObservationIgnored let metadataClock: @Sendable () -> Date
+    private(set) var collections: [StoredCollection] = []
+    private(set) var collectionMemberships: [StoredCollectionMembership] = []
     private(set) var entries: [StoredLibraryEntry] = []
     private(set) var personalReviews: [StoredPersonalReview] = []
     private(set) var viewingEvents: [StoredViewingEvent] = []
@@ -21,6 +23,8 @@ final class LibraryStore {
     private(set) var loadError: LibraryStoreError?
     private(set) var integrityIssueCount = 0
     @ObservationIgnored private var acceptedIntegrityIssues = Set<StoreIntegrityIssue>()
+    @ObservationIgnored var collectionIDsByMedia: [MediaID: Set<UUID>] = [:]
+    @ObservationIgnored var membershipsByCollection: [UUID: [StoredCollectionMembership]] = [:]
     @ObservationIgnored var entriesByMedia: [MediaID: [StoredLibraryEntry]] = [:]
     @ObservationIgnored var reviewsByMedia: [MediaID: [StoredPersonalReview]] = [:]
     @ObservationIgnored var eventsByMedia: [MediaID: [StoredViewingEvent]] = [:]
@@ -66,11 +70,16 @@ final class LibraryStore {
             }
             let progress = try context.fetch(FetchDescriptor<StoredEpisodeProgress>())
             let states = try context.fetch(FetchDescriptor<StoredMetadataState>())
+            collections = try context.fetch(FetchDescriptor<StoredCollection>()).sorted {
+                let lhs = CollectionName.key($0.name), rhs = CollectionName.key($1.name)
+                return lhs != rhs ? lhs < rhs : $0.id.uuidString < $1.id.uuidString
+            }
+            collectionMemberships = try context.fetch(FetchDescriptor<StoredCollectionMembership>())
             metadataStates = states
             tvSeasons = seasons; episodeProgress = progress
             entries = savedEntries; personalReviews = savedReviews; viewingEvents = savedEvents
             acceptedIntegrityIssues = StoreIntegrityReport.audit(entries: savedEntries, reviews: savedReviews, events: savedEvents,
-                                                                 seasons: seasons, progress: progress, metadata: states)
+                                                                 seasons: seasons, progress: progress, metadata: states, collections: collections, memberships: collectionMemberships)
             integrityIssueCount = acceptedIntegrityIssues.count
             loadError = acceptedIntegrityIssues.isEmpty ? nil : .integrityViolation
             rebuildIndexes()
@@ -179,6 +188,7 @@ final class LibraryStore {
         } catch {
             context.rollback()
             reload()
+            if let error = error as? CollectionError { throw error }
             if let error = error as? DiaryError { throw error }
             if let error = error as? TVProgressError { throw error }
             throw (error as? LibraryStoreError) ?? .saveFailed
@@ -202,8 +212,9 @@ final class LibraryStore {
         let nextEntries = reconcile(entries), nextReviews = reconcile(personalReviews)
         let nextEvents = reconcile(viewingEvents), nextSeasons = reconcile(tvSeasons)
         let nextProgress = reconcile(episodeProgress), nextMetadata = reconcile(metadataStates)
+        let nextCollections = reconcile(collections), nextMemberships = reconcile(collectionMemberships)
         let pending = StoreIntegrityReport.audit(entries: nextEntries, reviews: nextReviews, events: nextEvents,
-                                                 seasons: nextSeasons, progress: nextProgress, metadata: nextMetadata)
+                                                 seasons: nextSeasons, progress: nextProgress, metadata: nextMetadata, collections: nextCollections, memberships: nextMemberships)
         guard pending.isSubset(of: acceptedIntegrityIssues) else { throw LibraryStoreError.integrityViolation }
         try saveContext(context)
         if changes.contains(where: { $0 is StoredLibraryEntry }) {
@@ -234,6 +245,13 @@ final class LibraryStore {
         }
         if changes.contains(where: { $0 is StoredEpisodeProgress }) { episodeProgress = nextProgress }
         if changes.contains(where: { $0 is StoredMetadataState }) { metadataStates = nextMetadata }
+        if changes.contains(where: { $0 is StoredCollection || $0 is StoredCollectionMembership }) {
+            collections = nextCollections.sorted {
+                let lhs = CollectionName.key($0.name), rhs = CollectionName.key($1.name)
+                return lhs != rhs ? lhs < rhs : $0.id.uuidString < $1.id.uuidString
+            }
+            collectionMemberships = nextMemberships
+        }
         acceptedIntegrityIssues = pending; integrityIssueCount = pending.count
         loadError = pending.isEmpty ? nil : .integrityViolation
         rebuildIndexes(changes: changes); revision += 1
@@ -242,6 +260,19 @@ final class LibraryStore {
     private func rebuildIndexes(changes: [any PersistentModel]? = nil) {
         func affected<T: PersistentModel>(_ type: T.Type) -> Bool {
             changes?.contains(where: { $0 is T }) ?? true
+        }
+        if affected(StoredCollectionMembership.self) {
+            collectionIDsByMedia = [:]
+            for row in collectionMemberships {
+                if let media = row.mediaID { collectionIDsByMedia[media, default: []].insert(row.collectionID) }
+            }
+            membershipsByCollection = Dictionary(grouping: collectionMemberships, by: \.collectionID).mapValues {
+                $0.sorted {
+                    if $0.position != $1.position { return $0.position < $1.position }
+                    if $0.addedAt != $1.addedAt { return $0.addedAt < $1.addedAt }
+                    return $0.id.uuidString < $1.id.uuidString
+                }
+            }
         }
         if affected(StoredLibraryEntry.self) {
             entriesByMedia = Dictionary(grouping: entries.filter { $0.mediaID != nil }, by: { $0.mediaID! })

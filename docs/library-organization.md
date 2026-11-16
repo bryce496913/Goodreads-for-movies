@@ -78,3 +78,9 @@ No social lists, public collections or cloud synchronization are implemented.
 ## Pass 016 concurrency update
 
 Library projection now uses cancellable Sendable snapshots off actor, with generation-checked publication and sorted-source reuse. A library-only revision avoids rebuilding rows for unrelated diary/episode edits. See [performance findings and benchmark limitations](PERFORMANCE_CONCURRENCY.md); native execution remains unverified.
+
+## Pass 032: independent custom collections
+
+Collections appear after the existing Organize controls and do not participate in saved-title query/media/status/favorite filtering. The root previews up to three lists with counts and provides All Collections when needed. Names/order/membership are personal data, distinct from status/favorites and Library sorting. Membership lookup/counts use per-collection and per-MediaID indexes rebuilt on committed membership changes. Changing a list alone does not bump the Library projection revision or re-sort saved titles.
+
+Contents use native List reorder/delete interactions, with toolbar rename/delete and confirmation for deleting the list. Add to List on details supports multiple independent collections; changes save immediately. Adding an unsaved title creates/reuses the existing statusless Library snapshot row, never a Watchlist/Watched transition. Removing a membership or list leaves that Library row and all personal fields intact; explicit Library removal leaves membership references navigable with compliant identity placeholders. Metadata expiry and the memory-only artwork gate are unchanged. See [collections and migration/backup behavior](CUSTOM_COLLECTIONS.md).

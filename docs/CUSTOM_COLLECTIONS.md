@@ -1,0 +1,45 @@
+# Pass 032 — private custom collections
+
+## Entities and ownership
+
+V3 adds StoredCollection (UUID, user name, created/updated dates) and StoredCollectionMembership (UUID, owner UUID, media kind/provider-qualified value, manual position and added date). No direct SwiftData relationships/cascades are used. One title can belong to many lists; a list has at most one association for each exact typed MediaID. A movie and TV show sharing a numeric/provider value remain distinct. UUID identity survives metadata refresh and reordering.
+
+Names trim surrounding whitespace and normalize NFC, allow meaningful Unicode/emoji, require 1…100 characters / ≤1,024 UTF-8 bytes, and reject controls and line breaks. Duplicate names use Unicode case-insensitive folding with en_US_POSIX; diacritics remain distinct. Creation never silently renames an existing list. The same checks apply in validated backups and the store's pre-save integrity audit.
+
+All mutations use LibraryStore's existing synchronous main-actor transaction, integrity audit, explicit save, publication and rollback. New duplicate membership requests are idempotent. Deletion removes only the selected owner and its associations. No title/rating/status/review/diary/episode-progress record or other list membership is cascade-deleted. Removing multiple members is one transaction. No seeded example collections, cloud service or social sharing was added.
+
+Adding a title reuses its unique Library row or creates an ordinary **statusless** snapshot row through ensureLibraryEntry. It does not change an existing row's personal fields, assign Watchlist/Watched or create diary records. Deleting a list does not delete that Library row, even if the row has no active status. Conversely, explicitly removing a Library row does not erase collection references. This preserves independent personal membership while reusing the established retention-aware metadata storage instead of duplicating snapshots in every list.
+
+## Navigation and ordering
+
+Library keeps its original Organize controls, local saved-title search, filters and sorting. A separate Collections section previews three lists with actual counts, a create action and access to all lists. These names are not filtered by saved-title search/status/media controls. Contents use native List rows, existing cache-only posters, typed media destinations, Edit/reorder handles and association removal. Rename/delete remain reachable in the native toolbar menu; deletion requires confirmation. Editors have Save/Cancel, validation, return-key dismissal and unsaved-change protection.
+
+Add to List appears in existing movie/TV personal actions. Its native sheet shows current memberships and supports several lists; toggles save immediately, with error feedback and rollback. Creating a list from the sheet uses the same protected editor. Done closes the membership selector, not a delayed transaction.
+
+Ordering is dense zero-based integer positions. New members append. Removal compacts only changed positions, preserving relative order; reorder changes only this owner's membership positions and updated date. UI reorders carry the displayed original UUID sequence so stale membership sets/orders are rejected. Ties use position, added date and UUID for deterministic diagnostic display; corrupt positions are reported rather than silently normalized on opening. Library entry ordering/revision is unchanged by reordering a collection.
+
+Per-collection ordered membership and per-media owner indexes rebuild after committed changes, avoiding full-store scans/count fetches on every row render. List content is lazy. No benchmark result or arbitrary performance threshold is claimed; very large renames/global integrity audits still use the existing main-actor transaction path.
+
+## Offline metadata and data lifecycle
+
+All list operations are local and network-independent. Collection names/associations contain no provider title, poster URL or JSON snapshot. Rows resolve existing metadata through LibraryStore.offlineMedia; missing/expired provider content becomes the existing typed-identity placeholder. Original metadata receipts are not renewed by create/add/reorder/rename. Lists remain navigable after expiry and explicit Library removal. Artwork remains bounded memory-only under the BLOCKED pass 030 licensing gate, with no relaunch artwork guarantee.
+
+The explicit additive migration chain now ends V2→V3. Frozen entity declarations remain unchanged; no store reset, relocation or destructive fallback exists. Current containers and raw safety-backup conversion target V3. Internal recovery format 2 includes collections/memberships without provider content and can read old format 1. Verification precedes raw backup deletion, and a nonempty collection destination blocks empty-store recovery. Unknown/corrupt sources remain recoverable under the existing activation gate.
+
+Portable export now writes version 2, requiring both new arrays; version-1 files without collections still import. Collection UUIDs, names/dates and membership UUIDs/MediaIDs/positions/dates round-trip. Validation rejects malformed owner references, duplicate names/IDs/media, gaps/tied positions and unsupported versions before preview. Whole local collections are authoritative by UUID; name/UUID conflicts skip the complete incoming list without silent renaming, overwriting or member appending. The preview reports both counts/conflicts, and the existing revision-bound one-save restore applies all additions atomically. See [backup details](DATA_BACKUP_AND_RESTORE.md) and [schema safety](DATA_MIGRATIONS.md).
+
+## Tests and actual evidence
+
+Added 23 methods: 21 store/backup/migration/recovery tests and two deterministic UI flows. Coverage includes create/rename/blank/length/Unicode/duplicates; typed mixed and multiple memberships; idempotent add; isolated delete and personal-field preservation; manual order/append/remove/independent lists/stale order; unchanged Library ordering; rollback; deterministic reported ties; expired metadata; temporary disk reopen; v2/v1 portable restore; UUID/name/position/reference/version/key conflicts; repeat import; stale plans; restore failure preserving existing local data; current/legacy internal archives; V3 safety-backup conversion; and a disk-created explicit V2 store upgraded/reopened with all personal entities preserved.
+
+Existing historical-source migration, corruption/failure, diary/rating/progress and backup tests remain. Existing migration tests now open current V3 via the extended chain; this is not proof those historical paths execute. The new V2 fixture checks library UUID/rating/status/favorite, review/event UUIDs/link/content, episode flag/UUID, metadata state and new collection creation/reopening. All fixtures use in-memory or isolated temporary disk paths, never real user data.
+
+Passed Linux checks: OpenStep project parsing/references/complete source membership for all three targets; Swift grammar for 142 source/test files; asset JSON and all 44 semantic text contrast pairs; whitespace and relative links; unchanged historical entity declarations/V2 schema; preserved original project build settings. Grammar parsing is not compilation/type checking or SwiftData macro/runtime validation.
+
+All **418 XCTest methods are UNRUN**. Linux has no Swift compiler, Xcode, Apple SDKs or simulators. No disk migration/restore/persistence success or simulator screenshot is claimed. No Xcode build/device checks or GitHub Xcode CI was added. CollectionsUITests attaches a collection fixture screenshot when run locally; no before/after runtime screenshots are available here.
+
+## Local validation and limitations
+
+Run CollectionTests, CollectionBackupTests, CollectionsUITests, DataMigrationTests, MetadataArchiveTests, DataIntegrityTests and existing backup suites, then the full shared scheme. Validate actual V2 copies and each retained historical source against V3 before release. Inspect create/rename/cancel/duplicate errors, multi-list membership, statusless titles, per-list removal, delete confirmation, native reorder handles (including VoiceOver/Switch Control), long Unicode names, compact/large devices, light/dark/high contrast, largest Dynamic Type, keyboard and safe-area reachability. Force-quit/offline relaunch and verify lists/order and personal data. Export/reimport locally available v1/v2 files through native Files, inspect every conflict preview, repeat import and force save failures.
+
+Runtime compilation, native reorder gestures, nested create-sheet behavior, accessibility, real-store migration/backup conversion and native Files workflows remain unverified. Names are not a global/user-account namespace; all data is private/local. Restore intentionally keeps an existing collection as a whole rather than combining competing manual orders. No public collections, sync, automatic backup, collection-description feature or new branding was added. Pass 033 is not started.

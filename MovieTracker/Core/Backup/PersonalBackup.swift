@@ -43,8 +43,21 @@ struct PersonalBackup: Codable, Equatable, Sendable {
         var key: SeasonKey { SeasonKey(series: seriesID, number: number) }
     }
     struct SeasonKey: Hashable, Sendable { let series: MediaID; let number: Int }
+    struct Collection: Codable, Equatable, Sendable {
+        let id: UUID
+        let name: String
+        let createdAt: Date
+        let updatedAt: Date
+    }
+    struct Membership: Codable, Equatable, Sendable {
+        let id: UUID
+        let collectionID: UUID
+        let mediaID: MediaID
+        let position: Int
+        let addedAt: Date
+    }
     var format = "MovieTracker.personal-backup"
-    var version = 1
+    var version = 2
     var dateEncoding = "secondsSince2001-01-01T00:00:00Z"
     let exportedAt: Date
     let applicationVersion: String?
@@ -54,17 +67,58 @@ struct PersonalBackup: Codable, Equatable, Sendable {
     var episodeProgress: [Progress] = []
     var seasonAnchors: [SeasonAnchor] = []
 
+    var collections: [Collection] = []
+    var collectionMemberships: [Membership] = []
+
+    init(exportedAt: Date, applicationVersion: String?) {
+        self.exportedAt = exportedAt; self.applicationVersion = applicationVersion
+    }
+    enum CodingKeys: String, CodingKey {
+        case format, version, dateEncoding, exportedAt, applicationVersion, library, reviews, viewings, episodeProgress, seasonAnchors, collections, collectionMemberships
+    }
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        format = try c.decode(String.self, forKey: .format); version = try c.decode(Int.self, forKey: .version)
+        dateEncoding = try c.decode(String.self, forKey: .dateEncoding)
+        exportedAt = try c.decode(Date.self, forKey: .exportedAt); applicationVersion = try c.decodeIfPresent(String.self, forKey: .applicationVersion)
+        library = try c.decode([Library].self, forKey: .library); reviews = try c.decode([Review].self, forKey: .reviews)
+        viewings = try c.decode([Viewing].self, forKey: .viewings); episodeProgress = try c.decode([Progress].self, forKey: .episodeProgress)
+        seasonAnchors = try c.decode([SeasonAnchor].self, forKey: .seasonAnchors)
+        if version == 1 {
+            collections = try c.decodeIfPresent([Collection].self, forKey: .collections) ?? []
+            collectionMemberships = try c.decodeIfPresent([Membership].self, forKey: .collectionMemberships) ?? []
+        } else {
+            collections = try c.decode([Collection].self, forKey: .collections)
+            collectionMemberships = try c.decode([Membership].self, forKey: .collectionMemberships)
+        }
+    }
     func validate() throws {
         try Task.checkCancellation()
         guard format == "MovieTracker.personal-backup", dateEncoding == "secondsSince2001-01-01T00:00:00Z" else { throw BackupError.invalidFormat }
-        guard version == 1 else { throw BackupError.unsupportedVersion(version) }
-        guard library.count + reviews.count + viewings.count + episodeProgress.count + seasonAnchors.count <= 100_000 else { throw BackupError.tooLarge }
+        guard version == 1 || version == 2 else { throw BackupError.unsupportedVersion(version) }
+        guard [library.count, reviews.count, viewings.count, episodeProgress.count, seasonAnchors.count, collections.count, collectionMemberships.count].reduce(0, +) <= 100_000 else { throw BackupError.tooLarge }
         func date(_ value: Date?) -> Bool { value?.timeIntervalSinceReferenceDate.isFinite ?? true }
         func identity(_ value: MediaID) -> Bool { !value.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.value.utf8.count <= 1_024 }
         func unique<T: Hashable>(_ values: [T]) -> Bool { Set(values).count == values.count }
         guard date(exportedAt), unique(library.map(\.id)), unique(library.map(\.mediaID)),
               unique(reviews.map(\.id)), unique(viewings.map(\.id)), unique(episodeProgress.map(\.id)),
               unique(episodeProgress.map(\.episodeID)), unique(seasonAnchors.map(\.id)), unique(seasonAnchors.map(\.key)) else { throw BackupError.invalidRecords }
+        guard version != 1 || (collections.isEmpty && collectionMemberships.isEmpty),
+              unique(collections.map(\.id)), unique(collections.map { CollectionName.key($0.name) }),
+              unique(collectionMemberships.map(\.id)) else { throw BackupError.invalidRecords }
+        for row in collections {
+            try Task.checkCancellation()
+            guard (try? CollectionName.validated(row.name)) == row.name, date(row.createdAt), date(row.updatedAt) else { throw BackupError.invalidRecords }
+        }
+        let ownerIDs = Set(collections.map(\.id))
+        for rows in Dictionary(grouping: collectionMemberships, by: \.collectionID).values {
+            guard let owner = rows.first?.collectionID, ownerIDs.contains(owner), unique(rows.map(\.mediaID)),
+                  rows.map(\.position).sorted() == Array(0..<rows.count) else { throw BackupError.invalidRelationships }
+            for row in rows {
+                try Task.checkCancellation()
+                guard identity(row.mediaID), date(row.addedAt) else { throw BackupError.invalidRecords }
+            }
+        }
         for row in library {
             try Task.checkCancellation()
             guard identity(row.mediaID), date(row.addedAt), date(row.updatedAt), date(row.ratingUpdatedAt),
@@ -105,6 +159,12 @@ struct PersonalBackup: Codable, Equatable, Sendable {
         copy.viewings.sort { $0.id.uuidString < $1.id.uuidString }
         copy.episodeProgress.sort { $0.id.uuidString < $1.id.uuidString }
         copy.seasonAnchors.sort { $0.id.uuidString < $1.id.uuidString }
+        copy.collections.sort { $0.id.uuidString < $1.id.uuidString }
+        copy.collectionMemberships.sort {
+            if $0.collectionID != $1.collectionID { return $0.collectionID.uuidString < $1.collectionID.uuidString }
+            if $0.position != $1.position { return $0.position < $1.position }
+            return $0.id.uuidString < $1.id.uuidString
+        }
         return copy
     }
 }
@@ -115,7 +175,7 @@ enum BackupError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .invalidFormat: "This is not a supported MovieTracker personal backup. No data was changed."
-        case .unsupportedVersion(let version): "Backup version \(version) is unsupported. This app supports version 1. No data was changed."
+        case .unsupportedVersion(let version): "Backup version \(version) is unsupported. This app supports versions 1 and 2. No data was changed."
         case .invalidRecords: "The backup contains missing, invalid or duplicate personal records. No data was changed."
         case .invalidRelationships: "The backup contains invalid viewing-review or episode-season associations. No data was changed."
         case .tooLarge: "The backup exceeds the supported file, record or text limits. No data was changed."
