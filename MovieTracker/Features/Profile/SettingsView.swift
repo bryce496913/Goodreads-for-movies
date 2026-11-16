@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var configured = false
     @State private var errorMessage: String?
     @State private var confirmRemoval = false
+    @State private var confirmArtworkClear = false
+    @State private var artworkCleared = false
     @FocusState private var editingToken: Bool
 
     var body: some View {
@@ -36,6 +38,18 @@ struct SettingsView: View {
                     Link("TMDB API account and authorization", destination: url)
                 }
             }
+            Section("Temporary Artwork") {
+                Text("Approximate memory use: " + ByteCountFormatter.string(fromByteCount: Int64(ProviderArtworkCache.shared.byteCount), countStyle: .memory))
+                    .accessibilityIdentifier("settings.artworkSize")
+                Text("Artwork is kept only in memory and may need downloading again. It is not saved for offline relaunch. Clearing it preserves your personal data and saved text.")
+                    .font(AppStyle.Typography.metadata)
+                Button("Clear Temporary Artwork", role: .destructive) { confirmArtworkClear = true }
+                    .appDestructiveAction().accessibilityIdentifier("settings.clearArtwork")
+                if artworkCleared {
+                    Text("Temporary artwork cleared").font(AppStyle.Typography.caption)
+                        .accessibilityIdentifier("settings.artworkCleared")
+                }
+            }
             Section("Your Personal Data") {
                 NavigationLink { DataBackupView() } label: {
                     Label("Export or Restore Personal Data", systemImage: "externaldrive")
@@ -51,6 +65,15 @@ struct SettingsView: View {
         .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editingToken = false }.accessibilityIdentifier("settings.keyboardDone") } }
         .task { perform { configured = try credentials.read() != nil } }
         .onDisappear { token = "" }
+        .onChange(of: ProviderArtworkCache.shared.byteCount) { _, bytes in
+            if bytes > 0 { artworkCleared = false }
+        }
+        .confirmationDialog("Clear temporary artwork?", isPresented: $confirmArtworkClear, titleVisibility: .visible) {
+            Button("Clear Artwork", role: .destructive) {
+                ProviderArtworkLoader.shared.clearTemporaryArtwork()
+                artworkCleared = true
+            }
+        } message: { Text("Currently displayed images will be removed and may need downloading again. Ratings, reviews, viewing history, progress and saved text are kept.") }
         .confirmationDialog("Remove this device’s provider credential?", isPresented: $confirmRemoval, titleVisibility: .visible) {
             Button("Remove Credential", role: .destructive) {
                 perform { try credentials.remove(); configured = false; configurationChanged() }

@@ -87,7 +87,7 @@ SwiftData stores explicit raw kind/status strings and throws on unknown values i
 
 The implementation was authored in a **Linux cloud environment with no Swift compiler, Xcode, Apple SDKs, or iOS simulator**. No iOS build or XCTest run has been completed there. Static project/scheme and source syntax checks are recorded in [the validation report](Documentation/FoundationValidation.md); they do not establish compilation or runtime readiness.
 
-Included tests (377 methods total, all require local macOS/Xcode execution):
+Included tests (384 methods total, all require local macOS/Xcode execution):
 
 - 4 domain and 22 mocked metadata tests.
 - 6 persistence container/conversion tests.
@@ -100,12 +100,12 @@ Included tests (377 methods total, all require local macOS/Xcode execution):
 - 19 TV progress store/calculation/model tests and 9 TV progress UI tests.
 - 14 Library organization/store tests (including 5,000-item data) and 5 organization UI tests.
 - 24 dashboard/statistics/persistence tests (including 150 titles and 1,000 watched episodes) and 8 dashboard UI tests.
-- 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 2 beta configuration/accessibility UI tests.
+- 3 stabilization/offline/historical-schema tests, 2 isolated Keychain tests, and 3 beta configuration/accessibility UI tests.
 - 14 disk migration/backup tests and 8 disk integrity tests; all await Apple SwiftData execution. See [data migrations](docs/DATA_MIGRATIONS.md).
 - 16 metadata lifecycle tests, 3 personal-archive tests, and 1 additional attribution/policy UI test.
 - 14 design token/contrast/component-layout and tab-contract methods, all unrun; the [Python asset-contrast check](scripts/validate-design-tokens.py) passes without Apple tooling.
 - 34 backup/restore and validation methods, all unrun; see [backup and restore](docs/DATA_BACKUP_AND_RESTORE.md).
-- 19 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
+- 25 offline metadata/artwork integration methods, all unrun; see [offline capability matrix, cache design and limits](docs/OFFLINE_RELIABILITY.md).
 - 28 performance/concurrency methods (13 regressions and 15 benchmarks), all unrun; see [findings, isolation and reproducible harness](docs/PERFORMANCE_CONCURRENCY.md).
 - 15 HTTP/authentication/retry hardening tests; see [TMDB networking, credential exposure and live-check status](docs/TMDB_NETWORKING.md).
 
@@ -139,3 +139,5 @@ Home’s provisional “Your screen” header, compact Continue Watching, empty 
 Expandable Series → Seasons → Episodes presentation, metadata states, component structure and regression limits: [TV episode hierarchy](docs/TV_EPISODE_HIERARCHY.md).
 
 Primary/secondary/tertiary action styling, native destructive actions, status/rating menus and safe-area checks: [Control consistency](docs/CONTROL_CONSISTENCY.md).
+
+Pass 030's [artwork licensing gate](docs/ARTWORK_LICENSING_GATE.md) is **BLOCKED** for persistent disk caching. Artwork remains bounded, deduplicated and memory-only; Settings can confirm/clear temporary artwork without clearing saved text or personal data. Offline artwork survival across relaunch is not promised. The existing 150-day metadata maximum remains unchanged.

@@ -10,6 +10,8 @@ final class ProviderArtworkLoader {
     private struct Flight {
         let id: UUID
         let task: Task<Void, Never>
+        let epoch: Int
+        let cacheGeneration: UUID
         var waiters: [UUID: CheckedContinuation<Receipt, Error>]
     }
     private let cache: ProviderArtworkCache
@@ -24,9 +26,9 @@ final class ProviderArtworkLoader {
         self.didRegister = didRegister
         self.cache = cache; self.transport = transport; self.clock = clock
     }
-    func image(_ url: URL) async throws -> UIImage {
+    func image(_ sourceURL: URL) async throws -> UIImage {
         try Task.checkCancellation()
-        guard ProviderArtworkURL.isAllowed(url) else { throw MetadataError.invalidIdentifier }
+        guard let url = ProviderArtworkURL.cacheURL(sourceURL) else { throw MetadataError.invalidIdentifier }
         let requestEpoch = MetadataRuntimeGate.credentialEpoch, requestCacheGeneration = cache.generation
         try MetadataRuntimeGate.authorize(requestEpoch)
         if let image = cache.image(url, at: clock()) { return image }
@@ -34,6 +36,9 @@ final class ProviderArtworkLoader {
         let receipt: Receipt = try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 if Task.isCancelled { continuation.resume(throwing: CancellationError()); return }
+                if let old = flights[url], old.epoch != requestEpoch || old.cacheGeneration != requestCacheGeneration {
+                    invalidate(url)
+                }
                 if flights[url] != nil {
                     flights[url]?.waiters[waiter] = continuation
                     didRegister(flights[url]?.waiters.count ?? 0)
@@ -53,7 +58,7 @@ final class ProviderArtworkLoader {
                         self?.finish(url, id: id, epoch: epoch, cacheGeneration: cacheGeneration, result: .failure(failure))
                     }
                 }
-                flights[url] = Flight(id: id, task: task, waiters: [waiter: continuation])
+                flights[url] = Flight(id: id, task: task, epoch: epoch, cacheGeneration: cacheGeneration, waiters: [waiter: continuation])
                 didRegister(1)
             }
         }, onCancel: { Task { @MainActor [weak self] in self?.cancel(url, waiter: waiter) } })
@@ -63,6 +68,16 @@ final class ProviderArtworkLoader {
         guard MetadataPolicy.isUsable(receipt.fetched, at: clock()) else { throw MetadataError.metadataExpired }
         guard let image = cache.image(url, at: clock()) ?? UIImage(data: receipt.data) else { throw MetadataError.invalidPayload }
         return image
+    }
+    /// Clears only managed in-memory artwork. No metadata, personal records or filesystem operations.
+    func clearTemporaryArtwork() {
+        cache.clear()
+        for url in Array(flights.keys) { invalidate(url) }
+    }
+    private func invalidate(_ url: URL) {
+        guard let flight = flights.removeValue(forKey: url) else { return }
+        flight.task.cancel()
+        for waiter in flight.waiters.values { waiter.resume(throwing: CancellationError()) }
     }
     private func cancel(_ url: URL, waiter: UUID) {
         guard let continuation = flights[url]?.waiters.removeValue(forKey: waiter) else { return }

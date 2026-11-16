@@ -45,6 +45,26 @@ final class BetaPreparationUITests: XCTestCase {
         XCTAssertTrue(policy.label.contains("150 days")); XCTAssertTrue(policy.label.contains("identifier placeholder"))
     }
 
+    @MainActor func testTemporaryArtworkClearRequiresConfirmationAndKeepsSettings() {
+        let app = launch()
+        app.tabBars.buttons["Profile"].tap()
+        reveal(app.buttons["profile.settings"], app); app.buttons["profile.settings"].tap()
+        let clear = app.buttons["settings.clearArtwork"]
+        reveal(clear, app)
+        XCTAssertTrue(app.staticTexts["settings.artworkSize"].exists)
+        clear.tap()
+        let confirm = app.buttons["Clear Artwork"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        let feedback = app.staticTexts["settings.artworkCleared"]
+        reveal(feedback, app)
+        XCTAssertTrue(feedback.exists)
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+        let backup = app.buttons["settings.backup"]
+        reveal(backup, app)
+        XCTAssertTrue(backup.exists)
+    }
+
     @MainActor private func launch(extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing-search", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"] + extra
