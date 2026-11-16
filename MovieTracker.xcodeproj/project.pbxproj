@@ -327,6 +327,22 @@
 			isa = PBXBuildFile;
 			fileRef = 65EE51CC52D3BC432A4AF0A6;
 		};
+		7A6D716990EF312199BDEA52 = {
+			isa = PBXBuildFile;
+			fileRef = 21C9AF015AD0ECF9B4E2911A;
+		};
+		271D1F777D7D286DB41ABE59 = {
+			isa = PBXBuildFile;
+			fileRef = 39C7E546AC903024C6CF6108;
+		};
+		EA6C1C148B9D45F1A2371931 = {
+			isa = PBXBuildFile;
+			fileRef = 432576C49133918C9B837C84;
+		};
+		67CA80A8F0FD8515CA187F1F = {
+			isa = PBXBuildFile;
+			fileRef = C61B35DBEDCA797331B207D3;
+		};
 		D580E63C8F081C23DB1B11AF = {
 			isa = PBXBuildFile;
 			fileRef = BF62952D55E1322E1463FFDF;
@@ -535,6 +551,10 @@
 			isa = PBXBuildFile;
 			fileRef = 9D51F8C9A9D2C542DC312FF1;
 		};
+		F9B4FF2922306DEC615D8174 = {
+			isa = PBXBuildFile;
+			fileRef = D57845DCB851BD56D2F02275;
+		};
 		4880C2383380C1C596889F99 = {
 			isa = PBXBuildFile;
 			fileRef = C004D6A2CA090F93A2F8DB42;
@@ -582,6 +602,10 @@
 		D791B5429FD003B40A9E1320 = {
 			isa = PBXBuildFile;
 			fileRef = B0E7BCA76A4787B21A2BC9A3;
+		};
+		FB71EF481D215F024F99CDE0 = {
+			isa = PBXBuildFile;
+			fileRef = EADB56403A5B995C99ABD6BF;
 		};
 /* End PBXBuildFile section */
 
@@ -1083,6 +1107,30 @@
 			path = MovieTracker/Features/Diary/ViewingHistoryView.swift;
 			sourceTree = "<group>";
 		};
+		21C9AF015AD0ECF9B4E2911A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Discovery/WatchDiscoveryModel.swift;
+			sourceTree = "<group>";
+		};
+		39C7E546AC903024C6CF6108 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Discovery/WatchDiscoveryProjection.swift;
+			sourceTree = "<group>";
+		};
+		432576C49133918C9B837C84 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Discovery/WatchDiscoveryUITestData.swift;
+			sourceTree = "<group>";
+		};
+		C61B35DBEDCA797331B207D3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Discovery/WatchDiscoveryView.swift;
+			sourceTree = "<group>";
+		};
 		BF62952D55E1322E1463FFDF = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1395,6 +1443,12 @@
 			path = MovieTrackerTests/TVProgressTests.swift;
 			sourceTree = "<group>";
 		};
+		D57845DCB851BD56D2F02275 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/WatchDiscoveryTests.swift;
+			sourceTree = "<group>";
+		};
 		C004D6A2CA090F93A2F8DB42 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1465,6 +1519,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		EADB56403A5B995C99ABD6BF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/WatchDiscoveryUITests.swift;
 			sourceTree = "<group>";
 		};
 		D495B45FC041AF8497EB67DE = {
@@ -1732,6 +1792,17 @@
 			name = Diary;
 			sourceTree = "<group>";
 		};
+		BABDFE9355FDBA59261FB619 = {
+			isa = PBXGroup;
+			children = (
+				21C9AF015AD0ECF9B4E2911A,
+				39C7E546AC903024C6CF6108,
+				432576C49133918C9B837C84,
+				C61B35DBEDCA797331B207D3,
+			);
+			name = Discovery;
+			sourceTree = "<group>";
+		};
 		46484D41B012B07CE4EE1EAD = {
 			isa = PBXGroup;
 			children = (
@@ -1794,6 +1865,7 @@
 				DF67FB600777F187588C0FD8,
 				B5A04877AF369CB350B5325F,
 				43E57F04E05BFA5F698308C3,
+				BABDFE9355FDBA59261FB619,
 				46484D41B012B07CE4EE1EAD,
 				D751AC130BA91C4E08D2F2DF,
 				2D572DE6703D4D08E3F8731B,
@@ -1857,6 +1929,7 @@
 				F99AF792B85869771E997A91,
 				C03118EF5B2C2F275546DD44,
 				9D51F8C9A9D2C542DC312FF1,
+				D57845DCB851BD56D2F02275,
 			);
 			name = MovieTrackerTests;
 			sourceTree = "<group>";
@@ -1876,6 +1949,7 @@
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
 				B0E7BCA76A4787B21A2BC9A3,
+				EADB56403A5B995C99ABD6BF,
 			);
 			name = MovieTrackerUITests;
 			sourceTree = "<group>";
@@ -2114,6 +2188,10 @@
 				D51DADEF638BF265EEC3EF63,
 				CC111EF2F7CED785A61F9EDE,
 				05C793ACEB9A748DE5E8F49C,
+				7A6D716990EF312199BDEA52,
+				271D1F777D7D286DB41ABE59,
+				EA6C1C148B9D45F1A2371931,
+				67CA80A8F0FD8515CA187F1F,
 				D580E63C8F081C23DB1B11AF,
 				1083C646F9F84CF9391BEAD0,
 				8DD3CC53FC53E93670A6536E,
@@ -2171,6 +2249,7 @@
 				9C404E772AD12FFA35FDE5E0,
 				BF192058C1105DE3DDF377DF,
 				896490EAAD1DA4FCDB5F7799,
+				F9B4FF2922306DEC615D8174,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2190,6 +2269,7 @@
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
 				D791B5429FD003B40A9E1320,
+				FB71EF481D215F024F99CDE0,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
