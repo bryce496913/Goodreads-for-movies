@@ -16,8 +16,10 @@ struct PersonalDiarySection: View {
             if let error = library.loadError { Text(error.localizedDescription).foregroundStyle(.secondary) }
             Button("Write Review") { reviewDraft = ReviewDraft(id: UUID(), media: media) }
                 .accessibilityIdentifier("review.write")
-            Button("Record Viewing") { eventDraft = ViewingEventDraft(id: UUID(), media: media) }
-                .accessibilityIdentifier("diary.record")
+            if id.kind == .tvShow {
+                Button("Record Viewing") { eventDraft = ViewingEventDraft(id: UUID(), media: media) }
+                    .accessibilityIdentifier("diary.record")
+            }
             Text("\(library.events(for: id).count) viewing events. Open Viewing History in Library to edit individual viewings.")
                 .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("diary.count")
             if library.reviews(for: id).isEmpty && library.entry(for: id)?.review?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false {
