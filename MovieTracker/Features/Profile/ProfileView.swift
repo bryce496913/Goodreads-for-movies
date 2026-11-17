@@ -9,6 +9,11 @@ struct ProfileView: View {
                 Text("Your private viewing story on this device. No account is needed.")
                     .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
             }
+            Section {
+                NavigationLink { PersonalStatisticsView() } label: {
+                    Label("Year in Review", systemImage: "chart.bar.xaxis")
+                }.accessibilityIdentifier("profile.yearInReview")
+            }
             DashboardReadState(model: dashboard)
             if let snapshot = dashboard.snapshot {
                 let stats = snapshot.statistics
