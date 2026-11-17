@@ -81,7 +81,7 @@ final class AppShellUITests: XCTestCase {
         XCTAssertTrue(find("home.empty", in: app).waitForExistence(timeout: 5))
         tap(app.buttons["home.findTitles"], in: app)
         assertScreen("Search", in: app)
-        XCTAssertTrue(app.staticTexts["Find your next story"].exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "browse.content").firstMatch.exists)
         select("Library", in: app)
         XCTAssertTrue(find("library.empty", in: app).waitForExistence(timeout: 5))
         tap(app.buttons["library.findTitles"], in: app)

@@ -16,6 +16,7 @@ final class SearchModel {
     private(set) var imageResolver: MetadataImageResolver?
     private(set) var artworkUnavailable = false
     let usesTestData: Bool
+    let browseModel: ProviderBrowseModel
 
     private struct Key: Equatable { let query: String; let filter: SearchFilter }
     @ObservationIgnored private let detailCache = MediaDetailCache()
@@ -35,6 +36,7 @@ final class SearchModel {
             try await Task.sleep(for: .milliseconds(300))
         }
     ) {
+        self.browseModel = ProviderBrowseModel(service: service, configurationError: configurationError, clock: clock)
         self.configurationError = configurationError
         self.clock = clock
         self.service = service
@@ -43,6 +45,7 @@ final class SearchModel {
     }
 
     func expireMetadata(at now: Date) {
+        browseModel.expire(at: now)
         detailCache.expire(at: now)
         if let resolver = imageResolver, !MetadataPolicy.isUsable(resolver.metadataRetrievedAt, at: now) { imageResolver = nil; artworkTask = nil }
         guard items.contains(where: { MetadataPolicy.isTMDB($0.id) && !MetadataPolicy.isUsable($0.metadataRetrievedAt, at: now) }) else { return }
@@ -50,11 +53,12 @@ final class SearchModel {
         items = []; nextPage = nil; pageError = nil; imageResolver = nil; isLoadingMore = false; phase = .failed(.metadataExpired)
     }
     func expireProviderMemory(at now: Date) async { await service?.expireMetadataMemory(at: now) }
-    func clearProviderSession() { detailCache.clear(); items = []; imageResolver = nil }
+    func clearProviderSession() { browseModel.clear(); detailCache.clear(); items = []; imageResolver = nil }
 
     func replaceService(_ service: (any MediaMetadataService)?, configurationError: MetadataError = .missingCredential) {
         self.configurationError = configurationError
         self.service = service
+        browseModel.replaceService(service, configurationError: configurationError)
         artworkTask?.cancel(); artworkTask = nil; imageResolver = nil; artworkUnavailable = false
         start(Key(query: Self.normalizedQuery(query), filter: filter), debounced: false)
     }

@@ -50,7 +50,7 @@ actor SearchUITestService: MediaMetadataService {
 
     func tvShowDetails(id: MediaID) async throws -> TVShow {
         try checkDetails()
-        guard id.kind == .tvShow, id.value == "fixture:1" else { throw MetadataError.invalidIdentifier }
+        guard id.kind == .tvShow, ["fixture:1", "fixture:2"].contains(id.value) else { throw MetadataError.invalidIdentifier }
         if detailScenario == "missing" { return TVShow(id: id.value, title: "Sample Story") }
         return TVShow(id: id.value, title: detailScenario == "long" ? longTitle : "Sample Story",
             overview: detailScenario == "long" ? longOverview : "A fictional series synopsis for deterministic UI testing.",
@@ -96,7 +96,18 @@ actor SearchUITestService: MediaMetadataService {
     private var longTitle: String { String(repeating: "A Very Long Movie and Television Title ", count: 4) }
     private var longOverview: String { String(repeating: "An extended fictional synopsis that remains readable while scrolling. ", count: 8) }
 
-    func genres(for kind: MediaID.Kind) async throws -> [MediaGenre] { [] }
+    func genres(for kind: MediaID.Kind) async throws -> [MediaGenre] {
+        [MediaGenre(id: kind == .movie ? "fixture:drama" : "fixture:comedy", name: kind == .movie ? "Drama" : "Comedy")]
+    }
+    func browse(_ request: MetadataBrowseRequest, page: Int) async throws -> MetadataPage<MediaSearchResult> {
+        if detailScenario == "browse-offline" { throw MetadataError.offline }
+        if detailScenario == "browse-empty" { return MetadataPage(items: [], page: page, totalPages: 0, totalResults: 0) }
+        let first: MediaSearchResult = request.kind == .movie ? .movie(movie) : .tvShow(show)
+        let second: MediaSearchResult = request.kind == .movie
+            ? .movie(Movie(id: "fixture:2", title: "Another Sample Story"))
+            : .tvShow(TVShow(id: "fixture:2", title: "Another Sample Series"))
+        return MetadataPage(items: page == 1 ? [first, second] : [second], page: page, totalPages: 2, totalResults: 3)
+    }
     func imageResolver() async throws -> MetadataImageResolver { throw MetadataError.invalidPayload }
 }
 #endif

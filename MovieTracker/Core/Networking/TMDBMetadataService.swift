@@ -69,12 +69,52 @@ actor TMDBMetadataService: MediaMetadataService {
     }
 
     func genres(for kind: MediaID.Kind) async throws -> [MediaGenre] {
-        let list: TMDBGenreList = try await load("genre/\(kind == .movie ? "movie" : "tv")/list")
-        guard list.genres.allSatisfy({ $0.id > 0 && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
-            throw MetadataError.invalidPayload
-        }
+        try await discoveryGenres(for: kind, language: "en")
+    }
+    func discoveryGenres(for kind: MediaID.Kind, language: String) async throws -> [MediaGenre] {
+        guard language.range(of: "^[a-z]{2,3}(-[A-Z]{2})?$", options: .regularExpression) != nil else { throw MetadataError.invalidQuery }
+        let list: TMDBGenreList = try await load("genre/\(kind == .movie ? "movie" : "tv")/list", query: [URLQueryItem(name: "language", value: language)])
+        guard list.genres.allSatisfy({ $0.id > 0 && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
+              Set(list.genres.map(\.id)).count == list.genres.count else { throw MetadataError.invalidPayload }
         try Task.checkCancellation()
         return list.genres.map { MediaGenre(id: "tmdb:\($0.id)", name: $0.name) }
+    }
+    func browse(_ request: MetadataBrowseRequest, page: Int) async throws -> MetadataPage<MediaSearchResult> {
+        guard (1...500).contains(page) else { throw MetadataError.invalidPage }
+        guard request.language.range(of: "^[a-z]{2,3}(-[A-Z]{2})?$", options: .regularExpression) != nil,
+              request.region == nil || request.region!.range(of: "^[A-Z]{2}$", options: .regularExpression) != nil else { throw MetadataError.invalidQuery }
+        let kind = request.kind == .movie ? "movie" : "tv"
+        let path: String
+        var query = [URLQueryItem(name: "language", value: request.language)]
+        switch request.category {
+        case .trending:
+            guard page == 1 else { throw MetadataError.invalidPage }
+            path = "trending/\(kind)/week"
+        case .popular: path = "\(kind)/popular"
+        case .topRated: path = "\(kind)/top_rated"
+        case .genre(let genre):
+            guard genre.hasPrefix("tmdb:"), let value = Int(genre.dropFirst(5)), value > 0, genre == "tmdb:\(value)" else { throw MetadataError.invalidIdentifier }
+            path = "discover/\(kind)"
+            query += [URLQueryItem(name: "with_genres", value: String(value)), URLQueryItem(name: "sort_by", value: "popularity.desc"), URLQueryItem(name: "include_adult", value: "false")]
+        case .similar(let source):
+            let value = try providerID(source, kind: request.kind)
+            path = "\(kind)/\(value)/similar"
+        }
+        if request.category != .trending { query.append(URLQueryItem(name: "page", value: String(page))) }
+        if request.kind == .movie, let region = request.region {
+            switch request.category {
+            case .popular, .topRated, .genre: query.append(URLQueryItem(name: "region", value: region))
+            default: break
+            }
+        }
+        let response: TMDBPage = try await load(path, query: query)
+        let fetched = clock()
+        let result = try mappedPage(response, requestedPage: page) { record -> MediaSearchResult? in
+            if let type = record.mediaType, type != kind { throw MetadataError.invalidPayload }
+            return request.kind == .movie ? .movie(try record.movie(retrievedAt: fetched)) : .tvShow(try record.tvShow(retrievedAt: fetched))
+        }
+        try Task.checkCancellation()
+        return MetadataPage(items: result.items, page: result.page, totalPages: request.category == .trending ? min(1, result.totalPages) : result.totalPages, totalResults: result.totalResults)
     }
 
     func castPreview(for id: MediaID) async throws -> [CastMember] {

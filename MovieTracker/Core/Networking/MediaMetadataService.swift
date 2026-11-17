@@ -25,10 +25,14 @@ protocol MediaMetadataService: Sendable {
     func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary]
     func tvSeasonDetails(for id: MediaID, number: Int) async throws -> TVSeasonDetails
     func imageResolver() async throws -> MetadataImageResolver
+    func browse(_ request: MetadataBrowseRequest, page: Int) async throws -> MetadataPage<MediaSearchResult>
+    func discoveryGenres(for kind: MediaID.Kind, language: String) async throws -> [MediaGenre]
     func expireMetadataMemory(at now: Date) async
 }
 
 enum MetadataError: Error, Equatable, Sendable {
+    case unsupportedDiscovery
+    case providerSessionChanged
     case missingCredential
     case invalidCredentialFormat
     case credentialUnavailable
@@ -58,13 +62,15 @@ enum MetadataError: Error, Equatable, Sendable {
 
 extension MetadataError {
     var isConfigurationFailure: Bool {
-        switch self { case .missingCredential, .invalidCredentialFormat, .credentialUnavailable, .retentionBlocked: true; default: false }
+        switch self { case .providerSessionChanged, .missingCredential, .invalidCredentialFormat, .credentialUnavailable, .retentionBlocked: true; default: false }
     }
 }
 
 extension MetadataError: LocalizedError {
     var errorDescription: String? {
         switch self {
+        case .unsupportedDiscovery: "Browsing or similar titles are not supported by this metadata provider."
+        case .providerSessionChanged: "Provider configuration changed. Reopen this screen to use the current configuration."
         case .refreshDeferred: "Metadata updates are paused after a recent failure. Your saved data remains available; retry when the connection has recovered."
         case .metadataExpired: "Provider metadata expired. Your personal records remain available; retry online to retrieve current metadata."
         case .retentionBlocked: "Provider metadata is paused because a retained safety archive needs review. Your personal library remains available."
@@ -94,6 +100,8 @@ extension MetadataError: LocalizedError {
 
 // Providers/mocks without credits support may explicitly return an empty preview.
 extension MediaMetadataService {
+    func browse(_ request: MetadataBrowseRequest, page: Int) async throws -> MetadataPage<MediaSearchResult> { throw MetadataError.unsupportedDiscovery }
+    func discoveryGenres(for kind: MediaID.Kind, language: String) async throws -> [MediaGenre] { try await genres(for: kind) }
     func expireMetadataMemory(at now: Date) async {}
     func castPreview(for id: MediaID) async throws -> [CastMember] { [] }
     func tvSeasons(for id: MediaID) async throws -> [TVSeasonSummary] { throw MetadataError.invalidPayload }

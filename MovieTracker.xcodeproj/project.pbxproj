@@ -95,6 +95,10 @@
 			isa = PBXBuildFile;
 			fileRef = ECA932BB0FD44B3779212AFF;
 		};
+		4080D15F73DEA3ACE08E1F1F = {
+			isa = PBXBuildFile;
+			fileRef = 44939D05A90418B7FC0274F4;
+		};
 		B3B97ECE790C41E6BF64ED3A = {
 			isa = PBXBuildFile;
 			fileRef = 5189A3CE8C3CA4C49F2910E4;
@@ -399,6 +403,14 @@
 			isa = PBXBuildFile;
 			fileRef = 601F83CD8B780AF9F3DFB580;
 		};
+		B1D08BBB463C0F220E8F6D18 = {
+			isa = PBXBuildFile;
+			fileRef = C5CDCB0931513960938BFFB7;
+		};
+		FC63C4302E0C68B08C40D694 = {
+			isa = PBXBuildFile;
+			fileRef = 3EBC140922D27EFAEFF7F3F1;
+		};
 		C73B2B8A854FFEA7711D693E = {
 			isa = PBXBuildFile;
 			fileRef = 1E30D4D58A001E321344D357;
@@ -559,6 +571,10 @@
 			isa = PBXBuildFile;
 			fileRef = 689727365E2712FFF35D8967;
 		};
+		DBEB3EBD22E121DD8BC79ED8 = {
+			isa = PBXBuildFile;
+			fileRef = DF34DC0502A160A44B2E1476;
+		};
 		FF9338EDCB5DA8CEBFC645FC = {
 			isa = PBXBuildFile;
 			fileRef = 09530DA063AD6D28353BDC84;
@@ -570,6 +586,10 @@
 		BF192058C1105DE3DDF377DF = {
 			isa = PBXBuildFile;
 			fileRef = C03118EF5B2C2F275546DD44;
+		};
+		64F649671B1654CEE927FEDE = {
+			isa = PBXBuildFile;
+			fileRef = 1341012E0956A926DE4A2146;
 		};
 		896490EAAD1DA4FCDB5F7799 = {
 			isa = PBXBuildFile;
@@ -622,6 +642,10 @@
 		4B1AD9EC1C5C9E6929EE11AE = {
 			isa = PBXBuildFile;
 			fileRef = 4058E63ED1F4699E63158B1A;
+		};
+		56622C66963EBA802B430AF6 = {
+			isa = PBXBuildFile;
+			fileRef = 3C3A0434E39AAE5E0737B7DA;
 		};
 		90556A0A7401AEB2C314D98B = {
 			isa = PBXBuildFile;
@@ -793,6 +817,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Models/MediaID.swift;
+			sourceTree = "<group>";
+		};
+		44939D05A90418B7FC0274F4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Models/MetadataBrowseRequest.swift;
 			sourceTree = "<group>";
 		};
 		5189A3CE8C3CA4C49F2910E4 = {
@@ -1251,6 +1281,18 @@
 			path = MovieTracker/Features/Profile/SettingsView.swift;
 			sourceTree = "<group>";
 		};
+		C5CDCB0931513960938BFFB7 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Search/ProviderBrowseModel.swift;
+			sourceTree = "<group>";
+		};
+		3EBC140922D27EFAEFF7F3F1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Search/ProviderBrowseView.swift;
+			sourceTree = "<group>";
+		};
 		1E30D4D58A001E321344D357 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1491,6 +1533,12 @@
 			path = MovieTrackerTests/PersonalRatingTests.swift;
 			sourceTree = "<group>";
 		};
+		DF34DC0502A160A44B2E1476 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/ProviderBrowseTests.swift;
+			sourceTree = "<group>";
+		};
 		09530DA063AD6D28353BDC84 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1507,6 +1555,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerTests/StabilizationTests.swift;
+			sourceTree = "<group>";
+		};
+		1341012E0956A926DE4A2146 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/TMDBBrowseTests.swift;
 			sourceTree = "<group>";
 		};
 		9D51F8C9A9D2C542DC312FF1 = {
@@ -1585,6 +1639,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/NavigationTests.swift;
+			sourceTree = "<group>";
+		};
+		3C3A0434E39AAE5E0737B7DA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/ProviderBrowseUITests.swift;
 			sourceTree = "<group>";
 		};
 		0D46D5A95FF1D42F933302E4 = {
@@ -1742,6 +1802,7 @@
 				076772DA103039CBFB8D4DF6,
 				9B2F214B1B8AB78C8BF146A7,
 				ECA932BB0FD44B3779212AFF,
+				44939D05A90418B7FC0274F4,
 				5189A3CE8C3CA4C49F2910E4,
 				2A0D1254538E6191A708B778,
 				E8329B62AACF0EF0069F7147,
@@ -1931,6 +1992,8 @@
 		4077E32DBC3FF2E31B498048 = {
 			isa = PBXGroup;
 			children = (
+				C5CDCB0931513960938BFFB7,
+				3EBC140922D27EFAEFF7F3F1,
 				1E30D4D58A001E321344D357,
 				1AACEC5655D4661C3B8B167D,
 				61BE2EBC4C0C06955ABEB5DB,
@@ -2021,9 +2084,11 @@
 				C3AF170ED521659262214CCD,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
+				DF34DC0502A160A44B2E1476,
 				09530DA063AD6D28353BDC84,
 				F99AF792B85869771E997A91,
 				C03118EF5B2C2F275546DD44,
+				1341012E0956A926DE4A2146,
 				9D51F8C9A9D2C542DC312FF1,
 				074568B55E2923A848643A86,
 				D57845DCB851BD56D2F02275,
@@ -2044,6 +2109,7 @@
 				52086CCA2F397475D9DFBCC5,
 				FC89BE75F52B843C590F7239,
 				4058E63ED1F4699E63158B1A,
+				3C3A0434E39AAE5E0737B7DA,
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
 				B0E7BCA76A4787B21A2BC9A3,
@@ -2229,6 +2295,7 @@
 				290C682266CFF32FE9DE8FE8,
 				C0C35AEEE17C11225ADF806A,
 				A8C75CBB019B5CD228E452EB,
+				4080D15F73DEA3ACE08E1F1F,
 				B3B97ECE790C41E6BF64ED3A,
 				EE49DDCB91175E3DB87A077D,
 				B0022B79CED93C16E8A4B4CA,
@@ -2305,6 +2372,8 @@
 				3C15921072A9890D2879C02B,
 				C19B646EB89486A9D9703686,
 				97BAD03874F4A1082CD485E8,
+				B1D08BBB463C0F220E8F6D18,
+				FC63C4302E0C68B08C40D694,
 				C73B2B8A854FFEA7711D693E,
 				09D2FABDA729DC075E6EE476,
 				36A0FFE4A11ACD51FA77C762,
@@ -2350,9 +2419,11 @@
 				ED7C6F2517C4550E15D867D8,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
+				DBEB3EBD22E121DD8BC79ED8,
 				FF9338EDCB5DA8CEBFC645FC,
 				9C404E772AD12FFA35FDE5E0,
 				BF192058C1105DE3DDF377DF,
+				64F649671B1654CEE927FEDE,
 				896490EAAD1DA4FCDB5F7799,
 				C574A7EF96B3528AE5C98DD5,
 				F9B4FF2922306DEC615D8174,
@@ -2373,6 +2444,7 @@
 				28E4B92F389400FDED0B5271,
 				9D4E1B14CB6D21304CA27799,
 				4B1AD9EC1C5C9E6929EE11AE,
+				56622C66963EBA802B430AF6,
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
 				D791B5429FD003B40A9E1320,
