@@ -38,7 +38,7 @@ final class SearchTests: XCTestCase {
         let field = app.searchFields.firstMatch
         field.tap()
         field.buttons["Clear text"].tap()
-        XCTAssertTrue(app.staticTexts["Find your next story"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.otherElements["browse.content"].waitForExistence(timeout: 5))
         XCTAssertFalse(result("movie.fixture:1", in: app).exists)
     }
 

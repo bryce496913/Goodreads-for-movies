@@ -35,6 +35,7 @@ struct MediaDetailView: View {
                     }
                     DetailCast(members: snapshot.cast, isLoading: model.isLoadingExtras, unavailable: model.castUnavailable)
                     PersonalDiarySection(media: snapshot.media)
+                    ProviderBrowseView(model: model.relatedTitles)
                     Text(model.availability.message).font(.footnote).accessibilityIdentifier("details.availability")
                     if let date = model.availability.retrievedAt {
                         Text("Last retrieved: " + date.formatted(date: .abbreviated, time: .shortened)).font(.footnote)

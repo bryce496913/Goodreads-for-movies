@@ -6,59 +6,10 @@ struct SearchView: View {
 
     var body: some View {
         List {
-            Section {
-                if textSize.isAccessibilitySize { mediaPicker.pickerStyle(.menu) }
-                else { mediaPicker.pickerStyle(.segmented) }
-            }
-            if model.usesTestData {
-                Text("UI test data").font(.caption).accessibilityIdentifier("search.testData")
-            }
-            switch model.phase {
-            case .idle:
-                EmptyStateCard(title: "Find your next story", systemImage: "magnifyingglass",
-                               message: "Search for movies and TV shows.", presentation: .inline)
-            case .loading:
-                AppLoadingState(title: "Searching…").accessibilityIdentifier("search.loading")
-            case .cancelled:
-                Text("Search canceled. Try again when you are ready.")
-                Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
-            case .failed(let error):
-                Section {
-                    EmptyStateCard(title: "Search unavailable", systemImage: "exclamationmark.triangle",
-                                   message: error.localizedDescription, presentation: .inline)
-                        .accessibilityIdentifier("search.error")
-                    Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
-                }
-            case .loaded:
-                if model.items.isEmpty {
-                    EmptyStateCard(title: "No results", systemImage: "magnifyingglass",
-                        message: model.nextPage == nil
-                            ? "Try another title or media filter."
-                            : "No matching titles on this page. More pages are available below.", presentation: .inline)
-                        .accessibilityIdentifier("search.empty")
-                }
-                ForEach(model.items) { item in
-                    NavigationLink(value: item.destination) {
-                        SearchResultRow(item: item, posterURL: model.imageResolver?.posterURL(reference: item.posterReference))
-                    }
-                    .accessibilityIdentifier("search.result.\(item.id.kind.rawValue).\(item.id.value)")
-                }
-                pagination
-                if model.artworkUnavailable {
-                    Section {
-                        Text("Artwork is unavailable. Titles are still available.").font(.footnote)
-                        Button("Retry Artwork") { model.retryArtwork() }
-                    }
-                }
-                if !model.usesTestData && !model.items.isEmpty {
-                    Section {
-                        if let attributionURL = URL(string: "https://www.themoviedb.org") {
-                            Link("Data provided by TMDB", destination: attributionURL)
-                        }
-                        Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
-                            .font(.footnote).foregroundStyle(.secondary)
-                    }
-                }
+            if SearchModel.normalizedQuery(model.query).isEmpty {
+                Section { ProviderBrowseView(model: model.browseModel) }
+            } else {
+                titleSearch
             }
         }
         .appListScreen(AppTab.search.title, isRoot: true)
@@ -66,6 +17,64 @@ struct SearchView: View {
         .searchable(text: $model.query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Movies and TV shows")
         .autocorrectionDisabled()
         .navigationDestination(for: MediaDestination.self) { MediaDetailView(model: model.detailModel(for: $0)) }
+    }
+
+    @ViewBuilder
+    private var titleSearch: some View {
+        Section {
+            if textSize.isAccessibilitySize { mediaPicker.pickerStyle(.menu) }
+            else { mediaPicker.pickerStyle(.segmented) }
+        }
+        if model.usesTestData {
+            Text("UI test data").font(.caption).accessibilityIdentifier("search.testData")
+        }
+        switch model.phase {
+        case .idle:
+            EmptyStateCard(title: "Find your next story", systemImage: "magnifyingglass",
+                           message: "Search for movies and TV shows.", presentation: .inline)
+        case .loading:
+            AppLoadingState(title: "Searching…").accessibilityIdentifier("search.loading")
+        case .cancelled:
+            Text("Search canceled. Try again when you are ready.")
+            Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
+        case .failed(let error):
+            Section {
+                EmptyStateCard(title: "Search unavailable", systemImage: "exclamationmark.triangle",
+                               message: error.localizedDescription, presentation: .inline)
+                    .accessibilityIdentifier("search.error")
+                Button("Retry Search") { model.retry() }.buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("search.retry")
+            }
+        case .loaded:
+            if model.items.isEmpty {
+                EmptyStateCard(title: "No results", systemImage: "magnifyingglass",
+                    message: model.nextPage == nil
+                        ? "Try another title or media filter."
+                        : "No matching titles on this page. More pages are available below.", presentation: .inline)
+                    .accessibilityIdentifier("search.empty")
+            }
+            ForEach(model.items) { item in
+                NavigationLink(value: item.destination) {
+                    SearchResultRow(item: item, posterURL: model.imageResolver?.posterURL(reference: item.posterReference))
+                }
+                .accessibilityIdentifier("search.result.\(item.id.kind.rawValue).\(item.id.value)")
+            }
+            pagination
+            if model.artworkUnavailable {
+                Section {
+                    Text("Artwork is unavailable. Titles are still available.").font(.footnote)
+                    Button("Retry Artwork") { model.retryArtwork() }
+                }
+            }
+            if !model.usesTestData && !model.items.isEmpty {
+                Section {
+                    if let attributionURL = URL(string: "https://www.themoviedb.org") {
+                        Link("Data provided by TMDB", destination: attributionURL)
+                    }
+                    Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 
     private var mediaPicker: some View {

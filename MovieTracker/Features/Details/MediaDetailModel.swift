@@ -38,10 +38,12 @@ final class MediaDetailModel {
     private var configurationError: MetadataError
     private var service: (any MediaMetadataService)?
     private let cache: MediaDetailCache
+    let relatedTitles: ProviderBrowseModel
     private var generation = UUID()
 
     init(destination: MediaDestination, service: (any MediaMetadataService)?,
          cache: MediaDetailCache, usesTestData: Bool = false, configurationError: MetadataError = .missingCredential, clock: @escaping @Sendable () -> Date = { .now }) {
+        self.relatedTitles = ProviderBrowseModel(service: service, relatedTo: destination.id, configurationError: configurationError, clock: clock)
         self.configurationError = configurationError
         self.clock = clock
         self.destination = destination
@@ -143,6 +145,7 @@ final class MediaDetailModel {
     }
 
     func expireMetadata(at now: Date) {
+        relatedTitles.expire(at: now)
         if let value = storedSnapshot, !MetadataPolicy.mayDisplay(value.media, at: now) {
             hasCurrentMetadata = false; cachedPosterURL = nil
             lastRetrieved = value.media.metadataRetrievedAt ?? lastRetrieved
@@ -157,6 +160,7 @@ final class MediaDetailModel {
         cache.clear(); isLoading = false; isLoadingExtras = false
         let resolved = SearchLaunchConfiguration.resolveService()
         service = resolved.service; configurationError = resolved.error
+        relatedTitles.replaceService(resolved.service, configurationError: resolved.error)
     }
 
     func tvProgressModel(for show: TVShow) -> TVProgressModel { TVProgressModel(show: show, service: service, usesTestData: usesTestData, configurationError: configurationError) }
