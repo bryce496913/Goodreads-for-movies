@@ -68,6 +68,9 @@ struct MovieTrackerApp: App {
                 if inMemory && ProcessInfo.processInfo.arguments.contains("--ui-testing-watch-discovery") {
                     try WatchDiscoveryUITestData.seed(store)
                 }
+                if inMemory && ProcessInfo.processInfo.arguments.contains("--ui-testing-viewing-calendar") {
+                    try ViewingCalendarUITestData.seed(store)
+                }
                 try DashboardUITestImport.load(into: store)
                 #endif
                 try store.maintainMetadata()

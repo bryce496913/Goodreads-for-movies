@@ -102,6 +102,19 @@ final class LargeLibraryBenchmarks: XCTestCase {
             } catch { XCTFail("Discovery failed") }
         }
     }
+    func testBenchmarkViewingCalendarGrouping5000() {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = .gmt
+        let values = (0..<5_000).map { index in
+            ViewingCalendarStamp(id: LargeLibraryFixtures.uuid(index), watchedDate: index.isMultiple(of: 5) ? nil : LargeLibraryFixtures.aired.addingTimeInterval(Double(index % 365) * 86_400), recordedAt: LargeLibraryFixtures.now.addingTimeInterval(Double(index)))
+        }
+        measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
+            do {
+                let result = try ViewingCalendarProjection.index(values, calendar: calendar)
+                XCTAssertEqual(result.undated.count, 1_000)
+                XCTAssertEqual(result.days.values.reduce(0) { $0 + $1.count }, 4_000)
+            } catch { XCTFail("Calendar grouping failed") }
+        }
+    }
     private func benchmarkFilter(_ count: Int) throws {
         let items = try LargeLibraryFixtures.items(count)
         let options = LibraryOptions(media: .tvShows, status: .watching, favoritesOnly: true)
