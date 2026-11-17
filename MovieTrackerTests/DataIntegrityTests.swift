@@ -3,6 +3,59 @@ import XCTest
 @testable import MovieTracker
 
 final class DataIntegrityTests: XCTestCase {
+    @MainActor func testNestedCommittingWritersCannotEscapeOuterRollbackOnDisk() throws {
+        let files = FileManager.default, instant = BackupFixtures.now
+        let directory = files.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try files.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? files.removeItem(at: directory) }
+        let media = MediaSearchResult.movie(Movie(id: "fixture:nested", title: "Original")), id = MediaID(kind: .movie, value: "fixture:nested")
+        for action in ["transaction", "mutation", "remove", "restore"] {
+            let url = directory.appendingPathComponent(action + ".store")
+            try autoreleasepool {
+                let container = try PersistenceController.makeContainer(at: url)
+                var saves = 0
+                let store = LibraryStore(container: container, save: { context in saves += 1; try context.save() })
+                try store.setStatus(.watched, media: media)
+                try store.setPersonalRating(PersonalRating(halfStarUnits: 9), media: media)
+                let before = try store.capturePersonalBackup(at: instant), saveCount = saves
+                let source = try BackupFixtures.populated().capturePersonalBackup(at: instant)
+                let plan = try BackupFixtures.plan(source, into: store)
+                XCTAssertThrowsError(try store.writeTransaction { context in
+                    context.insert(StoredCollection(id: UUID(), name: "Must roll back", createdAt: instant, updatedAt: instant))
+                    switch action {
+                    case "transaction": try store.saveCollection(name: "Nested")
+                    case "mutation": try store.setFavorite(true, media: media)
+                    case "remove": try store.remove(id)
+                    default: try store.restorePersonalBackup(plan)
+                    }
+                    throw LibraryStoreError.saveFailed
+                })
+                XCTAssertEqual(saves, saveCount) // An inner save must never flush the outer pending insert.
+                XCTAssertEqual(try store.capturePersonalBackup(at: instant).canonical(), before.canonical())
+                XCTAssertNil(store.loadError)
+                try store.saveCollection(name: "Retry succeeds") // Ownership is released after rollback.
+            }
+            try autoreleasepool {
+                let reopened = LibraryStore(container: try PersistenceController.makeContainer(at: url))
+                XCTAssertEqual(reopened.entries.count, 1); XCTAssertEqual(reopened.entry(for: id)?.status, "watched")
+                XCTAssertEqual(reopened.entry(for: id)?.ratingHalfStarUnits, 9)
+                XCTAssertEqual(reopened.collections.map(\.name), ["Retry succeeds"])
+            }
+        }
+    }
+
+    @MainActor func testStagingHelperReusesPendingIdentityWithinOneTransaction() throws {
+        let store = try BackupFixtures.store()
+        let media = MediaSearchResult.movie(Movie(id: "fixture:staged", title: "One staged identity"))
+        try store.writeTransaction { _ in
+            let first = try store.ensureLibraryEntry(media: media)
+            let second = try store.ensureLibraryEntry(media: media)
+            XCTAssertEqual(first.id, second.id)
+        }
+        XCTAssertEqual(store.entries.count, 1); XCTAssertEqual(store.entries.first?.status, "none")
+        XCTAssertNil(store.loadError)
+    }
+
     @MainActor func testIdentitySafeguardsRejectDuplicateLibraryInsertion() throws {
         try withStore { store, _ in
             let movie = MigrationFixtures.movie

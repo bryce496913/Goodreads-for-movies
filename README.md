@@ -157,3 +157,5 @@ Direct offline Home episode actions, reliable-next versus known-candidate select
 Library → **What Should I Watch?** makes a random local pick from your Watchlist or an explicitly selected custom collection. Filter by media type, OR-matched genres, inclusive year bounds and movie runtime. No recommendation API or network connection is required; choosing does not edit personal data. See [eligibility, retention, state and local test instructions](docs/LOCAL_WATCH_DISCOVERY.md). Native compilation and XCTest remain unverified in the Linux cloud environment.
 
 V0.6 collection, discovery and direct-episode controls now share clearer action hierarchy, explicit removal confirmations, accessible reorder alternatives and keyboard dismissal. See the [UI audit, accessibility changes and local regression checklist](docs/V06_UI_INTEGRATION.md); native runtime validation remains pending.
+
+Pass 036 classification: **READY PENDING XCODE VALIDATION**. See [pre-device hardening](docs/PRE_DEVICE_HARDENING.md) for transaction reentry protection, explicit Library/collection removal scope, membership-only offline navigation and remaining native validation gates.
