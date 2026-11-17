@@ -42,6 +42,7 @@ Use the same arguments with `build` in place of `test` for a build-only check. S
 ## Implemented
 
 - Home, Search, Library, and Profile tabs, each owning its own native stack/path, with shared screen layouts, inline empty states and protected editors; see [app-shell audit and regression limits](docs/APP_SHELL.md).
+- Profile Year in Review with local annual/monthly diary counts, current all-time half-star distributions, eligible genre coverage and dated TV marking activity. See [definitions, provenance, concurrency, benchmarks and validation](docs/PERSONAL_STATISTICS.md); native validation for this revision is pending.
 - Personal Home dashboard and anonymous local Profile with saved Continue Watching, dated viewing history, Watchlist shortcuts, timestamped activity, and clearly defined statistics. See [dashboard semantics, migration, fixtures and validation](docs/home-profile-dashboard.md).
 - Welcoming empty states with a route to Search, accurate zero counts, unavailable unrated average, and provider credential Settings plus About & Credits.
 - Adaptive Paper/Ink surfaces and Ember emphasis, system typography/spacing tokens, and shared artwork, type labels, states and actions; see [design system, audit and accessibility evidence](docs/DESIGN_SYSTEM.md).

@@ -239,6 +239,10 @@
 			isa = PBXBuildFile;
 			fileRef = EC12F6D12AEC90E0043E5BA7;
 		};
+		899B67B0BC9988F48D9E21A5 = {
+			isa = PBXBuildFile;
+			fileRef = 7BFEB57EC7FF6635B11C4CD6;
+		};
 		D96CADF40D1161F0A1F70AFF = {
 			isa = PBXBuildFile;
 			fileRef = CB0C0CF3FB0B644777451690;
@@ -250,6 +254,10 @@
 		C1A686EC476EDE99E4B7ADBD = {
 			isa = PBXBuildFile;
 			fileRef = 2FDF6C6B8053394B4C9C39FA;
+		};
+		9964EE6360FC8BD23CDC4916 = {
+			isa = PBXBuildFile;
+			fileRef = 593479460F034450F196C69A;
 		};
 		425DF5B2B64A83C947A655C1 = {
 			isa = PBXBuildFile;
@@ -394,6 +402,14 @@
 		3C15921072A9890D2879C02B = {
 			isa = PBXBuildFile;
 			fileRef = BF1EC16D4C8FC7421E15C830;
+		};
+		5E6050FE3C31DCDBA20E5C47 = {
+			isa = PBXBuildFile;
+			fileRef = A1628152317BD07F58488339;
+		};
+		F2B83D5241833A5A1665F059 = {
+			isa = PBXBuildFile;
+			fileRef = AA4D4D6E40A926DB1340984D;
 		};
 		C19B646EB89486A9D9703686 = {
 			isa = PBXBuildFile;
@@ -571,6 +587,18 @@
 			isa = PBXBuildFile;
 			fileRef = 689727365E2712FFF35D8967;
 		};
+		BACF49B3EC7AE993A7E7EA64 = {
+			isa = PBXBuildFile;
+			fileRef = B8B8E344CC81D51E3EE2EA32;
+		};
+		05FB107F63D5C4930F1C05DE = {
+			isa = PBXBuildFile;
+			fileRef = E95A3F594095CB40119A162A;
+		};
+		F8DD9D748E93562A858F433A = {
+			isa = PBXBuildFile;
+			fileRef = 3B24D3EA1BA934C6462D12CB;
+		};
 		DBEB3EBD22E121DD8BC79ED8 = {
 			isa = PBXBuildFile;
 			fileRef = DF34DC0502A160A44B2E1476;
@@ -642,6 +670,10 @@
 		4B1AD9EC1C5C9E6929EE11AE = {
 			isa = PBXBuildFile;
 			fileRef = 4058E63ED1F4699E63158B1A;
+		};
+		53B6841BEA9454A84EE70EB2 = {
+			isa = PBXBuildFile;
+			fileRef = 224B5AD72E9898BF9BB2EAF8;
 		};
 		56622C66963EBA802B430AF6 = {
 			isa = PBXBuildFile;
@@ -1035,6 +1067,12 @@
 			path = MovieTracker/Core/Persistence/StoredViewingEvent.swift;
 			sourceTree = "<group>";
 		};
+		7BFEB57EC7FF6635B11C4CD6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "MovieTracker/Core/Statistics/DashboardAggregator+PersonalStatistics.swift";
+			sourceTree = "<group>";
+		};
 		CB0C0CF3FB0B644777451690 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1051,6 +1089,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Core/Statistics/DashboardSnapshot.swift;
+			sourceTree = "<group>";
+		};
+		593479460F034450F196C69A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Core/Statistics/PersonalStatisticsInput.swift;
 			sourceTree = "<group>";
 		};
 		75A230D2BEA83458F2CBE762 = {
@@ -1267,6 +1311,18 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Features/Profile/CreditsView.swift;
+			sourceTree = "<group>";
+		};
+		A1628152317BD07F58488339 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Profile/PersonalStatisticsModel.swift;
+			sourceTree = "<group>";
+		};
+		AA4D4D6E40A926DB1340984D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Profile/PersonalStatisticsView.swift;
 			sourceTree = "<group>";
 		};
 		9EE01B01EA00E101A0E4378C = {
@@ -1533,6 +1589,24 @@
 			path = MovieTrackerTests/PersonalRatingTests.swift;
 			sourceTree = "<group>";
 		};
+		B8B8E344CC81D51E3EE2EA32 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/PersonalStatisticsBenchmarks.swift;
+			sourceTree = "<group>";
+		};
+		E95A3F594095CB40119A162A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/PersonalStatisticsConcurrencyTests.swift;
+			sourceTree = "<group>";
+		};
+		3B24D3EA1BA934C6462D12CB = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/PersonalStatisticsTests.swift;
+			sourceTree = "<group>";
+		};
 		DF34DC0502A160A44B2E1476 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1639,6 +1713,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/NavigationTests.swift;
+			sourceTree = "<group>";
+		};
+		224B5AD72E9898BF9BB2EAF8 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/PersonalStatisticsUITests.swift;
 			sourceTree = "<group>";
 		};
 		3C3A0434E39AAE5E0737B7DA = {
@@ -1867,9 +1947,11 @@
 		F3D23D09BD07B4049BA46DBC = {
 			isa = PBXGroup;
 			children = (
+				7BFEB57EC7FF6635B11C4CD6,
 				CB0C0CF3FB0B644777451690,
 				72CF6F10E765B629283F21F9,
 				2FDF6C6B8053394B4C9C39FA,
+				593479460F034450F196C69A,
 			);
 			name = Statistics;
 			sourceTree = "<group>";
@@ -1983,6 +2065,8 @@
 			isa = PBXGroup;
 			children = (
 				BF1EC16D4C8FC7421E15C830,
+				A1628152317BD07F58488339,
+				AA4D4D6E40A926DB1340984D,
 				9EE01B01EA00E101A0E4378C,
 				601F83CD8B780AF9F3DFB580,
 			);
@@ -2084,6 +2168,9 @@
 				C3AF170ED521659262214CCD,
 				C237FF4E8F31348C51F4B8E4,
 				689727365E2712FFF35D8967,
+				B8B8E344CC81D51E3EE2EA32,
+				E95A3F594095CB40119A162A,
+				3B24D3EA1BA934C6462D12CB,
 				DF34DC0502A160A44B2E1476,
 				09530DA063AD6D28353BDC84,
 				F99AF792B85869771E997A91,
@@ -2109,6 +2196,7 @@
 				52086CCA2F397475D9DFBCC5,
 				FC89BE75F52B843C590F7239,
 				4058E63ED1F4699E63158B1A,
+				224B5AD72E9898BF9BB2EAF8,
 				3C3A0434E39AAE5E0737B7DA,
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
@@ -2331,9 +2419,11 @@
 				9271EEB2A4FD895FCF54EE64,
 				3957B05BE383450E628EB55D,
 				FF5FC52DF53BF945C993213C,
+				899B67B0BC9988F48D9E21A5,
 				D96CADF40D1161F0A1F70AFF,
 				2ADD13B8DC4770FC54071C71,
 				C1A686EC476EDE99E4B7ADBD,
+				9964EE6360FC8BD23CDC4916,
 				425DF5B2B64A83C947A655C1,
 				850578158B206C9D56E09F6D,
 				C52DAD7F460D432707BE2A27,
@@ -2370,6 +2460,8 @@
 				60C214BDE5FF0A6099AC769D,
 				BEEB6356C33E9E2723EC9313,
 				3C15921072A9890D2879C02B,
+				5E6050FE3C31DCDBA20E5C47,
+				F2B83D5241833A5A1665F059,
 				C19B646EB89486A9D9703686,
 				97BAD03874F4A1082CD485E8,
 				B1D08BBB463C0F220E8F6D18,
@@ -2419,6 +2511,9 @@
 				ED7C6F2517C4550E15D867D8,
 				277885EEBA314EFBB048231D,
 				C5BC27B4F6927F83D51EF9C8,
+				BACF49B3EC7AE993A7E7EA64,
+				05FB107F63D5C4930F1C05DE,
+				F8DD9D748E93562A858F433A,
 				DBEB3EBD22E121DD8BC79ED8,
 				FF9338EDCB5DA8CEBFC645FC,
 				9C404E772AD12FFA35FDE5E0,
@@ -2444,6 +2539,7 @@
 				28E4B92F389400FDED0B5271,
 				9D4E1B14CB6D21304CA27799,
 				4B1AD9EC1C5C9E6929EE11AE,
+				53B6841BEA9454A84EE70EB2,
 				56622C66963EBA802B430AF6,
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
