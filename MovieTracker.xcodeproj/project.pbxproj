@@ -307,6 +307,14 @@
 			isa = PBXBuildFile;
 			fileRef = 829A9826B147AE518D87EF01;
 		};
+		7FC2D17E648DD77844EA07ED = {
+			isa = PBXBuildFile;
+			fileRef = 3BFB78D60D1D8535C449AA44;
+		};
+		26EE44A0AFFDA691DAEDF183 = {
+			isa = PBXBuildFile;
+			fileRef = 610F44BC96DFE06E1A16D607;
+		};
 		990A7DE3F376911AC8A49E0D = {
 			isa = PBXBuildFile;
 			fileRef = 73E2019F70F5ABC20D2E9DA1;
@@ -511,6 +519,10 @@
 			isa = PBXBuildFile;
 			fileRef = B5EDEE67D13F2D163FA02984;
 		};
+		7DE5CBFB9A8852543DEDB73E = {
+			isa = PBXBuildFile;
+			fileRef = D9F1CCE9030389EB9552537A;
+		};
 		CEFBEF59132121E7D833C3B1 = {
 			isa = PBXBuildFile;
 			fileRef = C4386E0EA40DF302178F50D0;
@@ -586,6 +598,10 @@
 		28E4B92F389400FDED0B5271 = {
 			isa = PBXBuildFile;
 			fileRef = 52086CCA2F397475D9DFBCC5;
+		};
+		9D4E1B14CB6D21304CA27799 = {
+			isa = PBXBuildFile;
+			fileRef = FC89BE75F52B843C590F7239;
 		};
 		4B1AD9EC1C5C9E6929EE11AE = {
 			isa = PBXBuildFile;
@@ -1077,6 +1093,18 @@
 			path = MovieTracker/Features/Diary/DiaryDates.swift;
 			sourceTree = "<group>";
 		};
+		3BFB78D60D1D8535C449AA44 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Diary/MovieWatchLogModel.swift;
+			sourceTree = "<group>";
+		};
+		610F44BC96DFE06E1A16D607 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Diary/MovieWatchLogView.swift;
+			sourceTree = "<group>";
+		};
 		73E2019F70F5ABC20D2E9DA1 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1383,6 +1411,12 @@
 			path = MovieTrackerTests/MigrationFixtures.swift;
 			sourceTree = "<group>";
 		};
+		D9F1CCE9030389EB9552537A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/MovieWatchLogTests.swift;
+			sourceTree = "<group>";
+		};
 		C4386E0EA40DF302178F50D0 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1495,6 +1529,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/MediaDetailTests.swift;
+			sourceTree = "<group>";
+		};
+		FC89BE75F52B843C590F7239 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/MovieWatchLogUITests.swift;
 			sourceTree = "<group>";
 		};
 		4058E63ED1F4699E63158B1A = {
@@ -1783,6 +1823,8 @@
 			isa = PBXGroup;
 			children = (
 				829A9826B147AE518D87EF01,
+				3BFB78D60D1D8535C449AA44,
+				610F44BC96DFE06E1A16D607,
 				73E2019F70F5ABC20D2E9DA1,
 				C313C3C2E1EFA394E2A771EA,
 				F963EFB5DF9A8AB942126BFE,
@@ -1919,6 +1961,7 @@
 				C1CC26B5B6B178276A7915D7,
 				B81324B268526137D62C7010,
 				B5EDEE67D13F2D163FA02984,
+				D9F1CCE9030389EB9552537A,
 				C4386E0EA40DF302178F50D0,
 				8D31FAE0ACC2BA15B4B46C3F,
 				D7445E3F033D3BCA696F7B13,
@@ -1945,6 +1988,7 @@
 				EA6819FA204CDE02F3C88014,
 				B5B925089E8A469E28996E41,
 				52086CCA2F397475D9DFBCC5,
+				FC89BE75F52B843C590F7239,
 				4058E63ED1F4699E63158B1A,
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
@@ -2183,6 +2227,8 @@
 				EB3E83719A3BEF0CA8E04E1C,
 				CBB6DFD48839F049FA460158,
 				DB62E357F2EF0E4ED93BA2B3,
+				7FC2D17E648DD77844EA07ED,
+				26EE44A0AFFDA691DAEDF183,
 				990A7DE3F376911AC8A49E0D,
 				E47151AECD30112C45519ABD,
 				D51DADEF638BF265EEC3EF63,
@@ -2239,6 +2285,7 @@
 				F854A923620C0015C05B6330,
 				4EE69157CD9BD7BF9C1B0FA4,
 				739FCE6E60221D6A773C58E0,
+				7DE5CBFB9A8852543DEDB73E,
 				CEFBEF59132121E7D833C3B1,
 				EAAE120F0C8CB1BBFAFC340D,
 				BD418AC14BEB281ADB498BB6,
@@ -2265,6 +2312,7 @@
 				A2191715CBDCC79FB6A10445,
 				0650B6B6EFABD33659C9A18E,
 				28E4B92F389400FDED0B5271,
+				9D4E1B14CB6D21304CA27799,
 				4B1AD9EC1C5C9E6929EE11AE,
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,

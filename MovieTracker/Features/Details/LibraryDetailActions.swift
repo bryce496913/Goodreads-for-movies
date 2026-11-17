@@ -6,6 +6,7 @@ struct LibraryDetailActions: View {
     @Environment(LibraryStore.self) private var library
     @State private var errorMessage: String?
     @State private var confirmRemoval = false
+    @State private var loggingWatch = false
 
     private var item: SearchItem { SearchItem(media) }
     private var entry: StoredLibraryEntry? { library.entry(for: item.id) }
@@ -13,8 +14,12 @@ struct LibraryDetailActions: View {
     var body: some View {
         DetailSection(title: "Your library") {
             if let error = library.loadError { Text(error.localizedDescription).foregroundStyle(.secondary) }
+            if item.id.kind == .movie {
+                Button(library.events(for: item.id).isEmpty && entry?.status != LibraryStatus.watched.rawValue ? "Log a Watch" : "Log Again", systemImage: "plus.circle") { loggingWatch = true }
+                    .buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true)).accessibilityIdentifier("watch.open")
+            }
             ViewingStatusSelector(status: entry.flatMap { LibraryStatus(rawValue: $0.status) },
-                currentLabel: entry?.statusLabel ?? "Not in your library", supportsWatching: item.id.kind == .tvShow, canClear: entry != nil && entry?.status != "none") { status in
+                currentLabel: entry?.statusLabel ?? "Not in your library", supportsWatching: item.id.kind == .tvShow, canClear: entry != nil && entry?.status != "none", emphasis: item.id.kind == .movie ? .secondary : .primary) { status in
                     perform { try library.setStatus(status, media: media, posterURL: posterURL) }
                 }
             FavoriteAction(selected: entry?.isFavorite == true) {
@@ -28,6 +33,9 @@ struct LibraryDetailActions: View {
                 Button("Remove from Library", role: .destructive) { confirmRemoval = true }
                     .appDestructiveAction().accessibilityIdentifier("library.removeAction")
             }
+        }
+        .sheet(isPresented: $loggingWatch) {
+            MovieWatchLogView(media: media, rating: Result { try library.entry(for: item.id)?.validatedRating() }).appEditorSheet()
         }
         .confirmationDialog("Remove this title from your library?", isPresented: $confirmRemoval, titleVisibility: .visible) {
             Button("Remove from Library", role: .destructive) { perform { try library.remove(item.id) } }

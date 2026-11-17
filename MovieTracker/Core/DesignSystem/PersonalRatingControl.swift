@@ -3,6 +3,7 @@ import SwiftUI
 /// One native menu edits precise half-star values; decorative stars never require tapping.
 struct PersonalRatingControl: View {
     let current: () throws -> PersonalRating?
+    var savesImmediately = true
     let save: (PersonalRating?) throws -> Void
     @State private var errorMessage: String?
     @State private var saved = false
@@ -57,7 +58,7 @@ struct PersonalRatingControl: View {
             .accessibilityLabel("Edit personal rating")
             .accessibilityValue(invalidStoredValue ? "Stored rating unavailable" : selected?.label ?? "Unrated")
             .accessibilityIdentifier("rating.picker")
-            if saved { Text("Saved").font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText).accessibilityIdentifier("rating.saved") }
+            if saved && savesImmediately { Text("Saved").font(AppStyle.Typography.caption).foregroundStyle(AppStyle.Colors.secondaryText).accessibilityIdentifier("rating.saved") }
         }
         .alert("Rating could not be saved", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }

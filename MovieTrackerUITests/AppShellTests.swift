@@ -116,16 +116,16 @@ final class AppShellUITests: XCTestCase {
 
     @MainActor func testViewingSheetCancelDoesNotCreateHistory() {
         let app = launch(); openDetails(in: app)
-        tap(app.buttons["diary.record"], in: app)
-        XCTAssertTrue(app.buttons["diary.cancel"].waitForExistence(timeout: 5))
-        app.buttons["diary.cancel"].tap() // Pristine sheet closes without a discard dialog.
-        assertGone(app.navigationBars["Record Viewing"])
-        tap(app.buttons["diary.record"], in: app)
-        let known = app.switches["diary.dateKnown"]
+        tap(app.buttons["watch.open"], in: app)
+        XCTAssertTrue(app.buttons["watch.cancel"].waitForExistence(timeout: 5))
+        app.buttons["watch.cancel"].tap() // Pristine sheet closes without a discard dialog.
+        assertGone(app.navigationBars["Log a Watch"])
+        tap(app.buttons["watch.open"], in: app)
+        let known = app.switches["watch.dateKnown"]
         XCTAssertTrue(known.waitForExistence(timeout: 5)); known.tap()
-        app.buttons["diary.cancel"].tap()
+        app.buttons["watch.cancel"].tap()
         XCTAssertTrue(app.buttons["Discard Changes"].waitForExistence(timeout: 5)); app.buttons["Discard Changes"].tap()
-        assertGone(app.navigationBars["Record Viewing"])
+        assertGone(app.navigationBars["Log a Watch"])
         select("Library", in: app); openLibrarySection("diary.open", in: app)
         XCTAssertTrue(find("history.empty", in: app).waitForExistence(timeout: 5))
     }

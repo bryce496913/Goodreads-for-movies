@@ -146,6 +146,7 @@ struct ViewingStatusSelector: View {
     let currentLabel: String
     let supportsWatching: Bool
     let canClear: Bool
+    var emphasis: AppActionStyle.Emphasis = .primary
     let change: (LibraryStatus?) -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
@@ -159,7 +160,7 @@ struct ViewingStatusSelector: View {
                 option("Clear viewing status", value: nil, identifier: "library.clearStatus")
                     .disabled(!canClear)
             } label: { Label("Viewing status", systemImage: "bookmark") }
-            .buttonStyle(AppActionStyle(emphasis: .primary, fillsWidth: true))
+            .buttonStyle(AppActionStyle(emphasis: emphasis, fillsWidth: true))
             .accessibilityValue(currentLabel)
             .accessibilityIdentifier("library.statusSelector")
         }

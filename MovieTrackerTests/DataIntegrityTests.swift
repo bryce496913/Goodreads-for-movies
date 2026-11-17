@@ -9,7 +9,7 @@ final class DataIntegrityTests: XCTestCase {
         try files.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? files.removeItem(at: directory) }
         let media = MediaSearchResult.movie(Movie(id: "fixture:nested", title: "Original")), id = MediaID(kind: .movie, value: "fixture:nested")
-        for action in ["transaction", "mutation", "remove", "restore"] {
+        for action in ["transaction", "mutation", "remove", "restore", "watchLog"] {
             let url = directory.appendingPathComponent(action + ".store")
             try autoreleasepool {
                 let container = try PersistenceController.makeContainer(at: url)
@@ -26,6 +26,8 @@ final class DataIntegrityTests: XCTestCase {
                     case "transaction": try store.saveCollection(name: "Nested")
                     case "mutation": try store.setFavorite(true, media: media)
                     case "remove": try store.remove(id)
+                    case "watchLog":
+                        try store.logMovieWatch(MovieWatchLog(eventID: UUID(), reviewID: UUID(), watchedDate: nil, rating: .unchanged, review: nil), media: media)
                     default: try store.restorePersonalBackup(plan)
                     }
                     throw LibraryStoreError.saveFailed

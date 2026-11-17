@@ -76,6 +76,49 @@ extension LibraryStore {
         }
     }
 
+    /// Coordinated movie logging stages existing entities under ONE committing boundary.
+    /// Public saveViewingEvent/saveReview/setPersonalRating/setStatus must never be nested here.
+    func logMovieWatch(_ log: MovieWatchLog, media: MediaSearchResult, now: Date = .now, timeZone: TimeZone = .current) throws {
+        if let loadError { throw loadError }
+        let identity = SearchItem(media).id
+        guard identity.kind == .movie, !identity.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, identity.value.utf8.count <= 1_024 else { throw DiaryError.identityMismatch }
+        guard now.timeIntervalSinceReferenceDate.isFinite, log.watchedDate?.timeIntervalSinceReferenceDate.isFinite != false else { throw DiaryError.invalidDate }
+        var utc = Calendar(identifier: .gregorian); utc.timeZone = .gmt
+        let watched = log.watchedDate.map { utc.startOfDay(for: $0) }
+        if let watched, watched > DiaryDates.storageDate(from: now, timeZone: timeZone) { throw DiaryError.invalidDate }
+        if let text = log.review {
+            guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw DiaryError.emptyReview }
+            guard text.utf8.count <= 1_048_576 else { throw DiaryError.reviewTooLong }
+        }
+        try writeTransaction { context in
+            if let existing = try diaryEvent(log.eventID, in: context) {
+                guard existing.mediaID == identity else { throw DiaryError.identityMismatch }
+                return // Retry/double submission cannot create another event or overwrite later personal edits.
+            }
+            let existed = try diaryLibraryEntry(for: identity) != nil
+            let safeMedia = MetadataPolicy.forDisplay(preferredMetadata(media), at: metadataClock())
+            let entry = try ensureLibraryEntry(media: safeMedia)
+            if !existed { entry.addedAt = now; entry.updatedAt = now }
+            let statusChanged = entry.status != LibraryStatus.watched.rawValue
+            entry.status = LibraryStatus.watched.rawValue
+            var ratingChanged = false
+            if case .set(let rating) = log.rating {
+                ratingChanged = entry.ratingHalfStarUnits != rating?.halfStarUnits || entry.rating != rating?.stars
+                if ratingChanged {
+                    entry.ratingHalfStarUnits = rating?.halfStarUnits
+                    entry.rating = rating?.stars // Store-owned legacy compatibility mirror, matching the existing rating writer.
+                    entry.ratingUpdatedAt = now
+                }
+            }
+            if statusChanged || ratingChanged { entry.updatedAt = max(now, entry.updatedAt) }
+            context.insert(try StoredViewingEvent(id: log.eventID, media: safeMedia, watchedDate: watched, recordedAt: now))
+            if let text = log.review {
+                guard try diaryReview(log.reviewID, in: context) == nil else { throw DiaryError.identityMismatch }
+                context.insert(try StoredPersonalReview(id: log.reviewID, media: safeMedia, text: text, createdAt: now, viewingEventID: log.eventID))
+            }
+        }
+    }
+
     func deleteViewingEvent(_ id: UUID) throws {
         try writeTransaction { context in
             guard let event = try diaryEvent(id, in: context) else { return }
@@ -101,9 +144,10 @@ extension LibraryStore {
 }
 
 enum DiaryError: Error, LocalizedError {
-    case emptyReview, identityMismatch, eventUnavailable, eventHasReview, legacyChanged, invalidDate
+    case emptyReview, reviewTooLong, identityMismatch, eventUnavailable, eventHasReview, legacyChanged, invalidDate
     var errorDescription: String? {
         switch self {
+        case .reviewTooLong: "Keep your review within 1 MB of text so it can be backed up safely."
         case .emptyReview: "Enter review text before saving."
         case .identityMismatch: "This record belongs to a different title. No changes were made."
         case .eventUnavailable: "The selected viewing or saved title is no longer available. Choose another viewing or no association."

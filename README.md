@@ -159,3 +159,7 @@ Library → **What Should I Watch?** makes a random local pick from your Watchli
 V0.6 collection, discovery and direct-episode controls now share clearer action hierarchy, explicit removal confirmations, accessible reorder alternatives and keyboard dismissal. See the [UI audit, accessibility changes and local regression checklist](docs/V06_UI_INTEGRATION.md); native runtime validation remains pending.
 
 Pass 036 classification: **READY PENDING XCODE VALIDATION**. See [pre-device hardening](docs/PRE_DEVICE_HARDENING.md) for transaction reentry protection, explicit Library/collection removal scope, membership-only offline navigation and remaining native validation gates.
+
+## Fast movie watch logging
+
+Movie Details → **Log a Watch** combines an optional date, overall personal half-star rating and a new private review in one atomic save. **Log Again** adds an independent rewatch while preserving untouched ratings and earlier reviews. See [transaction design, offline behavior and unrun native tests](docs/FAST_WATCH_LOGGING.md).
