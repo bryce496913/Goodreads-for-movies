@@ -9,6 +9,67 @@ final class CollectionTests: XCTestCase {
     }
     @MainActor private func makeStore() throws -> LibraryStore { LibraryStore(container: try PersistenceController.makeContainer(inMemory: true)) }
 
+    @MainActor func testSharedCollectionReferencesSurviveMainRemovalAndPersonalOnlyDiskRestore() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let sourceURL = directory.appendingPathComponent("Source.store"), targetURL = directory.appendingPathComponent("Target.store")
+        let movie = media(1), identity = SearchItem(movie).id, other = media(2)
+        var exported: Data?
+        var first = UUID(), second = UUID(), order: [UUID] = []
+        let instant = now
+        try autoreleasepool {
+            let store = LibraryStore(container: try PersistenceController.makeContainer(at: sourceURL))
+            first = try store.saveCollection(name: "A"); second = try store.saveCollection(name: "B")
+            try store.setCollectionMembership(true, collection: first, media: movie)
+            try store.setCollectionMembership(true, collection: second, media: movie)
+            XCTAssertEqual(store.entry(for: identity)?.status, "none")
+            try store.setCollectionMembership(true, collection: first, media: other)
+            let original = store.members(of: first).map(\.id)
+            try store.reorderCollection(first, memberships: Array(original.reversed()), original: original)
+            order = store.members(of: first).map(\.id)
+            try store.setPersonalRating(PersonalRating(halfStarUnits: 8), media: movie)
+            try store.setStatus(.watched, media: movie)
+            try store.setFavorite(true, media: movie)
+            try store.saveReview(id: LargeLibraryFixtures.uuid(800), media: movie, text: "Preserved private review", now: instant)
+            try store.saveViewingEvent(id: LargeLibraryFixtures.uuid(801), media: movie, watchedDate: nil, now: instant)
+            try store.remove(identity)
+            XCTAssertNil(store.entry(for: identity)) // Models the documented confirmed entry/rating/status/favorite removal scope.
+            XCTAssertEqual(store.members(of: first).map(\.id), order)
+            XCTAssertTrue(store.isInCollection(second, mediaID: identity))
+            let saved = try XCTUnwrap(store.offlineMedia(for: identity))
+            XCTAssertEqual(SearchItem(saved).id, identity) // Same typed route still opens through a collection.
+            XCTAssertEqual(store.reviews(for: identity).first?.text, "Preserved private review")
+            XCTAssertEqual(store.events(for: identity).count, 1)
+            exported = try BackupCodec.encode(store.capturePersonalBackup(at: instant))
+        }
+        let decoded = try BackupCodec.decode(XCTUnwrap(exported))
+        XCTAssertFalse(decoded.library.contains { $0.mediaID == identity })
+        try autoreleasepool {
+            let target = LibraryStore(container: try PersistenceController.makeContainer(at: targetURL))
+            try target.restorePersonalBackup(BackupFixtures.plan(decoded, into: target))
+            XCTAssertNil(target.entry(for: identity)) // Restore must not silently recreate a removed personal row.
+            XCTAssertEqual(target.members(of: first).map(\.id), order)
+            XCTAssertTrue(target.isInCollection(second, mediaID: identity))
+            XCTAssertEqual(SearchItem(try XCTUnwrap(target.offlineMedia(for: identity))).id, identity)
+            XCTAssertEqual(target.reviews(for: identity).first?.text, "Preserved private review")
+            let repeatPlan = try BackupFixtures.plan(decoded, into: target)
+            XCTAssertEqual(repeatPlan.counts.total, 0); try target.restorePersonalBackup(repeatPlan)
+            let before = try target.capturePersonalBackup(at: instant)
+            try target.deleteCollection(first)
+            let after = try target.capturePersonalBackup(at: instant)
+            XCTAssertEqual(after.library, before.library); XCTAssertEqual(after.reviews, before.reviews)
+            XCTAssertEqual(after.viewings, before.viewings); XCTAssertEqual(after.episodeProgress, before.episodeProgress)
+            XCTAssertTrue(target.isInCollection(second, mediaID: identity))
+        }
+        try autoreleasepool {
+            let reopened = LibraryStore(container: try PersistenceController.makeContainer(at: targetURL))
+            XCTAssertNil(reopened.loadError); XCTAssertNil(reopened.entry(for: identity))
+            XCTAssertTrue(reopened.isInCollection(second, mediaID: identity))
+            XCTAssertEqual(reopened.reviews(for: identity).count, 1); XCTAssertEqual(reopened.events(for: identity).count, 1)
+        }
+    }
+
     @MainActor func testCreateRenameUnicodeAndCaseInsensitiveDuplicateNames() throws {
         let store = try makeStore()
         let id = try store.saveCollection(name: "  Café 🎬  ", now: now)
@@ -84,13 +145,41 @@ final class CollectionTests: XCTestCase {
         XCTAssertEqual(store.entry(for: id)?.status, "watched")
     }
 
-    @MainActor func testRemovalOfLibraryEntryKeepsCollectionReferenceAndPlaceholder() throws {
+    @MainActor func testRemovalOfLibraryEntryKeepsCollectionReferenceAndPlaceholder() async throws {
         let store = try makeStore(), id = try store.saveCollection(name: "References")
         let value = media(1), identity = SearchItem(value).id
         try store.setCollectionMembership(true, collection: id, media: value)
         try store.remove(identity)
         XCTAssertEqual(store.members(of: id).first?.mediaID, identity)
-        XCTAssertEqual(SearchItem(store.offlineMedia(for: identity) ?? MetadataPolicy.placeholderMedia(identity)).id, identity)
+        let saved = try XCTUnwrap(store.offlineMedia(for: identity))
+        XCTAssertEqual(SearchItem(saved).id, identity)
+        let model = SearchModel(service: nil).detailModel(for: MediaDestination(id: identity, title: SearchItem(saved).title, year: nil), savedMedia: saved)
+        await model.load(store: store)
+        XCTAssertEqual(model.snapshot.map { SearchItem($0.media).id }, identity)
+        XCTAssertNil(store.entry(for: identity)) // Routing must not recreate status/rating/favorite data.
+    }
+
+    @MainActor func testFailedMainRemovalPreservesCollectionsAndLegacyTextThenRetryImportsOnce() throws {
+        var fail = false
+        let store = LibraryStore(container: try PersistenceController.makeContainer(inMemory: true), save: { context in
+            if fail { throw LibraryStoreError.saveFailed }; try context.save()
+        })
+        let value = media(1), identity = SearchItem(value).id
+        let list = try store.saveCollection(name: "Keep reference")
+        try store.setCollectionMembership(true, collection: list, media: value)
+        try store.setPersonalRating(PersonalRating(halfStarUnits: 9), media: value)
+        try store.writeTransaction { _ in store.entry(for: identity)?.review = "Legacy private note" }
+        let before = try store.capturePersonalBackup(at: now), membership = store.members(of: list).map(\.id)
+        fail = true
+        XCTAssertThrowsError(try store.remove(identity))
+        XCTAssertEqual(try store.capturePersonalBackup(at: now).canonical(), before.canonical())
+        XCTAssertEqual(store.members(of: list).map(\.id), membership)
+        fail = false
+        try store.remove(identity); try store.remove(identity)
+        XCTAssertNil(store.entry(for: identity))
+        XCTAssertEqual(store.reviews(for: identity).map(\.text), ["Legacy private note"])
+        XCTAssertEqual(store.members(of: list).map(\.id), membership)
+        XCTAssertNotNil(store.offlineMedia(for: identity))
     }
 
     @MainActor func testCollectionSaveFailureRollsBackNameMembershipAndOrder() throws {

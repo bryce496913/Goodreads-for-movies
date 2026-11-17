@@ -36,6 +36,7 @@ final class LibraryStore {
     @ObservationIgnored var seasonEpisodeCache: [UUID: [TVEpisode]] = [:]
     @ObservationIgnored var watchedEpisodeIDs = Set<EpisodeID>()
     @ObservationIgnored var progressByEpisode: [EpisodeID: [StoredEpisodeProgress]] = [:]
+    @ObservationIgnored private var mutationInProgress = false
     @ObservationIgnored private let context: ModelContext
     @ObservationIgnored private let saveContext: (ModelContext) throws -> Void
 
@@ -116,6 +117,8 @@ final class LibraryStore {
     }
 
     func remove(_ id: MediaID) throws {
+        try beginMutation()
+        defer { mutationInProgress = false }
         do {
             guard let record = try uniqueRecord(for: id) else { return }
             if let legacy = record.review, !legacy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -135,6 +138,8 @@ final class LibraryStore {
 
     private func mutate(media: MediaSearchResult, status: LibraryStatus?, changesStatus: Bool,
                         favorite: Bool?, posterURL: URL?, rating: PersonalRating? = nil, changesRating: Bool = false) throws {
+        try beginMutation()
+        defer { mutationInProgress = false }
         let preferred = preferredMetadata(media)
         let incomingIsOlder = preferred != media
         let media = preferred
@@ -179,7 +184,16 @@ final class LibraryStore {
         }
     }
 
+    // Public mutation entry points own one save/rollback boundary. Helpers such as
+    // ensureLibraryEntry may stage changes, but must not invoke another committing writer.
+    private func beginMutation() throws {
+        guard !mutationInProgress else { throw LibraryStoreError.nestedMutation }
+        mutationInProgress = true
+    }
+
     func writeTransaction(_ operation: (ModelContext) throws -> Void) throws {
+        try beginMutation()
+        defer { mutationInProgress = false }
         do {
             try operation(context)
             if metadataPolicyEnabled { try MetadataPurger.purge(context, at: metadataClock()) }
@@ -330,9 +344,10 @@ final class LibraryStore {
 }
 
 enum LibraryStoreError: Error, LocalizedError {
-    case readFailed, saveFailed, duplicateRecords, invalidIdentity, invalidStatus, integrityViolation
+    case readFailed, saveFailed, duplicateRecords, invalidIdentity, invalidStatus, integrityViolation, nestedMutation
     var errorDescription: String? {
         switch self {
+        case .nestedMutation: "A library change attempted to save inside another change. Nothing from the nested operation was saved. Retry the action separately."
         case .integrityViolation: "Saved records have identity or association conflicts. No records were merged or deleted. Changes that introduce conflicts are rejected; preserve a safety backup before resolving existing records."
         case .readFailed: "Your library could not be read. Try loading it again."
         case .saveFailed: "Your library changes could not be saved. Your previous saved state has been restored. Try again."

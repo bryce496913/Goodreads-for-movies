@@ -32,7 +32,7 @@ struct LibraryDetailActions: View {
         .confirmationDialog("Remove this title from your library?", isPresented: $confirmRemoval, titleVisibility: .visible) {
             Button("Remove from Library", role: .destructive) { perform { try library.remove(item.id) } }
         } message: {
-            Text("This removes the saved library entry, rating, status and favorite. Written reviews, viewing history and episode progress are kept.")
+            Text("This removes the saved library entry, rating, status and favorite. Written reviews, viewing history, episode progress and collection memberships are kept. Collections retain this title by its saved identity; without cached metadata it may appear by ID.")
         }
         .alert("Library change failed", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) { errorMessage = nil }

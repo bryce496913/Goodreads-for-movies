@@ -17,10 +17,11 @@ extension LibraryStore {
         return best
     }
 
-    /// Imported personal-only records must route to local actions even for legacy/unknown namespaces.
+    /// Personal-only records and independent collection references must route to local actions,
+    /// even for legacy/unknown namespaces, without recreating a removed Library entry.
     func offlineMedia(for id: MediaID) -> MediaSearchResult? {
         if let media = cachedMedia(for: id) { return media }
-        guard entry(for: id) != nil || !events(for: id).isEmpty || !reviews(for: id).isEmpty || !seasons(for: id).isEmpty else { return nil }
+        guard entry(for: id) != nil || !events(for: id).isEmpty || !reviews(for: id).isEmpty || !seasons(for: id).isEmpty || collectionIDsByMedia[id]?.isEmpty == false else { return nil }
         return MetadataPolicy.placeholderMedia(id)
     }
 

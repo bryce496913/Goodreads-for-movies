@@ -60,3 +60,7 @@ No user database was reset, migrated in this Linux runtime, seeded, or deleted. 
 - Pass 018 adds manual personal-only JSON export and Keep Existing Data merge. Native document pickers, disk save-failure regressions and maximum-size responsiveness are unverified. Backups are plaintext and not automatic; invalid existing ratings/integrity errors block preparation. See [backup and restore](DATA_BACKUP_AND_RESTORE.md).
 
 Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.
+
+## Pass 036 pre-device follow-up
+
+**READY PENDING XCODE VALIDATION.** Nested committing writers could flush outer pending changes before rollback; a main-actor transaction ownership guard now rejects reentry before the nested save. Shared offline routing missed collection-only identities; indexed membership lookup now returns an identity placeholder. Main Library removal confirmation explicitly preserves collections and warns about ID-only display; it continues to explicitly remove the entry's rating/status/favorite. No new cascade, schema or backup-format change. Four new unit methods and strengthened offline coverage are authored, all native UNRUN. See [scope, tests, reviewed-correct paths and remaining data-integrity gates](PRE_DEVICE_HARDENING.md). Do not treat these source repairs as executed SwiftData or device validation.
