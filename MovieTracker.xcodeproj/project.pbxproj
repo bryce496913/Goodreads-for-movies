@@ -327,6 +327,14 @@
 			isa = PBXBuildFile;
 			fileRef = F963EFB5DF9A8AB942126BFE;
 		};
+		067252D30A12E327597E26A5 = {
+			isa = PBXBuildFile;
+			fileRef = 088FF327BCEF4CA7D0A5EA57;
+		};
+		7CC36BBFF5F8423F0708AD02 = {
+			isa = PBXBuildFile;
+			fileRef = C4919E2A0921B4E11F1E20C7;
+		};
 		CC111EF2F7CED785A61F9EDE = {
 			isa = PBXBuildFile;
 			fileRef = 7EF4B918D4210D288FAAF514;
@@ -334,6 +342,10 @@
 		05C793ACEB9A748DE5E8F49C = {
 			isa = PBXBuildFile;
 			fileRef = 65EE51CC52D3BC432A4AF0A6;
+		};
+		EAC1377D71C07CA07C21C2F8 = {
+			isa = PBXBuildFile;
+			fileRef = 4CDAC8E1B8835E906F0D3C1F;
 		};
 		7A6D716990EF312199BDEA52 = {
 			isa = PBXBuildFile;
@@ -563,6 +575,10 @@
 			isa = PBXBuildFile;
 			fileRef = 9D51F8C9A9D2C542DC312FF1;
 		};
+		C574A7EF96B3528AE5C98DD5 = {
+			isa = PBXBuildFile;
+			fileRef = 074568B55E2923A848643A86;
+		};
 		F9B4FF2922306DEC615D8174 = {
 			isa = PBXBuildFile;
 			fileRef = D57845DCB851BD56D2F02275;
@@ -618,6 +634,10 @@
 		D791B5429FD003B40A9E1320 = {
 			isa = PBXBuildFile;
 			fileRef = B0E7BCA76A4787B21A2BC9A3;
+		};
+		42E7E5233E7C49A296249873 = {
+			isa = PBXBuildFile;
+			fileRef = D99BBEEC00A9A39D2E4B26EC;
 		};
 		FB71EF481D215F024F99CDE0 = {
 			isa = PBXBuildFile;
@@ -1123,6 +1143,18 @@
 			path = MovieTracker/Features/Diary/ReviewEditor.swift;
 			sourceTree = "<group>";
 		};
+		088FF327BCEF4CA7D0A5EA57 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Diary/ViewingCalendarModel.swift;
+			sourceTree = "<group>";
+		};
+		C4919E2A0921B4E11F1E20C7 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Diary/ViewingCalendarUITestData.swift;
+			sourceTree = "<group>";
+		};
 		7EF4B918D4210D288FAAF514 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1133,6 +1165,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTracker/Features/Diary/ViewingHistoryView.swift;
+			sourceTree = "<group>";
+		};
+		4CDAC8E1B8835E906F0D3C1F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTracker/Features/Diary/ViewingMonthView.swift;
 			sourceTree = "<group>";
 		};
 		21C9AF015AD0ECF9B4E2911A = {
@@ -1477,6 +1515,12 @@
 			path = MovieTrackerTests/TVProgressTests.swift;
 			sourceTree = "<group>";
 		};
+		074568B55E2923A848643A86 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/ViewingCalendarTests.swift;
+			sourceTree = "<group>";
+		};
 		D57845DCB851BD56D2F02275 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1559,6 +1603,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		D99BBEEC00A9A39D2E4B26EC = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/ViewingCalendarUITests.swift;
 			sourceTree = "<group>";
 		};
 		EADB56403A5B995C99ABD6BF = {
@@ -1828,8 +1878,11 @@
 				73E2019F70F5ABC20D2E9DA1,
 				C313C3C2E1EFA394E2A771EA,
 				F963EFB5DF9A8AB942126BFE,
+				088FF327BCEF4CA7D0A5EA57,
+				C4919E2A0921B4E11F1E20C7,
 				7EF4B918D4210D288FAAF514,
 				65EE51CC52D3BC432A4AF0A6,
+				4CDAC8E1B8835E906F0D3C1F,
 			);
 			name = Diary;
 			sourceTree = "<group>";
@@ -1972,6 +2025,7 @@
 				F99AF792B85869771E997A91,
 				C03118EF5B2C2F275546DD44,
 				9D51F8C9A9D2C542DC312FF1,
+				074568B55E2923A848643A86,
 				D57845DCB851BD56D2F02275,
 			);
 			name = MovieTrackerTests;
@@ -1993,6 +2047,7 @@
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
 				B0E7BCA76A4787B21A2BC9A3,
+				D99BBEEC00A9A39D2E4B26EC,
 				EADB56403A5B995C99ABD6BF,
 			);
 			name = MovieTrackerUITests;
@@ -2232,8 +2287,11 @@
 				990A7DE3F376911AC8A49E0D,
 				E47151AECD30112C45519ABD,
 				D51DADEF638BF265EEC3EF63,
+				067252D30A12E327597E26A5,
+				7CC36BBFF5F8423F0708AD02,
 				CC111EF2F7CED785A61F9EDE,
 				05C793ACEB9A748DE5E8F49C,
+				EAC1377D71C07CA07C21C2F8,
 				7A6D716990EF312199BDEA52,
 				271D1F777D7D286DB41ABE59,
 				EA6C1C148B9D45F1A2371931,
@@ -2296,6 +2354,7 @@
 				9C404E772AD12FFA35FDE5E0,
 				BF192058C1105DE3DDF377DF,
 				896490EAAD1DA4FCDB5F7799,
+				C574A7EF96B3528AE5C98DD5,
 				F9B4FF2922306DEC615D8174,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2317,6 +2376,7 @@
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
 				D791B5429FD003B40A9E1320,
+				42E7E5233E7C49A296249873,
 				FB71EF481D215F024F99CDE0,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

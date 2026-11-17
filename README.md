@@ -163,3 +163,7 @@ Pass 036 classification: **READY PENDING XCODE VALIDATION**. See [pre-device har
 ## Fast movie watch logging
 
 Movie Details → **Log a Watch** combines an optional date, overall personal half-star rating and a new private review in one atomic save. **Log Again** adds an independent rewatch while preserving untouched ratings and earlier reviews. See [transaction design, offline behavior and unrun native tests](docs/FAST_WATCH_LOGGING.md).
+
+## Viewing calendar
+
+Viewing History now offers **List / Calendar**, a month view with per-day event counts, and an Undated-only List filter. Saved civil dates retain their day across time zones; selecting, editing and deleting uses the existing diary records and routes. See [calendar architecture, date limitations and local validation](docs/VIEWING_CALENDAR.md).
