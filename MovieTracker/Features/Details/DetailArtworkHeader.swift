@@ -39,7 +39,7 @@ struct DetailArtworkHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.medium) {
             if let url = resolver?.backdropURL(reference: backdropReference, size: .detail) {
-                DetailArtwork(title: item.title, kind: "Backdrop", url: url, aspectRatio: 16 / 9)
+                DetailArtwork(title: item.displayTitle, kind: "Backdrop", url: url, aspectRatio: 16 / 9)
             }
             if dynamicType.isAccessibilitySize {
                 poster.frame(maxWidth: 160)
@@ -54,15 +54,18 @@ struct DetailArtworkHeader: View {
     }
 
     private var poster: some View {
-        DetailArtwork(title: item.title, kind: "Poster",
+        DetailArtwork(title: item.displayTitle, kind: "Poster",
                       url: resolver?.posterURL(reference: item.posterReference, size: .card) ?? savedPosterURL, aspectRatio: 2 / 3)
     }
 
     private var title: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text(item.title).font(AppStyle.Typography.pageTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+            Text(item.displayTitle).font(AppStyle.Typography.pageTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader).accessibilityIdentifier("details.title")
             MediaTypeLabel(title: item.mediaType)
+            if item.title == MetadataPolicy.placeholder(item.id) {
+                Text("Reference: " + item.id.value).font(.caption).foregroundStyle(.secondary)
+            }
             if let year = item.year { Text(String(year)).font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import Observation
 import SwiftUI
 import UIKit
@@ -36,7 +37,7 @@ final class ProviderArtworkCache {
     private(set) var byteCount = 0
     private(set) var generation = UUID()
     private(set) var revision = 0
-    init(capacity: Int = 40, maximumBytes: Int = 40_000_000) {
+    init(capacity: Int = ProviderArtworkPolicy.memoryEntries, maximumBytes: Int = ProviderArtworkPolicy.memoryBytes) {
         self.capacity = max(1, capacity); self.maximumBytes = max(1, maximumBytes)
     }
     func image(_ url: URL, at now: Date = .now) -> UIImage? {
@@ -47,9 +48,19 @@ final class ProviderArtworkCache {
     }
     @discardableResult
     func save(_ data: Data, url: URL, at now: Date) -> Bool {
-        guard let url = ProviderArtworkURL.cacheURL(url), data.count <= 2_000_000, now.timeIntervalSinceReferenceDate.isFinite,
-              let image = UIImage(data: data), let pixels = image.cgImage,
-              pixels.width <= 2_048, pixels.height <= 2_048 else { return false }
+        guard let url = ProviderArtworkURL.cacheURL(url), !data.isEmpty,
+              data.count <= ProviderArtworkPolicy.maximumResponseBytes, now.timeIntervalSinceReferenceDate.isFinite,
+              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache as String: false] as CFDictionary),
+              CGImageSourceGetCount(source) == 1,
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any],
+              let width = (properties[kCGImagePropertyPixelWidth as String] as? NSNumber)?.intValue,
+              let height = (properties[kCGImagePropertyPixelHeight as String] as? NSNumber)?.intValue,
+              width > 0, height > 0,
+              width <= ProviderArtworkPolicy.maximumPixelDimension, height <= ProviderArtworkPolicy.maximumPixelDimension else { return false }
+        // Inspect encoded dimensions/frame count before UIKit can allocate a large decoded image.
+        let estimatedCost = data.count + width * height * 4
+        guard estimatedCost <= maximumBytes, let image = UIImage(data: data), let pixels = image.cgImage,
+              pixels.width == width, pixels.height == height else { return false }
         let cost = data.count + pixels.width * pixels.height * 4
         guard cost <= maximumBytes else { return false }
         remove(url); values[url] = Entry(image: image, fetched: now, cost: cost)

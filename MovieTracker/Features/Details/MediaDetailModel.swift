@@ -19,7 +19,13 @@ final class MediaDetailModel {
         return visible
     }
     private var lastRetrieved: Date?
-    private(set) var cachedPosterURL: URL?
+    private var retainedPosterURL: URL?
+    var cachedPosterURL: URL? { posterURL(at: clock()) }
+    func posterURL(at now: Date) -> URL? {
+        guard let value = storedSnapshot, MetadataPolicy.mayDisplay(value.media, at: now),
+              SearchItem(value.media).title != MetadataPolicy.placeholder(destination.id) else { return nil }
+        return retainedPosterURL
+    }
     var canRefresh: Bool { service != nil && MetadataRuntimeGate.blockingReason == nil }
     var availability: MetadataAvailability {
         .resolve(media: hasSavedMetadata ? storedSnapshot?.media : nil, lastRetrieved: lastRetrieved ?? storedSnapshot?.media.metadataRetrievedAt, at: clock())
@@ -32,6 +38,7 @@ final class MediaDetailModel {
     private(set) var isLoadingExtras = false
     private(set) var error: MetadataError?
     private(set) var wasCancelled = false
+    private(set) var persistenceErrorMessage: String?
     private(set) var castUnavailable = false
     private(set) var artworkUnavailable = false
 
@@ -63,6 +70,7 @@ final class MediaDetailModel {
         isLoading = true
         isLoadingExtras = false
         error = nil
+        persistenceErrorMessage = nil
         wasCancelled = false
         castUnavailable = false
         artworkUnavailable = false
@@ -75,7 +83,7 @@ final class MediaDetailModel {
                    storedSnapshot == nil || !hasSavedMetadata || (local.metadataRetrievedAt ?? .distantPast) > (storedSnapshot?.media.metadataRetrievedAt ?? .distantPast) {
                     storedSnapshot = .init(media: local)
                 }
-                cachedPosterURL = store.entry(for: destination.id)?.thumbnailURL
+                retainedPosterURL = store.entry(for: destination.id)?.thumbnailURL
             }
             let reuse = MetadataPolicy.isTMDB(destination.id) && !force && storedSnapshot.map { MetadataPolicy.mayDisplay($0.media, at: clock()) && !MetadataPolicy.refreshEligible($0.media.metadataRetrievedAt, at: clock()) } == true
             if reuse {
@@ -135,6 +143,8 @@ final class MediaDetailModel {
             isLoadingExtras = false
             if Task.isCancelled || error is CancellationError {
                 wasCancelled = true
+            } else if error is LibraryStoreError {
+                persistenceErrorMessage = "Updated information could not be saved. Your personal records are unchanged; retry when local storage is available."
             } else {
                 self.error = (error as? MetadataError) ?? .transport
                 if let providerError = error as? MetadataError, !providerError.isConfigurationFailure {
@@ -147,7 +157,7 @@ final class MediaDetailModel {
     func expireMetadata(at now: Date) {
         relatedTitles.expire(at: now)
         if let value = storedSnapshot, !MetadataPolicy.mayDisplay(value.media, at: now) {
-            hasCurrentMetadata = false; cachedPosterURL = nil
+            hasCurrentMetadata = false; retainedPosterURL = nil
             lastRetrieved = value.media.metadataRetrievedAt ?? lastRetrieved
             storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
         }
@@ -156,8 +166,10 @@ final class MediaDetailModel {
         guard MetadataPolicy.isTMDB(destination.id) else { return }
         hasCurrentMetadata = false
         generation = UUID(); storedSnapshot = .init(media: MetadataPolicy.placeholderMedia(destination.id))
-        cachedPosterURL = nil
+        retainedPosterURL = nil
         cache.clear(); isLoading = false; isLoadingExtras = false
+        error = nil; persistenceErrorMessage = nil; wasCancelled = false
+        castUnavailable = false; artworkUnavailable = false
         let resolved = SearchLaunchConfiguration.resolveService()
         service = resolved.service; configurationError = resolved.error
         relatedTitles.replaceService(resolved.service, configurationError: resolved.error)

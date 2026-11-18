@@ -20,6 +20,10 @@ enum MetadataPolicy {
     static func placeholder(_ id: MediaID) -> String {
         "Metadata unavailable — \(id.kind == .movie ? "movie" : "TV") \(id.value)"
     }
+    /// Presentation only: stable IDs and persisted placeholder strings remain unchanged.
+    static func presentationTitle(_ title: String, for id: MediaID) -> String {
+        title == placeholder(id) ? "Title information unavailable" : title
+    }
     static func mayDisplay(_ media: MediaSearchResult, at now: Date) -> Bool {
         !isTMDB(SearchItem(media).id) || isUsable(media.metadataRetrievedAt, at: now)
     }

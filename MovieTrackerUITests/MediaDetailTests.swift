@@ -80,12 +80,12 @@ final class MediaDetailUITests: XCTestCase {
         let title = app.staticTexts["details.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         XCTAssertGreaterThan(title.label.count, 100)
+        let refresh = app.buttons["details.retry"]
+        reveal(refresh, in: app)
+        XCTAssertTrue(refresh.isHittable)
         let synopsis = app.staticTexts["details.synopsis"]
         reveal(synopsis, in: app)
         XCTAssertGreaterThan(synopsis.label.count, 400)
-        let footer = app.buttons["details.retry"]
-        reveal(footer, in: app)
-        XCTAssertTrue(footer.isHittable)
         screenshot("Details — large text dark fixture", app: app)
     }
 
