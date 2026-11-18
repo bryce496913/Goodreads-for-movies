@@ -65,3 +65,8 @@ Repository totals are **477 unit/benchmark and 97 UI methods**. **Native XCTest,
 Owner validation: run the shared MovieTracker scheme's full Test action, including ArtworkMetadataRecoveryTests, MetadataRecoveryUITests, OfflineArtworkTests, OfflineReliabilityTests, MetadataLifecycleTests, TVProgressTests, Collection/Backup tests and existing Detail/UI tests. Use README's `xcodebuild test` command with an installed simulator, and isolated/copied data. Verify explicit sparse-detail recovery, airplane-mode/failed refresh, rate-limit waiting, missing/expired titles and posters, intact private actions/history/collection order, progress edits, cache clear while loading, credential changes and offline relaunch placeholders. Check compact/large screens, light/dark, largest Dynamic Type and VoiceOver. Persistent offline artwork must still be marked unavailable.
 
 Outstanding limitations: app-specific artwork rights/authorization, incomplete alternative-provider coverage/mapping, no guaranteed offline images after relaunch, buffered transport peak memory and main-actor UIKit decode profiling, dormant-device retention/deletion constraints and unverified native/runtime behavior. No legal certification or release-readiness claim; no merge or Pass 043.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

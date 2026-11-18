@@ -77,3 +77,8 @@ xcodebuild test -project MovieTracker.xcodeproj -scheme MovieTracker \
 UI tests use the existing DEBUG-only DashboardUITestImport with test-owned JSON and isolated in-memory persistence, never the real personal store. They attach an actual chart screenshot when executed. Manually check Profile/back navigation, changing years while calculation is active, dated/undated rewatches, rating edits, missing/expired genres, offline use and episode toggles followed by immediate return. Verify compact/large phones, light/dark, largest Dynamic Type, VoiceOver and high contrast. Charts have text labels plus complete native text rows and legends; values are not communicated only through color. No custom animations are added. Review chart rendering on native devices before accepting accessibility/layout criteria.
 
 No GitHub Xcode CI, merge, TestFlight action or Pass 042 is included.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

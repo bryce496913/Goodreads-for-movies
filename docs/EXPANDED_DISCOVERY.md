@@ -65,3 +65,8 @@ Manual checks with authorized local configuration:
 5. Check compact/large iPhones, light/dark, largest Dynamic Type, VoiceOver and Reduce Motion. Capture real Browse, genre, movie/TV and Similar screenshots; layout and runtime acceptance remain unverified until this is done.
 
 Known limitations: session-only discovery results, fixed English UI request locale, explicit 200-title Browse/20-title Similar bounds, single-page Trending, no new persistent artwork permission, and unverified native/runtime/live API behavior.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

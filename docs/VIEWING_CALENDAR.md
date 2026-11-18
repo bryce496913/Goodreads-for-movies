@@ -62,3 +62,8 @@ scripts/validate-v06.sh <installed-test-simulator-UUID>
 ```
 
 Run LargeLibraryBenchmarks in comparable Release conditions to measure grouping; no native baseline/updated timing is available here. Manually check Gregorian and another preferred calendar, Sunday/Monday week start, DST, west/east zones and year/leap boundaries. Verify current-month initial state, count/selected announcements, horizontal reachability on compact screens, vertical large-text flow, VoiceOver/Switch Control, light/dark/high contrast, native editor keyboard/save/cancel, separate repeat events, date edit relocation, one-event deletion and preserved reviews/ratings. Open movie/TV Details and return, switch tabs and switch List/Calendar; transient selection should remain until the History instance is replaced. Relaunch offline and verify saved events/groups rebuild while initial month resets to current; unknown dates remain unknown. Keep valuable databases intact. No merge or Pass 040.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

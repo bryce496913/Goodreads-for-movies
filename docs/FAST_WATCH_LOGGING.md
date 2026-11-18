@@ -59,3 +59,8 @@ xcodebuild test -project MovieTracker.xcodeproj -scheme MovieTracker \
 ```
 
 Verify default-today, past/undated watches, optional/changed/cleared/preserved ratings, new linked review versus general review, cancel/discard, double taps and injected failed saves. Confirm one movie/three events after three separate logs, existing review/favorite/collections remain, and Library/Home/Profile/Diary/Detail refresh. Test missing/expired metadata with networking unavailable, offline force-quit/relaunch, backup restore, compact/largest-text/light/dark/VoiceOver/Switch Control, keyboard Save/Cancel/Done and scrolling. Native date/timezone, transaction/rollback, migration and actual UI behavior still require Apple-framework evidence. Do not reset valuable user stores. No merge, TestFlight upload or Pass 039 was performed.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

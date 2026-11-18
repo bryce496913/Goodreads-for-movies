@@ -635,6 +635,14 @@
 			isa = PBXBuildFile;
 			fileRef = 9D51F8C9A9D2C542DC312FF1;
 		};
+		2841E9917308B9AB145D0CE0 = {
+			isa = PBXBuildFile;
+			fileRef = 046E9F5474A2AE959C7F6CEB;
+		};
+		F81C6066944DF7521658A1BD = {
+			isa = PBXBuildFile;
+			fileRef = D5C1E426D065E1219DE3AD8A;
+		};
 		C574A7EF96B3528AE5C98DD5 = {
 			isa = PBXBuildFile;
 			fileRef = 074568B55E2923A848643A86;
@@ -706,6 +714,10 @@
 		D791B5429FD003B40A9E1320 = {
 			isa = PBXBuildFile;
 			fileRef = B0E7BCA76A4787B21A2BC9A3;
+		};
+		3EBD8737ACACB4E40CF0B3CE = {
+			isa = PBXBuildFile;
+			fileRef = F754CD0F2AAE837CC74AF629;
 		};
 		42E7E5233E7C49A296249873 = {
 			isa = PBXBuildFile;
@@ -1677,6 +1689,18 @@
 			path = MovieTrackerTests/TVProgressTests.swift;
 			sourceTree = "<group>";
 		};
+		046E9F5474A2AE959C7F6CEB = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/V07IntegrationTests.swift;
+			sourceTree = "<group>";
+		};
+		D5C1E426D065E1219DE3AD8A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerTests/V07PerformanceBenchmarks.swift;
+			sourceTree = "<group>";
+		};
 		074568B55E2923A848643A86 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -1783,6 +1807,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = MovieTrackerUITests/TVProgressTests.swift;
+			sourceTree = "<group>";
+		};
+		F754CD0F2AAE837CC74AF629 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MovieTrackerUITests/V07JourneyUITests.swift;
 			sourceTree = "<group>";
 		};
 		D99BBEEC00A9A39D2E4B26EC = {
@@ -2220,6 +2250,8 @@
 				C03118EF5B2C2F275546DD44,
 				1341012E0956A926DE4A2146,
 				9D51F8C9A9D2C542DC312FF1,
+				046E9F5474A2AE959C7F6CEB,
+				D5C1E426D065E1219DE3AD8A,
 				074568B55E2923A848643A86,
 				D57845DCB851BD56D2F02275,
 			);
@@ -2245,6 +2277,7 @@
 				0D46D5A95FF1D42F933302E4,
 				99849B97A637DAB2F12043CD,
 				B0E7BCA76A4787B21A2BC9A3,
+				F754CD0F2AAE837CC74AF629,
 				D99BBEEC00A9A39D2E4B26EC,
 				EADB56403A5B995C99ABD6BF,
 			);
@@ -2567,6 +2600,8 @@
 				BF192058C1105DE3DDF377DF,
 				64F649671B1654CEE927FEDE,
 				896490EAAD1DA4FCDB5F7799,
+				2841E9917308B9AB145D0CE0,
+				F81C6066944DF7521658A1BD,
 				C574A7EF96B3528AE5C98DD5,
 				F9B4FF2922306DEC615D8174,
 			);
@@ -2592,6 +2627,7 @@
 				90556A0A7401AEB2C314D98B,
 				ED241ED78558D295D5E3EA53,
 				D791B5429FD003B40A9E1320,
+				3EBD8737ACACB4E40CF0B3CE,
 				42E7E5233E7C49A296249873,
 				FB71EF481D215F024F99CDE0,
 			);
