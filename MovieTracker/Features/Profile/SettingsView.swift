@@ -42,7 +42,7 @@ struct SettingsView: View {
             Section("Temporary Artwork") {
                 Text("Approximate memory use: " + ByteCountFormatter.string(fromByteCount: Int64(ProviderArtworkCache.shared.byteCount), countStyle: .memory))
                     .accessibilityIdentifier("settings.artworkSize")
-                Text("Artwork is kept only in memory and may need downloading again. It is not saved for offline relaunch. Clearing it preserves your personal data and saved text.")
+                Text(ProviderArtworkPolicy.settingsExplanation)
                     .font(AppStyle.Typography.metadata)
                 Button("Clear Temporary Artwork", role: .destructive) { confirmArtworkClear = true }
                     .appDestructiveAction()

@@ -7,6 +7,7 @@ struct SearchItem: Identifiable, Equatable, Sendable {
     let year: Int?
     let posterReference: String?
 
+    var displayTitle: String { MetadataPolicy.presentationTitle(title, for: id) }
     var mediaType: String { id.kind == .movie ? "Movie" : "TV Show" }
     var destination: MediaDestination { MediaDestination(id: id, title: title, year: year) }
 

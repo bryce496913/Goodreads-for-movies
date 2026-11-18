@@ -25,9 +25,12 @@ struct LibraryRow: View {
     }
     private var details: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.small) {
-            Text(item.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
+            Text(item.mediaID.map { MetadataPolicy.presentationTitle(item.title, for: $0) } ?? item.title).font(AppStyle.Typography.mediaTitle).foregroundStyle(AppStyle.Colors.primaryText).fixedSize(horizontal: false, vertical: true)
             Text([item.mediaLabel, item.year.map(String.init)].compactMap { $0 }.joined(separator: " · "))
                 .font(AppStyle.Typography.metadata).foregroundStyle(AppStyle.Colors.secondaryText)
+            if let id = item.mediaID, item.title == MetadataPolicy.placeholder(id) {
+                Text("Reference: " + id.value).font(.caption).foregroundStyle(.secondary)
+            }
             Label(item.statusLabel, systemImage: statusSymbol)
                 .font(AppStyle.Typography.metadata)
             PersonalRatingDisplay(rating: item.rating.value, label: item.rating.label)

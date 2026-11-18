@@ -22,7 +22,7 @@ struct DashboardTitleRow: View {
     }
     private var details: some View {
         VStack(alignment: .leading, spacing: AppStyle.Spacing.xSmall) {
-            Text(title.title).font(AppStyle.Typography.mediaTitle)
+            Text(MetadataPolicy.presentationTitle(title.title, for: title.id)).font(AppStyle.Typography.mediaTitle)
                 .foregroundStyle(AppStyle.Colors.primaryText)
                 .fixedSize(horizontal: false, vertical: true)
             Text([title.id.kind == .movie ? "Movie" : "TV Show", title.year.map(String.init)]
