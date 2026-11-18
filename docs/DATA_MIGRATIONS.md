@@ -112,3 +112,8 @@ Archive conversion now rejects symbolic-link roots/directories and linked/nonreg
 Archive-only folders are now revalidated on maintenance. Corrupt/unsupported recovery JSON and nonempty folders without a recognized archive are preserved and reported rather than silently treated as converted; three native revalidation regressions remain UNRUN.
 
 Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.

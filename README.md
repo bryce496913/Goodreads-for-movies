@@ -2,7 +2,11 @@
 
 A native, local-first iPhone foundation for tracking movies and television together. MovieTracker is a temporary working name. The app supplies navigation, accessible empty states, domain models, local persistence infrastructure, and an opt-in metadata service. Search now finds movie and TV metadata with authorized local TMDB configuration; titles can be saved locally with independent favorites and viewing statuses.
 
-## V0.6 stabilization status
+## V0.7 integration status
+
+**READY PENDING NATIVE TEST EXECUTION**, not V0.7 VALIDATED. Fast logging, Viewing Calendar, movie/TV Browse, Year in Review and metadata recovery are implemented; cross-feature regressions and supported static checks are ready for isolated owner-run testing. Native builds/XCTest, copied-store migrations, backup/relaunch, accessibility and profiling remain unverified for this revision. Persistent offline artwork stays **BLOCKED** with memory-only fallback. See the [V0.7 checklist](docs/V0.7_RELEASE_CHECKLIST.md), [test evidence/commands](docs/V0.7_TEST_PLAN.md), [release notes](docs/V0.7_RELEASE_NOTES.md) and [known issues](docs/KNOWN_ISSUES.md). App version/build and identity remain unchanged; no TestFlight upload or automatic merge.
+
+## Historical V0.6 stabilization status
 
 **READY FOR PERSONAL DEVICE VALIDATION**, not V0.6 VALIDATED. The implementation and available Linux static checks are ready for owner-run testing with isolated/copied data; all native XCTest, migration, offline-relaunch, accessibility and performance checks remain unrun. See the [V0.6 checklist](docs/V0.6_RELEASE_CHECKLIST.md), [test evidence and local commands](docs/V0.6_TEST_PLAN.md), and [release notes](docs/V0.6_RELEASE_NOTES.md). Persistent artwork remains explicitly blocked by its rights gate; only bounded memory caching/placeholders are implemented. Provider authorization remains an owner gate. **TestFlight is deferred and is not a V0.6 completion requirement.** App marketing version/build remains 0.5.0/12.
 

@@ -1,6 +1,19 @@
-# Known issues — V0.6 stabilization and V0.5 history
+# Known issues — V0.7 integration and historical releases
 
-## Current V0.6 disposition — Pass 035
+## Current V0.7 disposition — Pass 043
+
+**READY PENDING NATIVE TEST EXECUTION**, not V0.7 VALIDATED. See [V0.7 evidence and precise commands](V0.7_TEST_PLAN.md) and [acceptance checklist](V0.7_RELEASE_CHECKLIST.md). Source audit/static checks and authored integration regressions support isolated native validation; they do not establish safe runtime upgrades on valuable original data.
+
+| ID / severity | Finding | Disposition |
+| --- | --- | --- |
+| V07-001 / P1 evidence gate | No current-revision Xcode compile, full XCTest, copied-store migration, backup/relaunch or core accessibility/navigation execution is available in Linux. This is not an observed crash/test failure. | Native execution required before VALIDATED. Prior owner device passes apply to earlier code only. Stop/preserve data on migration/restore failure; never reset the store. |
+| V07-002 / blocked provider feature | Applicable durable/offline artwork rights remain unconfirmed; disk caching is not implemented. | Existing bounded memory/placeholder fallback only. Pass 042 rights/alternative-provider decision remains authoritative; do not count persistent artwork as completed. |
+| V07-003 / P2 evidence gap | Main-actor capture/purge/integrity/index costs, JSON/image decode/buffered HTTP memory and new UI/Charts layouts lack native profiling/accessibility evidence. | Existing large fixtures plus new Calendar/fast-log benchmarks are authored, timings UNRUN. Run compact/large/large-text/VoiceOver/light-dark checks and fix measured issues. |
+| V07-004 / P2 release limitation | No automatic cloud sync or guaranteed offline provider Browse/Similar/artwork after relaunch. | Personal workflows remain local; provider requests need network/authorized configuration. Use manual personal-only backups; no new service or provider added. |
+
+No additional confirmed unresolved P0/P1 **production source defect** was established in this bounded review. That is not proof of absence; V07-001 remains a real validation gate. The stabilization diff adds cross-feature tests, benchmark harnesses and evidence documentation without rewriting production behavior. Schema V3, seven-stage migration plan, portable v2/v1 backups, Pass 035 archive safety and Pass 036 transaction ownership are preserved.
+
+## Historical V0.6 disposition — Pass 035
 
 **READY FOR PERSONAL DEVICE VALIDATION. V0.6 VALIDATED is not established.** The fixed source finding below and passing Linux static checks support isolated owner-run Apple validation, not a claim of verified real-store upgrade safety. See [checklist](V0.6_RELEASE_CHECKLIST.md) and [actual test evidence](V0.6_TEST_PLAN.md). TestFlight, signing for distribution and uploads are deferred, not V0.6 completion gates.
 

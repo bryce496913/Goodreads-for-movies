@@ -141,3 +141,8 @@ Archive-only folders are now revalidated on maintenance. Corrupt/unsupported rec
 Safety snapshot creation also rejects a substituted symbolic-link backup root before writing private data; the linked-root regression verifies no external snapshot is created. Native execution remains UNRUN.
 
 Pass 036 adds a disk regression for export after removing a Library entry shared by two collections. v2 restores membership UUIDs/order, reviews and diary while preserving the intentional absence of that Library row/rating/status/favorite; repeat import stays idempotent. There is no backup-format change. Nested restore inside another committing operation is rejected before saving. All new native checks remain UNRUN; see [Pass 036 evidence](PRE_DEVICE_HARDENING.md).
+
+
+## V0.7 integration follow-up — Pass 043
+
+The [V0.7 test plan](V0.7_TEST_PLAN.md) maps this feature to existing and new cross-feature regressions and records current execution limits. Production behavior, migration definitions, metadata receipts and personal backup formats are unchanged in the stabilization pass. Supported cloud static checks pass; native functional, disk/relaunch, accessibility and performance results remain unverified for this revision. Persistent artwork remains separately blocked.
